@@ -1,57 +1,58 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Inter:wght@300;400;500;600&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Inter:wght@300;400;500;600&display=swap');
-
 @layer base {
   :root {
-    /* Vilaoro — minimalist editorial luxury */
-    --background: 39 38% 97%;          /* warm cream #faf8f3 */
-    --foreground: 0 0% 8%;              /* near black */
+    /* Villaoro — minimalist editorial luxury */
+    --background: 0 0% 100%;          /* pure white */
+    --foreground: 0 0% 0%;               /* pure black */
 
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 8%;
+    --card-foreground: 0 0% 0%;
 
-    --popover: 39 38% 97%;
-    --popover-foreground: 0 0% 8%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 0%;
 
-    --primary: 0 0% 8%;
-    --primary-foreground: 39 38% 97%;
+    --primary: 0 0% 0%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 36 22% 92%;
-    --secondary-foreground: 0 0% 8%;
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 0%;
 
-    --muted: 36 18% 90%;
-    --muted-foreground: 0 0% 45%;
+    --muted: 0 0% 98%;
+    --muted-foreground: 0 0% 40%;
 
-    --accent: 30 30% 50%;               /* warm bronze accent */
-    --accent-foreground: 39 38% 97%;
+    --accent: 0 0% 0%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 70% 45%;
-    --destructive-foreground: 39 38% 97%;
+    --destructive: 0 0% 0%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 36 14% 86%;
-    --input: 36 14% 86%;
-    --ring: 0 0% 8%;
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 0 0% 0%;
 
-    --sale: 0 60% 42%;                  /* discount red-brown */
+    --sale: 0 0% 0%;
 
     --radius: 0;                        /* sharp editorial */
 
-    --font-display: 'Cormorant Garamond', Georgia, serif;
+    --font-display: 'Inter', system-ui, sans-serif;
     --font-sans: 'Inter', system-ui, sans-serif;
 
-    --tracking-wide: 0.18em;
+    --tracking-wide: 0.05em;
+    --tracking-tight: -0.02em;
 
-    --sidebar-background: 39 38% 97%;
-    --sidebar-foreground: 0 0% 8%;
-    --sidebar-primary: 0 0% 8%;
-    --sidebar-primary-foreground: 39 38% 97%;
-    --sidebar-accent: 36 22% 92%;
-    --sidebar-accent-foreground: 0 0% 8%;
-    --sidebar-border: 36 14% 86%;
-    --sidebar-ring: 0 0% 8%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 0 0% 0%;
+    --sidebar-primary: 0 0% 0%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 0 0% 98%;
+    --sidebar-accent-foreground: 0 0% 0%;
+    --sidebar-border: 0 0% 94%;
+    --sidebar-ring: 0 0% 0%;
   }
 }
 
@@ -59,16 +60,41 @@
   * {
     @apply border-border;
   }
+  html {
+    scroll-behavior: smooth;
+  }
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-sans);
     font-weight: 300;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
+  
+  img {
+    image-rendering: -webkit-optimize-contrast;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+  }
+
   h1, h2, h3, h4 {
     font-family: var(--font-display);
     font-weight: 400;
     letter-spacing: -0.01em;
+  }
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .glass {
+    @apply bg-white/40 backdrop-blur-md border border-white/20;
   }
 }
 
@@ -82,16 +108,16 @@
     letter-spacing: var(--tracking-wide);
   }
   .product-card {
-    @apply bg-card relative flex flex-col;
+    @apply bg-transparent relative flex flex-col;
   }
   .product-card-image {
-    @apply relative overflow-hidden bg-secondary aspect-square;
+    @apply relative overflow-hidden bg-transparent aspect-square flex items-center justify-center;
   }
   .product-card-image img {
     @apply w-full h-full object-contain transition-transform duration-700 ease-out;
   }
   .product-card:hover .product-card-image img {
-    transform: scale(1.04);
+    transform: scale(1.05);
   }
   .sale-badge {
     @apply absolute top-4 left-4 text-xs;

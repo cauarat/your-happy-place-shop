@@ -18,7 +18,11 @@ export type Designer =
   | "Creed"
   | "Rimowa"
   | "Van"
-  | "Versace";
+  | "Versace"
+  | "Willy Chavarria"
+  | "Wales Bonner"
+  | "Rier"
+  | "Fear of God";
 
 export interface Product {
   id: string;
@@ -30,9 +34,57 @@ export interface Product {
   image: string;
   createdAt: number;
   rating: number;
+  removeBackground?: boolean;
+  originalImage?: string;
+  description?: string;
+  images?: string[];
 }
 
 export const products: Product[] = [
+  {
+    id: "9",
+    name: "adidas Originals Edition Chavarria Superstar Sneakers",
+    category: "Footwear",
+    designer: "Willy Chavarria",
+    price: 390,
+    image: "/images/willy_chavarria.png",
+    createdAt: 10,
+    rating: 4.9,
+    removeBackground: true,
+  },
+  {
+    id: "10",
+    name: "adidas Originals Edition Karintha OG Sneakers",
+    category: "Footwear",
+    designer: "Wales Bonner",
+    price: 425,
+    image: "/images/wales_bonner.png",
+    createdAt: 11,
+    rating: 4.8,
+    removeBackground: true,
+  },
+  {
+    id: "11",
+    name: "Salomon Edition XA Pro 3D Sneakers",
+    category: "Footwear",
+    designer: "Rier",
+    price: 390,
+    image: "/images/rier_salomon.png",
+    createdAt: 12,
+    rating: 4.7,
+    removeBackground: true,
+  },
+  {
+    id: "12",
+    name: "Navy Croc-Embossed Ankle Boots",
+    category: "Footwear",
+    designer: "Fear of God",
+    price: 1885,
+    image: "/images/fear_of_god.png",
+    createdAt: 13,
+    rating: 5.0,
+    removeBackground: true,
+  },
   {
     id: "1",
     name: "Brunello Cucinelle Brown Slides with buckles",
@@ -43,6 +95,7 @@ export const products: Product[] = [
     image: slidesBrown,
     createdAt: 8,
     rating: 4.8,
+    removeBackground: true,
   },
   {
     id: "2",
@@ -54,6 +107,7 @@ export const products: Product[] = [
     image: slidesGrey,
     createdAt: 7,
     rating: 4.6,
+    removeBackground: true,
   },
   {
     id: "3",
@@ -65,6 +119,7 @@ export const products: Product[] = [
     image: sneakerBlack,
     createdAt: 9,
     rating: 4.9,
+    removeBackground: true,
   },
   {
     id: "4",
@@ -76,6 +131,7 @@ export const products: Product[] = [
     image: sneakerBrown,
     createdAt: 6,
     rating: 4.7,
+    removeBackground: true,
   },
   {
     id: "5",
@@ -87,6 +143,7 @@ export const products: Product[] = [
     image: sweaterBeige,
     createdAt: 5,
     rating: 4.5,
+    removeBackground: true,
   },
   {
     id: "6",
@@ -98,6 +155,7 @@ export const products: Product[] = [
     image: bagBrown,
     createdAt: 4,
     rating: 4.9,
+    removeBackground: true,
   },
   {
     id: "7",
@@ -108,6 +166,7 @@ export const products: Product[] = [
     image: braceletGold,
     createdAt: 3,
     rating: 4.4,
+    removeBackground: true,
   },
   {
     id: "8",
@@ -119,11 +178,11 @@ export const products: Product[] = [
     image: beltBlack,
     createdAt: 2,
     rating: 4.6,
+    removeBackground: true,
   },
 ];
 
-export const categories: ("All" | Category)[] = [
-  "All",
+export const categories: Category[] = [
   "Clothing",
   "Accessories",
   "Footwear",
@@ -131,16 +190,19 @@ export const categories: ("All" | Category)[] = [
   "Jewelry",
 ];
 
-export const designers: ("All" | Designer)[] = [
-  "All",
+export const designers: Designer[] = [
   "Adidas",
   "Brunello",
   "Creed",
+  "Fear of God",
   "Golden",
   "Hermes",
   "Maison",
+  "Rier",
   "Rimowa",
   "Van",
   "Versace",
+  "Wales Bonner",
+  "Willy Chavarria",
   "Zegna",
 ];
