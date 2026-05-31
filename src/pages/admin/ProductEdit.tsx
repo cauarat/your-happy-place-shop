@@ -1,15 +1,15 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getProducts, saveProduct } from "@/lib/store";
+import { getProducts, saveProduct, getCategories, getDesigners } from "@/lib/store";
 import type { Product, Category, Designer } from "@/data/products";
-import { categories, designers } from "@/data/products";
-import { ArrowLeft, Save, Upload, Image as ImageIcon, Crop, X, Eraser, ArrowUp, ArrowDown, Trash2, CheckCircle2, ArrowRight } from "lucide-react";
+import { ArrowLeft, Save, Upload, Image as ImageIcon, Crop, X, Eraser, ArrowUp, ArrowDown, Trash2, CheckCircle2, ArrowRight, Plus, Film, FlipHorizontal, FlipVertical } from "lucide-react";
 import ProductCard from "@/components/ProductCard";
 import { toast } from "sonner";
 import Cropper from "react-easy-crop";
 import { getCroppedImg } from "@/lib/cropImage";
 import { removeBackground } from "@imgly/background-removal";
 import { compressImage } from "@/lib/compressImage";
+import { uploadToR2 } from "@/utils/cloudflareUpload";
 
 const defaultProduct: Product = {
   id: "",
@@ -22,6 +22,154 @@ const defaultProduct: Product = {
   rating: 5,
   removeBackground: false,
   images: [],
+  productLinks: [""],
+};
+
+/** Sample the four corner pixels of the original image to detect its background colour.
+ *  Returns an rgb() string so the canvas padding is invisible against the photo background. */
+const detectImageBackground = (img: HTMLImageElement): string => {
+  const sampleCanvas = document.createElement('canvas');
+  // Use a small sampling canvas for speed
+  const SW = Math.min(img.width, 600);
+  const SH = Math.min(img.height, 600);
+  sampleCanvas.width = SW;
+  sampleCanvas.height = SH;
+  const sctx = sampleCanvas.getContext('2d');
+  if (!sctx) return '#ffffff';
+  sctx.drawImage(img, 0, 0, SW, SH);
+
+  // Sample pixels at the four corners (3px inset to avoid JPEG artefacts)
+  const inset = 3;
+  const corners = [
+    sctx.getImageData(inset, inset, 1, 1).data,
+    sctx.getImageData(SW - inset - 1, inset, 1, 1).data,
+    sctx.getImageData(inset, SH - inset - 1, 1, 1).data,
+    sctx.getImageData(SW - inset - 1, SH - inset - 1, 1, 1).data,
+  ];
+
+  const r = Math.round(corners.reduce((s, c) => s + c[0], 0) / corners.length);
+  const g = Math.round(corners.reduce((s, c) => s + c[1], 0) / corners.length);
+  const b = Math.round(corners.reduce((s, c) => s + c[2], 0) / corners.length);
+
+  return `rgb(${r},${g},${b})`;
+};
+
+const standardizeImage = (base64: string): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      // Catalog standard is 3:4 (1500x2000 for high quality)
+      const targetWidth = 1500;
+      const targetHeight = 2000;
+      
+      const canvas = document.createElement('canvas');
+      canvas.width = targetWidth;
+      canvas.height = targetHeight;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        resolve(base64);
+        return;
+      }
+
+      // 1. Auto-detect the photo's own background colour and use it for padding
+      //    so borders are completely invisible against the product image background.
+      const bgColor = detectImageBackground(img);
+      ctx.fillStyle = bgColor;
+      ctx.fillRect(0, 0, targetWidth, targetHeight);
+
+      // 2. Intelligent framing: prevent cropping by scaling down into the safe area
+      const padding = targetWidth * 0.12; // 12% padding for premium breathing room
+      const availWidth = targetWidth - padding * 2;
+      const availHeight = targetHeight - padding * 2;
+
+      const scale = Math.min(availWidth / img.width, availHeight / img.height);
+      const scaledWidth = img.width * scale;
+      const scaledHeight = img.height * scale;
+
+      // 3. Perfect centering
+      const x = (targetWidth - scaledWidth) / 2;
+      const y = (targetHeight - scaledHeight) / 2;
+
+      // 4. Draw with max quality
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(img, x, y, scaledWidth, scaledHeight);
+      
+      // Output as high quality JPEG
+      resolve(canvas.toDataURL('image/jpeg', 0.95));
+    };
+    img.onerror = reject;
+    img.src = base64;
+  });
+};
+
+/** After a horizontal flip, text/logos become mirror-reversed and unreadable.
+ *  This function detects text regions in the readable (counter-flipped) orientation
+ *  and composites them back over the mirrored areas so branding stays legible. */
+const correctTextAfterHorizontalFlip = async (flippedBase64: string): Promise<string> => {
+  // TextDetector is available in Chrome 74+ (not Firefox/Safari)
+  if (!('TextDetector' in window)) return flippedBase64;
+
+  const loadImg = (src: string): Promise<HTMLImageElement> =>
+    new Promise((res, rej) => {
+      const i = new Image();
+      i.onload = () => res(i);
+      i.onerror = rej;
+      i.src = src;
+    });
+
+  try {
+    const flippedImg = await loadImg(flippedBase64);
+    const W = flippedImg.width;
+    const H = flippedImg.height;
+
+    // Working canvas — this will be our final output
+    const outCanvas = document.createElement('canvas');
+    outCanvas.width = W;
+    outCanvas.height = H;
+    const outCtx = outCanvas.getContext('2d')!;
+    outCtx.drawImage(flippedImg, 0, 0);
+
+    // Counter-flipped canvas — restores the original readable orientation
+    const origCanvas = document.createElement('canvas');
+    origCanvas.width = W;
+    origCanvas.height = H;
+    const origCtx = origCanvas.getContext('2d')!;
+    origCtx.save();
+    origCtx.translate(W, 0);
+    origCtx.scale(-1, 1);
+    origCtx.drawImage(flippedImg, 0, 0);
+    origCtx.restore();
+
+    // Detect text on the READABLE version (much more reliable than on mirrored text)
+    const detector = new (window as any).TextDetector();
+    const bitmap = await createImageBitmap(origCanvas);
+    const detections = await detector.detect(bitmap);
+
+    if (detections.length === 0) return flippedBase64;
+
+    const margin = 10; // px of safety padding around each text region
+    for (const det of detections) {
+      const { x, y, width: tw, height: th } = det.boundingBox;
+
+      // Expand with margin, clamped to canvas edges
+      const ox = Math.max(0, Math.round(x - margin));
+      const oy = Math.max(0, Math.round(y - margin));
+      const ow = Math.min(W - ox, Math.round(tw + margin * 2));
+      const oh = Math.min(H - oy, Math.round(th + margin * 2));
+
+      // Mirrored position in the flipped image
+      const fx = W - ox - ow;
+
+      // Stamp the readable text from origCanvas onto the flipped output at the mirrored position
+      outCtx.drawImage(origCanvas, ox, oy, ow, oh, fx, oy, ow, oh);
+    }
+
+    return outCanvas.toDataURL('image/jpeg', 0.95);
+  } catch {
+    // Graceful degradation — return the flipped image unchanged
+    return flippedBase64;
+  }
 };
 
 const AdminProductEdit = () => {
@@ -29,6 +177,8 @@ const AdminProductEdit = () => {
   const navigate = useNavigate();
   const isNew = id === "new";
   const [product, setProduct] = useState<Product>(defaultProduct);
+  const [dynamicCategories, setDynamicCategories] = useState<string[]>([]);
+  const [dynamicDesigners, setDynamicDesigners] = useState<string[]>([]);
   
   // Cropping state
   const [imageToCrop, setImageToCrop] = useState<string | null>(null);
@@ -37,6 +187,13 @@ const AdminProductEdit = () => {
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
   const [isCropping, setIsCropping] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [flipHorizontal, setFlipHorizontal] = useState(false);
+  const [flipVertical, setFlipVertical] = useState(false);
+
+  useEffect(() => {
+    setDynamicCategories(getCategories());
+    setDynamicDesigners(getDesigners());
+  }, []);
 
   useEffect(() => {
     if (!isNew && id) {
@@ -69,9 +226,20 @@ const AdminProductEdit = () => {
     const reader = new FileReader();
     reader.onload = async (e) => {
       const base64 = e.target?.result as string;
-      const compressed = await compressImage(base64);
-      setImageToCrop(compressed);
-      setIsCropping(true);
+      const loadingToast = toast.loading("Standardizing image for catalog...");
+      try {
+        const standardized = await standardizeImage(base64);
+        const compressed = await compressImage(standardized);
+        setImageToCrop(compressed);
+        setIsCropping(true);
+        toast.dismiss(loadingToast);
+      } catch (err) {
+        toast.dismiss(loadingToast);
+        toast.error("Standardization failed, using original.");
+        const compressed = await compressImage(base64);
+        setImageToCrop(compressed);
+        setIsCropping(true);
+      }
     };
     reader.readAsDataURL(file);
   };
@@ -84,31 +252,75 @@ const AdminProductEdit = () => {
     if (!imageToCrop || !croppedAreaPixels) return;
     
     try {
-      const croppedImage = await getCroppedImg(imageToCrop, croppedAreaPixels);
+      let croppedImage = await getCroppedImg(imageToCrop, croppedAreaPixels, { horizontal: flipHorizontal, vertical: flipVertical });
+
+      // If the image was flipped horizontally, try to restore any mirrored text/logos
+      // so branding stays readable after the flip.
+      if (flipHorizontal) {
+        if ('TextDetector' in window) {
+          const fixingToast = toast.loading("Correcting text orientation...");
+          croppedImage = await correctTextAfterHorizontalFlip(croppedImage);
+          toast.dismiss(fixingToast);
+        } else {
+          // Browser doesn't support TextDetector — warn the user
+          toast.warning("Text/logos on the product may appear mirrored. For best results, use Chrome.", { duration: 5000 });
+        }
+      }
+
       const compressed = await compressImage(croppedImage);
+      
+      setIsCropping(false);
+      setImageToCrop(null);
+      setFlipHorizontal(false);
+      setFlipVertical(false);
+      const loadingToast = toast.loading("Uploading image to Cloudflare...");
+      const r2Url = await uploadToR2(compressed);
+      toast.dismiss(loadingToast);
       
       setProduct(prev => {
         const newImages = [...(prev.images || [])];
-        newImages.push(compressed);
+        newImages.push(r2Url);
         return { 
           ...prev, 
-          image: prev.image || compressed, // Set as main if none exists
+          image: prev.image || r2Url, // Set as main if none exists
           images: newImages 
         };
       });
       
-      setIsCropping(false);
-      setImageToCrop(null);
-      toast.success("Image added to gallery.");
+      toast.success("Image uploaded to Cloudflare.");
     } catch (e) {
       console.error(e);
-      toast.error("Failed to crop image.");
+      toast.dismiss();
+      toast.error("Failed to process image.");
     }
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) handleImageFile(file);
+    if (!file) return;
+    
+    if (file.type.startsWith('video/')) {
+      handleVideoFile(file);
+    } else {
+      handleImageFile(file);
+    }
+  };
+
+  const handleVideoFile = (file: File) => {
+    if (file.size > 20 * 1024 * 1024) { // 20MB limit
+      toast.error("Video is too large. Please keep it under 20MB for optimal performance.");
+      return;
+    }
+
+    const loadingToast = toast.loading("Uploading cinematic video to Cloudflare...");
+    uploadToR2(file).then((r2Url) => {
+      setProduct(prev => ({ ...prev, video: r2Url }));
+      toast.dismiss(loadingToast);
+      toast.success("Video uploaded successfully to Cloudflare.");
+    }).catch(() => {
+      toast.dismiss(loadingToast);
+      toast.error("Failed to upload video to Cloudflare.");
+    });
   };
 
   const handleToggleBackgroundRemoval = async () => {
@@ -132,14 +344,24 @@ const AdminProductEdit = () => {
         reader.onloadend = async () => {
           const base64data = reader.result as string;
           const compressed = await compressImage(base64data);
-          setProduct(prev => ({
-            ...prev,
-            image: compressed,
-            originalImage: originalImage,
-            removeBackground: true
-          }));
+          
           toast.dismiss(loadingToast);
-          toast.success("Background removed by AI.");
+          const uploadToast = toast.loading("Uploading transparent image to Cloudflare...");
+          
+          try {
+            const r2Url = await uploadToR2(compressed);
+            setProduct(prev => ({
+              ...prev,
+              image: r2Url,
+              originalImage: originalImage,
+              removeBackground: true
+            }));
+            toast.dismiss(uploadToast);
+            toast.success("Background removed and uploaded to Cloudflare.");
+          } catch (e) {
+            toast.dismiss(uploadToast);
+            toast.error("Failed to upload transparent image to Cloudflare.");
+          }
           setIsProcessing(false);
         };
       } catch (error) {
@@ -263,6 +485,50 @@ const AdminProductEdit = () => {
                   />
                 </div>
 
+                  {/* Reference Links Section */}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-medium">Reference Links (Admin Only)</label>
+                      <button 
+                        type="button"
+                        onClick={() => setProduct(prev => ({ ...prev, productLinks: [...(prev.productLinks || []), ""] }))}
+                        className="text-[10px] uppercase tracking-widest text-primary hover:opacity-70 flex items-center gap-1"
+                      >
+                        <Plus className="w-3 h-3" /> Add Link
+                      </button>
+                    </div>
+                    <div className="space-y-3">
+                      {(product.productLinks || [""]).map((link, idx) => (
+                        <div key={idx} className="flex gap-2 group">
+                          <input
+                            type="url"
+                            placeholder="https://..."
+                            value={link}
+                            onChange={(e) => {
+                              const newLinks = [...(product.productLinks || [])];
+                              newLinks[idx] = e.target.value;
+                              setProduct(prev => ({ ...prev, productLinks: newLinks }));
+                            }}
+                            className="flex-1 bg-transparent border-b border-border py-2 text-xs outline-none focus:border-primary transition-colors"
+                          />
+                          {(product.productLinks?.length || 0) > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newLinks = (product.productLinks || []).filter((_, i) => i !== idx);
+                                setProduct(prev => ({ ...prev, productLinks: newLinks }));
+                              }}
+                              className="p-1 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-2 gap-8">
                   <div>
                     <label className="block text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-3 font-bold">Category</label>
@@ -272,7 +538,7 @@ const AdminProductEdit = () => {
                       value={product.category}
                       onChange={handleChange}
                     >
-                      {categories.filter(c => c !== "All").map(c => (
+                      {dynamicCategories.map(c => (
                         <option key={c} value={c} className="bg-background text-foreground">{c}</option>
                       ))}
                     </select>
@@ -285,7 +551,7 @@ const AdminProductEdit = () => {
                       value={product.designer}
                       onChange={handleChange}
                     >
-                      {designers.filter(d => d !== "All").map(d => (
+                      {dynamicDesigners.map(d => (
                         <option key={d} value={d} className="bg-background text-foreground">{d}</option>
                       ))}
                     </select>
@@ -379,7 +645,7 @@ const AdminProductEdit = () => {
                   type="file"
                   id="image-upload"
                   className="hidden"
-                  accept="image/*"
+                  accept="image/*,video/*"
                   onChange={handleFileUpload}
                 />
 
@@ -387,7 +653,6 @@ const AdminProductEdit = () => {
                   Tip: You can also paste an image directly (Ctrl+V)
                 </p>
               </div>
-            </div>
 
             {/* AI Studio Controls */}
             <div className="bg-secondary/20 p-6 rounded-[24px] border border-border/50 flex items-center justify-between">
@@ -415,6 +680,53 @@ const AdminProductEdit = () => {
                 >
                   <div className={`absolute top-1 w-5 h-5 rounded-full bg-white shadow-sm transition-all ${product.removeBackground ? 'left-8' : 'left-1'}`} />
                 </button>
+              </div>
+            </div>
+
+            {/* Video & Motion Section */}
+            <div className="bg-secondary/10 p-8 rounded-[32px] border border-border/40 space-y-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                    <Film className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium">Cinematic Motion</h3>
+                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Add video for an immersive luxury experience</p>
+                  </div>
+                </div>
+                {product.video && (
+                  <button 
+                    type="button"
+                    onClick={() => setProduct(prev => ({ ...prev, video: undefined }))}
+                    className="text-[10px] uppercase tracking-widest text-destructive hover:opacity-70 flex items-center gap-1"
+                  >
+                    <X className="w-3 h-3" /> Remove Video
+                  </button>
+                )}
+              </div>
+
+              <div className="relative group aspect-video bg-black/5 rounded-[24px] border-2 border-dashed border-border/60 overflow-hidden transition-all hover:border-primary/40">
+                {product.video ? (
+                  <video 
+                    src={product.video} 
+                    className="w-full h-full object-cover" 
+                    autoPlay 
+                    muted 
+                    loop 
+                    playsInline
+                  />
+                ) : (
+                  <div 
+                    className="absolute inset-0 flex flex-col items-center justify-center gap-4 cursor-pointer"
+                    onClick={() => document.getElementById('image-upload')?.click()}
+                  >
+                    <div className="w-12 h-12 bg-background rounded-full flex items-center justify-center shadow-sm border border-border group-hover:scale-110 transition-transform">
+                      <Film className="w-5 h-5 text-muted-foreground group-hover:text-primary" />
+                    </div>
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Upload Video (MP4/WebM)</p>
+                  </div>
+                )}
               </div>
             </div>
           </section>
@@ -554,6 +866,11 @@ const AdminProductEdit = () => {
                 onCropChange={setCrop}
                 onZoomChange={setZoom}
                 onCropComplete={onCropComplete}
+                style={{
+                  imageStyle: {
+                    transform: `scaleX(${flipHorizontal ? -1 : 1}) scaleY(${flipVertical ? -1 : 1})`
+                  }
+                }}
               />
             </div>
             
@@ -572,6 +889,23 @@ const AdminProductEdit = () => {
                   onChange={(e) => setZoom(Number(e.target.value))}
                   className="w-full accent-primary"
                 />
+              </div>
+
+              <div className="flex items-center gap-4 border-l border-r border-border px-8">
+                <button
+                  onClick={() => setFlipHorizontal(!flipHorizontal)}
+                  className={`p-3 rounded-xl transition-all ${flipHorizontal ? 'bg-primary text-white' : 'bg-secondary text-muted-foreground hover:bg-secondary/80'}`}
+                  title="Flip Horizontal"
+                >
+                  <FlipHorizontal className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={() => setFlipVertical(!flipVertical)}
+                  className={`p-3 rounded-xl transition-all ${flipVertical ? 'bg-primary text-white' : 'bg-secondary text-muted-foreground hover:bg-secondary/80'}`}
+                  title="Flip Vertical"
+                >
+                  <FlipVertical className="w-5 h-5" />
+                </button>
               </div>
               
               <div className="flex gap-4">

@@ -2,7 +2,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 
 export type SortKey = "latest" | "price-asc" | "price-desc" | "rated";
 
-const SortBar = ({ sort, setSort }: { sort: SortKey; setSort: (s: SortKey) => void }) => {
+const SortBar = ({ sort, setSort, showTitle = true }: { sort: SortKey; setSort: (s: SortKey) => void; showTitle?: boolean }) => {
   const { t } = useLanguage();
 
   const options: { key: SortKey; label: string }[] = [
@@ -13,15 +13,19 @@ const SortBar = ({ sort, setSort }: { sort: SortKey; setSort: (s: SortKey) => vo
   ];
 
   return (
-    <aside className="w-32 shrink-0">
-      <p className="text-[9px] uppercase font-bold tracking-[0.1em] mb-4 text-left border-b border-border pb-2">{t('sort')}</p>
+    <aside>
+      {showTitle && (
+        <p className="text-[10px] lowercase font-bold tracking-[0.2em] mb-4 text-black border-b border-black pb-1 inline-block">
+          {t('sort')}
+        </p>
+      )}
       <ul className="space-y-1.5">
         {options.map((o) => (
           <li key={o.key}>
             <button
               onClick={() => setSort(o.key)}
-              className={`text-[10px] uppercase tracking-tight transition-colors text-left w-full block ${
-                sort === o.key ? "text-black font-bold" : "text-muted-foreground hover:text-black"
+              className={`text-[11px] tracking-wide transition-colors text-left whitespace-nowrap pb-0.5 border-b ${
+                sort === o.key ? "text-black font-medium border-black" : "text-[#888] hover:text-black border-transparent"
               }`}
             >
               {o.label}

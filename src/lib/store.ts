@@ -1,10 +1,13 @@
-import { products as initialProducts, Product } from "@/data/products";
+import { products as initialProducts, Product, categories as defaultCategories, designers as defaultDesigners } from "@/data/products";
+import { toast } from "sonner";
 
 // Keys
 const PRODUCTS_KEY = "villaoro_products";
 const DESIGN_KEY = "villaoro_design";
 const AI_KEY = "villaoro_ai_config";
 const LOOKS_KEY = "villaoro_looks";
+const CATEGORIES_KEY = "villaoro_categories";
+const DESIGNERS_KEY = "villaoro_designers";
 
 // Types
 export interface DesignSettings {
@@ -28,8 +31,7 @@ export interface Look {
 
 // Initialization
 const initStore = () => {
-  const currentProducts = getProducts();
-  if (!localStorage.getItem(PRODUCTS_KEY) || currentProducts.length < initialProducts.length) {
+  if (!localStorage.getItem(PRODUCTS_KEY)) {
     localStorage.setItem(PRODUCTS_KEY, JSON.stringify(initialProducts));
   }
   if (!localStorage.getItem(DESIGN_KEY)) {
@@ -68,6 +70,12 @@ const initStore = () => {
       ])
     );
   }
+  if (!localStorage.getItem(CATEGORIES_KEY)) {
+    localStorage.setItem(CATEGORIES_KEY, JSON.stringify(defaultCategories));
+  }
+  if (!localStorage.getItem(DESIGNERS_KEY)) {
+    localStorage.setItem(DESIGNERS_KEY, JSON.stringify(defaultDesigners));
+  }
 };
 
 // Product CRUD
@@ -84,7 +92,12 @@ export function saveProduct(product: Product) {
   } else {
     products.unshift(product);
   }
-  localStorage.setItem(PRODUCTS_KEY, JSON.stringify(products));
+  try {
+    localStorage.setItem(PRODUCTS_KEY, JSON.stringify(products));
+  } catch (e) {
+    console.error("Storage quota exceeded", e);
+    alert("The site database is full because of high-quality images. Please try to use slightly smaller images or remove some products.");
+  }
 }
 
 export function deleteProduct(id: string) {
@@ -129,6 +142,64 @@ export function saveLook(look: Look) {
     looks.unshift(look);
   }
   localStorage.setItem(LOOKS_KEY, JSON.stringify(looks));
+}
+
+// Categories & Designers CRUD
+export function getCategories(): string[] {
+  const data = localStorage.getItem(CATEGORIES_KEY);
+  return data ? JSON.parse(data) : [];
+}
+
+export function saveCategories(categories: string[]) {
+  localStorage.setItem(CATEGORIES_KEY, JSON.stringify(categories));
+}
+
+export function getDesigners(): string[] {
+  const data = localStorage.getItem(DESIGNERS_KEY);
+  return data ? JSON.parse(data) : [];
+}
+
+export function saveDesigners(designers: string[]) {
+  localStorage.setItem(DESIGNERS_KEY, JSON.stringify(designers));
+}
+
+// Data Export/Import
+export function exportDatabase() {
+  const data = {
+    products: getProducts(),
+    categories: getCategories(),
+    designers: getDesigners(),
+    design: getDesignSettings(),
+    ai: getAiConfig(),
+    looks: getLooks()
+  };
+  
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `villaoro_backup_${new Date().toISOString().split('T')[0]}.json`;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+export function importDatabase(jsonData: any) {
+  // Check if it's a direct array of products (like the catalog file)
+  if (Array.isArray(jsonData)) {
+    localStorage.setItem(PRODUCTS_KEY, JSON.stringify(jsonData));
+    toast.success("Products imported successfully");
+  } else {
+    // It's a full backup object
+    if (jsonData.products) localStorage.setItem(PRODUCTS_KEY, JSON.stringify(jsonData.products));
+    if (jsonData.categories) localStorage.setItem(CATEGORIES_KEY, JSON.stringify(jsonData.categories));
+    if (jsonData.designers) localStorage.setItem(DESIGNERS_KEY, JSON.stringify(jsonData.designers));
+    if (jsonData.design) localStorage.setItem(DESIGN_KEY, JSON.stringify(jsonData.design));
+    if (jsonData.ai) localStorage.setItem(AI_KEY, JSON.stringify(jsonData.ai));
+    if (jsonData.looks) localStorage.setItem(LOOKS_KEY, JSON.stringify(jsonData.looks));
+    toast.success("Full backup restored successfully");
+  }
+  
+  setTimeout(() => window.location.reload(), 1000);
 }
 
 initStore();

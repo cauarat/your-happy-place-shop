@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getProducts, deleteProduct, saveProduct } from "@/lib/store";
 import type { Product } from "@/data/products";
-import { Edit2, Trash2, Copy, Plus } from "lucide-react";
+import { Edit2, Trash2, Copy, Plus, ExternalLink } from "lucide-react";
+import { toast } from "sonner";
 
 const AdminProducts = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -17,10 +18,17 @@ const AdminProducts = () => {
   }, []);
 
   const handleDelete = (id: string) => {
-    if (window.confirm("Are you sure you want to delete this product?")) {
-      deleteProduct(id);
-      loadProducts();
-    }
+    toast("Are you sure?", {
+      description: "This will permanently remove the product.",
+      action: {
+        label: "Delete",
+        onClick: () => {
+          deleteProduct(id);
+          loadProducts();
+          toast.success("Product deleted");
+        },
+      },
+    });
   };
 
   const handleDuplicate = (product: Product) => {
@@ -40,13 +48,31 @@ const AdminProducts = () => {
           <h1 className="text-3xl tracking-tight mb-2">Products</h1>
           <p className="text-muted-foreground">Manage your catalog.</p>
         </div>
-        <Link 
-          to="/admin/products/new" 
-          className="bg-primary text-primary-foreground px-6 py-3 rounded-full uppercase text-xs tracking-wider flex items-center gap-2 hover:opacity-90 transition-opacity"
-        >
-          <Plus className="w-4 h-4" />
-          Add Product
-        </Link>
+        <div className="flex items-center gap-4">
+          <button 
+            onClick={() => {
+              const blob = new Blob([JSON.stringify(products, null, 2)], { type: "application/json" });
+              const url = URL.createObjectURL(blob);
+              const downloadAnchorNode = document.createElement('a');
+              downloadAnchorNode.setAttribute("href", url);
+              downloadAnchorNode.setAttribute("download", "villaoro_catalog.json");
+              document.body.appendChild(downloadAnchorNode);
+              downloadAnchorNode.click();
+              document.body.removeChild(downloadAnchorNode);
+              setTimeout(() => URL.revokeObjectURL(url), 100);
+            }}
+            className="border border-border px-6 py-3 rounded-full uppercase text-xs tracking-wider hover:bg-secondary transition-colors"
+          >
+            Export Catalog
+          </button>
+          <Link 
+            to="/admin/products/new" 
+            className="bg-primary text-primary-foreground px-6 py-3 rounded-full uppercase text-xs tracking-wider flex items-center gap-2 hover:opacity-90 transition-opacity"
+          >
+            <Plus className="w-4 h-4" />
+            Add Product
+          </Link>
+        </div>
       </div>
 
       <div className="glass rounded-xl overflow-hidden">
@@ -68,7 +94,26 @@ const AdminProducts = () => {
                       <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
                     </div>
                     <div>
-                      <p className="font-medium text-sm line-clamp-1">{product.name}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium text-sm line-clamp-1">{product.name}</p>
+                        {product.productLinks && product.productLinks.filter(l => l.trim()).length > 0 && (
+                          <div className="flex gap-1">
+                            {product.productLinks.filter(l => l.trim()).map((link, idx) => (
+                              <a 
+                                key={idx}
+                                href={link} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-primary hover:scale-110 transition-transform"
+                                onClick={(e) => e.stopPropagation()}
+                                title={`Reference Link ${idx + 1}`}
+                              >
+                                <ExternalLink className="w-3 h-3" />
+                              </a>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                       <p className="text-xs text-muted-foreground">{product.designer}</p>
                     </div>
                   </div>

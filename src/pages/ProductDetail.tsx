@@ -5,12 +5,14 @@ import type { Product } from "@/data/products";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Minus, Plus, ShoppingBag } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const ProductDetail = () => {
   const { id } = useParams();
   const [product, setProduct] = useState<Product | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const { t } = useLanguage();
 
   useEffect(() => {
     const products = getProducts();
@@ -30,13 +32,13 @@ const ProductDetail = () => {
       <main className="flex-1 max-w-screen-2xl mx-auto w-full px-6 lg:px-12 py-12">
         <div className="flex flex-col items-center justify-center mb-16 text-center">
           <Link to="/" className="text-[11px] uppercase tracking-widest hover:opacity-60 transition-opacity mb-8">
-            ← Back to Catalog
+            ← {t('back_to_catalog')}
           </Link>
           <p className="text-[10px] uppercase font-bold tracking-[0.2em] text-muted-foreground mb-3">
-            {product.category}
+            {t(product.category.toLowerCase())}
           </p>
           <h1 className="text-xl md:text-2xl font-bold tracking-tighter uppercase mb-3 max-w-2xl">
-            {product.designer} {product.name}
+            {product.designer} {t(product.name)}
           </h1>
           <div className="w-12 h-px bg-border mb-6" />
         </div>
@@ -45,10 +47,9 @@ const ProductDetail = () => {
           {/* Left Column: Description */}
           <div className="space-y-8 lg:sticky lg:top-32 h-fit">
             <div className="space-y-6 text-sm leading-relaxed text-foreground/80">
-              <p className="font-medium uppercase text-[10px] tracking-widest text-muted-foreground">Description</p>
+              <p className="font-medium uppercase text-[10px] tracking-widest text-muted-foreground">{t('description')}</p>
               <p>
-                {product.description || `The ${product.name} reflects the essence of ${product.designer}'s minimalist design philosophy. 
-                Crafted with premium materials and a focus on essential details, it offers both timeless style and exceptional comfort.`}
+                {product.description || t('default_description').replace('{product}', t(product.name)).replace('{designer}', product.designer)}
               </p>
               <ul className="space-y-2 list-none pt-4 text-[10px] uppercase tracking-widest">
                 <li className="flex items-center gap-2"><span className="w-1 h-1 bg-primary rounded-full" /> Made in Italy</li>
@@ -89,7 +90,7 @@ const ProductDetail = () => {
             </div>
 
             <div>
-              <p className="text-[10px] uppercase font-bold tracking-widest mb-4">Select a Size</p>
+              <p className="text-[10px] uppercase font-bold tracking-widest mb-4">{t('select_size')}</p>
               <div className="flex flex-wrap gap-2">
                 {sizes.map((size) => (
                   <button
@@ -108,7 +109,7 @@ const ProductDetail = () => {
             </div>
 
             <div>
-              <p className="text-[10px] uppercase font-bold tracking-widest mb-4">Quantity</p>
+              <p className="text-[10px] uppercase font-bold tracking-widest mb-4">{t('quantity')}</p>
               <div className="flex items-center w-32 border border-border">
                 <button 
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
@@ -128,11 +129,11 @@ const ProductDetail = () => {
 
             <button className="w-full bg-primary text-primary-foreground h-14 uppercase text-[11px] font-bold tracking-[0.2em] flex items-center justify-center gap-3 hover:opacity-90 transition-opacity">
               <ShoppingBag className="w-4 h-4" />
-              Add to Bag — ${(product.price * quantity).toFixed(2)}
+              {t('add_to_bag')} — ${(product.price * quantity).toFixed(2)}
             </button>
 
             <p className="text-[10px] text-center text-muted-foreground uppercase tracking-widest">
-              Free shipping on orders over $100.
+              {t('free_shipping')}
             </p>
           </div>
         </div>

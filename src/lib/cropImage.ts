@@ -9,7 +9,8 @@ export const createImage = (url: string): Promise<HTMLImageElement> =>
 
 export async function getCroppedImg(
   imageSrc: string,
-  pixelCrop: { x: number; y: number; width: number; height: number }
+  pixelCrop: { x: number; y: number; width: number; height: number },
+  flip: { horizontal: boolean; vertical: boolean } = { horizontal: false, vertical: false }
 ): Promise<string> {
   const image = await createImage(imageSrc)
   const canvas = document.createElement('canvas')
@@ -22,6 +23,17 @@ export async function getCroppedImg(
   canvas.width = pixelCrop.width
   canvas.height = pixelCrop.height
 
+  ctx.save();
+  
+  if (flip.horizontal) {
+    ctx.translate(canvas.width, 0);
+    ctx.scale(-1, 1);
+  }
+  if (flip.vertical) {
+    ctx.translate(0, canvas.height);
+    ctx.scale(1, -1);
+  }
+
   ctx.drawImage(
     image,
     pixelCrop.x,
@@ -33,6 +45,8 @@ export async function getCroppedImg(
     pixelCrop.width,
     pixelCrop.height
   )
+
+  ctx.restore();
 
   return canvas.toDataURL('image/jpeg')
 }

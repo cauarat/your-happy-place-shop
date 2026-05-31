@@ -7,22 +7,8 @@ import bagBrown from "@/assets/product-bag-brown.jpg";
 import braceletGold from "@/assets/product-bracelet-gold.jpg";
 import beltBlack from "@/assets/product-belt-black.jpg";
 
-export type Category = "Footwear" | "Clothing" | "Accessories" | "Bags" | "Jewelry";
-export type Designer =
-  | "Brunello"
-  | "Zegna"
-  | "Hermes"
-  | "Maison"
-  | "Golden"
-  | "Adidas"
-  | "Creed"
-  | "Rimowa"
-  | "Van"
-  | "Versace"
-  | "Willy Chavarria"
-  | "Wales Bonner"
-  | "Rier"
-  | "Fear of God";
+export type Category = string;
+export type Designer = string;
 
 export interface Product {
   id: string;
@@ -38,6 +24,8 @@ export interface Product {
   originalImage?: string;
   description?: string;
   images?: string[];
+  productLinks?: string[];
+  video?: string;
 }
 
 export const products: Product[] = [

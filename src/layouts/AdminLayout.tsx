@@ -1,14 +1,14 @@
 import { useEffect } from "react";
 import { Outlet, useNavigate, useLocation, Link } from "react-router-dom";
 import { isAuthenticated, logoutAdmin } from "@/lib/auth";
-import { LayoutDashboard, Package, Paintbrush, Bot, Sparkles, LogOut, Home } from "lucide-react";
+import { LayoutDashboard, Package, Paintbrush, Bot, Sparkles, LogOut, Home, Tag } from "lucide-react";
 
 const NAV_ITEMS = [
   { label: "Dashboard", path: "/admin/dashboard", icon: LayoutDashboard },
   { label: "Products", path: "/admin/products", icon: Package },
   { label: "Design", path: "/admin/design", icon: Paintbrush },
   { label: "AI Stylist", path: "/admin/ai", icon: Bot },
-  { label: "Catalog Order", path: "/admin/catalog", icon: LayoutDashboard }, // using dashboard icon for now, catalog can be generic
+  { label: "Catalog Structure", path: "/admin/catalog", icon: Tag },
   { label: "Try The Look", path: "/admin/try-the-look", icon: Sparkles },
 ];
 

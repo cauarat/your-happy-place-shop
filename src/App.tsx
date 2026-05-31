@@ -13,16 +13,17 @@ import AdminLayout from "./layouts/AdminLayout.tsx";
 import OpeningExperience from "./components/OpeningExperience.tsx";
 import BackgroundMusic, { BackgroundMusicHandle } from "./components/BackgroundMusic.tsx";
 import { LanguageProvider } from "./contexts/LanguageContext";
+import { SearchProvider } from "./contexts/SearchContext";
 
 // Mock placeholders for now until they are created
-const AdminDesign = () => <div>Design placeholder</div>;
 const AdminAiControl = () => <div>AI Control placeholder</div>;
-const AdminCatalog = () => <div>Catalog placeholder</div>;
 const AdminTryTheLook = () => <div>Try The Look placeholder</div>;
 
 import AdminDashboard from "./pages/admin/Dashboard.tsx";
 import AdminProducts from "./pages/admin/Products.tsx";
 import AdminProductEdit from "./pages/admin/ProductEdit.tsx";
+import DesignEditor from "./pages/admin/DesignEditor/index.tsx";
+import AdminCatalog from "./pages/admin/CatalogSettings.tsx";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +34,7 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
+        <SearchProvider>
         <TooltipProvider>
           <Toaster />
           <Sonner />
@@ -61,7 +63,7 @@ const App = () => {
                       <Route path="dashboard" element={<AdminDashboard />} />
                       <Route path="products" element={<AdminProducts />} />
                       <Route path="products/:id" element={<AdminProductEdit />} />
-                      <Route path="design" element={<AdminDesign />} />
+                      <Route path="design" element={<DesignEditor />} />
                       <Route path="ai" element={<AdminAiControl />} />
                       <Route path="catalog" element={<AdminCatalog />} />
                       <Route path="try-the-look" element={<AdminTryTheLook />} />
@@ -73,6 +75,7 @@ const App = () => {
             )}
           </AnimatePresence>
         </TooltipProvider>
+        </SearchProvider>
       </LanguageProvider>
     </QueryClientProvider>
   );
