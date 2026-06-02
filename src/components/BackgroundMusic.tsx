@@ -2,6 +2,13 @@ import React, { useEffect, useRef, useState, useImperativeHandle, forwardRef } f
 import { Volume2, VolumeX } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
+declare global {
+  interface Window {
+    YT: any;
+    onYouTubeIframeAPIReady: () => void;
+  }
+}
+
 export interface BackgroundMusicHandle {
   start: () => void;
   setVolume: (volume: number) => void;

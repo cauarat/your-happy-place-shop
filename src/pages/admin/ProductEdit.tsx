@@ -867,7 +867,7 @@ const AdminProductEdit = () => {
                 onZoomChange={setZoom}
                 onCropComplete={onCropComplete}
                 style={{
-                  imageStyle: {
+                  mediaStyle: {
                     transform: `scaleX(${flipHorizontal ? -1 : 1}) scaleY(${flipVertical ? -1 : 1})`
                   }
                 }}
