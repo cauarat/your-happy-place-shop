@@ -13,7 +13,7 @@ export interface NodeStyles {
   fontSize?: string;
   fontWeight?: string;
   letterSpacing?: string;
-  textTransform?: React.CSSProperties['textTransform'];
+  textTransform?: CSSProperties['textTransform'];
   paddingBottom?: string;
   textAlign?: 'left' | 'center' | 'right' | 'justify';
   borderRadius?: string;
