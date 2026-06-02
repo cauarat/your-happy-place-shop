@@ -1,3 +1,5 @@
+import type { CSSProperties } from 'react';
+
 export type NodeType = 'Container' | 'Text' | 'Image' | 'Button' | 'ProductCard';
 
 export interface NodeStyles {
