@@ -3,17 +3,25 @@ export type NodeType = 'Container' | 'Text' | 'Image' | 'Button' | 'ProductCard'
 export interface NodeStyles {
   width?: string;
   height?: string;
+  minHeight?: string;
   padding?: string;
   margin?: string;
   backgroundColor?: string;
   color?: string;
   fontSize?: string;
   fontWeight?: string;
+  letterSpacing?: string;
+  textTransform?: string;
   textAlign?: 'left' | 'center' | 'right' | 'justify';
   borderRadius?: string;
   borderWidth?: string;
   borderColor?: string;
   borderStyle?: string;
+  border?: string;
+  borderTop?: string;
+  borderBottom?: string;
+  borderLeft?: string;
+  borderRight?: string;
   display?: string;
   flexDirection?: 'row' | 'column';
   justifyContent?: string;
