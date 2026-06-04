@@ -27,8 +27,8 @@ export async function compressImage(base64: string, maxWidth = 4096, quality = 1
       // If the image is transparent (from background removal), we must use PNG
       const isTransparent = base64.includes('image/png') || base64.startsWith('data:image/png');
       
-      // For PNG we use 1.0 (lossless in most browsers), for JPEG we use 0.95 for near-lossless
-      resolve(canvas.toDataURL(isTransparent ? 'image/png' : 'image/jpeg', isTransparent ? 1.0 : 0.98));
+      // Compress JPEGs at 0.82 quality for optimal file size and fast uploads
+      resolve(canvas.toDataURL(isTransparent ? 'image/png' : 'image/jpeg', isTransparent ? 0.85 : 0.82));
     };
   });
 }

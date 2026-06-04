@@ -9,12 +9,13 @@ const bucketName = import.meta.env.VITE_R2_BUCKET_NAME;
 // Initialize the S3 Client for Cloudflare R2
 const S3 = new S3Client({
   region: "auto",
-  endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
+  endpoint: `https://${accountId || "dummy"}.r2.cloudflarestorage.com`,
   forcePathStyle: true,
   credentials: {
-    accessKeyId: accessKeyId || "",
-    secretAccessKey: secretAccessKey || "",
+    accessKeyId: accessKeyId || "dummy",
+    secretAccessKey: secretAccessKey || "dummy",
   },
+  maxAttempts: 1, // Set to 1 to disable SDK retries
 });
 
 export const base64ToFile = (base64: string, filename: string): File => {
@@ -32,11 +33,14 @@ export const base64ToFile = (base64: string, filename: string): File => {
 
 /**
  * Uploads a file or base64 string directly to your Cloudflare R2 bucket.
+ * Falls back to base64 Data URL if credentials are not configured or upload fails.
  */
 export const uploadToR2 = async (fileOrBase64: File | string, customExtension?: string): Promise<string> => {
   let file: File;
+  let base64String = "";
   
   if (typeof fileOrBase64 === 'string') {
+    base64String = fileOrBase64;
     // Determine extension from mime type
     const mimeMatch = fileOrBase64.match(/:(.*?);/);
     const mime = mimeMatch ? mimeMatch[1] : 'image/jpeg';
@@ -46,9 +50,27 @@ export const uploadToR2 = async (fileOrBase64: File | string, customExtension?: 
     file = fileOrBase64;
   }
 
+  // If R2 credentials are not set, immediately use base64 fallback to prevent throwing
+  if (!accountId || !accessKeyId || !secretAccessKey || !bucketName) {
+    console.warn("Cloudflare R2 is not fully configured. Using local base64 fallback.");
+    if (base64String) {
+      return base64String;
+    }
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.readAsDataURL(file);
+    });
+  }
+
   const fileExtension = file.name.split('.').pop() || 'jpg';
   const uniqueFileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExtension}`;
   
+  const isVideo = file.type.startsWith('video/');
+  const timeoutMs = isVideo ? 45000 : 4000; // 45s for video, 4s for images
+  const controller = new AbortController();
+  let timeoutId: any;
+
   try {
     // Convert File to Uint8Array to bypass the AWS SDK v3 stream reader bug in Vite
     const arrayBuffer = await file.arrayBuffer();
@@ -61,14 +83,15 @@ export const uploadToR2 = async (fileOrBase64: File | string, customExtension?: 
       ContentType: file.type,
     });
 
-    await S3.send(command);
+    timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+    // Pass options with abortSignal to abort the request if it hangs
+    await S3.send(command, { abortSignal: controller.signal });
 
     const publicDomain = import.meta.env.VITE_R2_PUBLIC_DOMAIN;
     
     if (!publicDomain) {
       console.warn("VITE_R2_PUBLIC_DOMAIN is not set in .env. Returning the file name as a fallback.");
-      // It's better to return the full Dev domain if they haven't set a custom one
-      // But we will return the file name with a placeholder to avoid breaking the image src
       return `https://[YOUR_R2_DEV_URL_HERE].r2.dev/${uniqueFileName}`;
     }
 
@@ -76,7 +99,17 @@ export const uploadToR2 = async (fileOrBase64: File | string, customExtension?: 
     return `${cleanDomain}/${uniqueFileName}`;
     
   } catch (error) {
-    console.error("Error uploading to R2:", error);
-    throw error;
+    console.error("Error uploading to R2, falling back to base64:", error);
+    // Fall back to base64 if S3 upload fails for any reason
+    if (base64String) {
+      return base64String;
+    }
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.readAsDataURL(file);
+    });
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
   }
 };
