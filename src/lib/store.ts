@@ -10,7 +10,7 @@ const LOOKS_KEY = "villaoro_looks";
 const CATEGORIES_KEY = "villaoro_categories";
 const DESIGNERS_KEY = "villaoro_designers";
 const CATALOG_VERSION_KEY = "villaoro_catalog_version";
-const CATALOG_VERSION = "v7";
+const CATALOG_VERSION = "v10";
 
 // Types
 export interface DesignSettings {
