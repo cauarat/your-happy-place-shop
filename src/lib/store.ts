@@ -1,4 +1,5 @@
 import { products as initialProducts, Product, categories as defaultCategories, designers as defaultDesigners } from "@/data/products";
+import catalogSeed from "@/data/catalog.json";
 import { toast } from "sonner";
 
 // Keys
@@ -8,6 +9,8 @@ const AI_KEY = "villaoro_ai_config";
 const LOOKS_KEY = "villaoro_looks";
 const CATEGORIES_KEY = "villaoro_categories";
 const DESIGNERS_KEY = "villaoro_designers";
+const CATALOG_VERSION_KEY = "villaoro_catalog_version";
+const CATALOG_VERSION = "v7";
 
 // Types
 export interface DesignSettings {
@@ -31,8 +34,16 @@ export interface Look {
 
 // Initialization
 const initStore = () => {
-  if (!localStorage.getItem(PRODUCTS_KEY)) {
-    localStorage.setItem(PRODUCTS_KEY, JSON.stringify(initialProducts));
+  const currentVersion = localStorage.getItem(CATALOG_VERSION_KEY);
+  if (currentVersion !== CATALOG_VERSION) {
+    localStorage.setItem(PRODUCTS_KEY, JSON.stringify(catalogSeed));
+    const cats = Array.from(new Set((catalogSeed as Product[]).map(p => p.category))).sort();
+    const dess = Array.from(new Set((catalogSeed as Product[]).map(p => p.designer))).sort();
+    localStorage.setItem(CATEGORIES_KEY, JSON.stringify(cats));
+    localStorage.setItem(DESIGNERS_KEY, JSON.stringify(dess));
+    localStorage.setItem(CATALOG_VERSION_KEY, CATALOG_VERSION);
+  } else if (!localStorage.getItem(PRODUCTS_KEY)) {
+    localStorage.setItem(PRODUCTS_KEY, JSON.stringify(catalogSeed));
   }
   if (!localStorage.getItem(DESIGN_KEY)) {
     localStorage.setItem(
