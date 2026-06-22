@@ -16,48 +16,45 @@ const LanguageSwitcher = () => {
   const currentLang = languages.find((l) => l.code === language) || languages[0];
 
   return (
-    <div className="relative">
+    <div className="flex flex-col w-full">
+      {/* Trigger: Currently Selected Language */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 text-[10px] uppercase font-bold tracking-widest hover:text-black transition-colors"
       >
-        <span className="opacity-70">{currentLang.flag}</span>
+        <span className="opacity-70 scale-110">{currentLang.flag}</span>
         <span>{currentLang.code}</span>
-        <ChevronDown className={`w-3 h-3 transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`} />
+        <ChevronDown className={`w-3 h-3 transition-transform duration-300 ml-1 ${isOpen ? "rotate-180" : ""}`} />
       </button>
 
+      {/* Inline Expanding Options */}
       <AnimatePresence>
         {isOpen && (
-          <>
-            <div 
-              className="fixed inset-0 z-[190]" 
-              onClick={() => setIsOpen(false)} 
-            />
-            <motion.div
-              initial={{ opacity: 0, y: 5 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 5 }}
-              className="absolute right-0 mt-2 w-32 bg-white border border-border shadow-sm z-[200] overflow-hidden"
-            >
-              <div className="flex flex-col py-1">
-                {languages.map((lang) => (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }} // smooth, slightly springy easing
+            className="overflow-hidden flex flex-col"
+          >
+            <div className="flex flex-col gap-4 pt-4">
+              {languages
+                .filter((lang) => lang.code !== currentLang.code)
+                .map((lang) => (
                   <button
                     key={lang.code}
                     onClick={() => {
                       setLanguage(lang.code);
                       setIsOpen(false);
                     }}
-                    className={`flex items-center gap-3 px-4 py-2 text-[10px] uppercase tracking-wider text-left transition-colors hover:bg-muted ${
-                      language === lang.code ? "bg-muted font-bold" : "text-muted-foreground"
-                    }`}
+                    className="flex items-center gap-2 text-[10px] uppercase font-bold tracking-widest text-[#555] hover:text-black transition-colors"
                   >
-                    <span className="opacity-80 scale-110">{lang.flag}</span>
-                    <span>{lang.label}</span>
+                    <span className="opacity-70 scale-110">{lang.flag}</span>
+                    <span>{lang.code}</span>
                   </button>
                 ))}
-              </div>
-            </motion.div>
-          </>
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>

@@ -2,6 +2,9 @@ export async function compressImage(base64: string, maxWidth = 4096, quality = 1
   return new Promise((resolve) => {
     const img = new Image();
     img.src = base64;
+    // Safety valve: if the image fails to load, resolve with the original so
+    // callers (and their loading toasts) are never left hanging forever.
+    img.onerror = () => resolve(base64);
     img.onload = () => {
       const canvas = document.createElement('canvas');
       let width = img.width;

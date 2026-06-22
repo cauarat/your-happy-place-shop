@@ -2,7 +2,7 @@ import { Product } from "@/data/products";
 import { Link } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 
-const ProductCard = ({ product, index }: { product: Product, index?: number }) => {
+const ProductCard = ({ product, index, isFeatured }: { product: Product, index?: number, isFeatured?: boolean }) => {
   const { t } = useLanguage();
   
   const formatPrice = (p: number) => {
@@ -11,12 +11,12 @@ const ProductCard = ({ product, index }: { product: Product, index?: number }) =
 
   return (
     <Link to={`/product/${product.id}`} className="group block w-full select-none">
-      <div className="relative aspect-[3/4] bg-white overflow-hidden flex items-center justify-center">
+      <div className={`relative bg-white overflow-hidden flex items-center justify-center ${isFeatured ? 'w-full h-auto aspect-auto' : 'aspect-[4/5]'}`}>
         <img 
           src={product.image} 
           alt={product.name} 
           loading="lazy" 
-          className="w-full h-full object-contain transition-transform duration-700 ease-out group-hover:scale-[1.02]"
+          className={`w-full ${isFeatured ? 'h-auto object-contain' : 'h-full object-contain'} transition-transform duration-700 ease-out group-hover:scale-[1.02]`}
         />
       </div>
       <div className="flex flex-col mt-2.5 space-y-0.5 px-0.5">

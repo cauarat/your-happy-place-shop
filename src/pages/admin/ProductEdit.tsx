@@ -250,7 +250,12 @@ const AdminProductEdit = () => {
 
   const handleApplyCrop = async () => {
     if (!imageToCrop || !croppedAreaPixels) return;
-    
+
+    // Create the upload toast ID upfront so try/finally can always resolve it.
+    // This avoids a Sonner race condition where toast.dismiss(id) called right
+    // after batched React setState updates can be silently dropped.
+    const uploadToastId = "upload-image-toast";
+
     try {
       let croppedImage = await getCroppedImg(imageToCrop, croppedAreaPixels, { horizontal: flipHorizontal, vertical: flipVertical });
 
@@ -260,6 +265,7 @@ const AdminProductEdit = () => {
         if ('TextDetector' in window) {
           const fixingToast = toast.loading("Correcting text orientation...");
           croppedImage = await correctTextAfterHorizontalFlip(croppedImage);
+          // Update in-place: atomically replaces the loading toast
           toast.dismiss(fixingToast);
         } else {
           // Browser doesn't support TextDetector — warn the user
@@ -268,30 +274,33 @@ const AdminProductEdit = () => {
       }
 
       const compressed = await compressImage(croppedImage);
-      
+
       setIsCropping(false);
       setImageToCrop(null);
       setFlipHorizontal(false);
       setFlipVertical(false);
-      const loadingToast = toast.loading("Uploading image to Cloudflare...");
+
+      // Show the loading toast with a fixed ID so we can reliably update it
+      toast.loading("Uploading image to Cloudflare...", { id: uploadToastId });
+
       const r2Url = await uploadToR2(compressed);
-      toast.dismiss(loadingToast);
-      
+
       setProduct(prev => {
         const newImages = [...(prev.images || [])];
         newImages.push(r2Url);
-        return { 
-          ...prev, 
-          image: prev.image || r2Url, // Set as main if none exists
-          images: newImages 
+        return {
+          ...prev,
+          image: prev.image || r2Url,
+          images: newImages,
         };
       });
-      
-      toast.success("Image uploaded to Cloudflare.");
+
+      // Update-in-place: atomically transitions loading → success (no separate dismiss needed)
+      toast.success("Image uploaded successfully.", { id: uploadToastId });
     } catch (e) {
       console.error(e);
-      toast.dismiss();
-      toast.error("Failed to process image.");
+      // Update-in-place to error so the loading spinner never stays stuck
+      toast.error("Failed to process image.", { id: uploadToastId });
     }
   };
 
@@ -312,14 +321,13 @@ const AdminProductEdit = () => {
       return;
     }
 
-    const loadingToast = toast.loading("Uploading cinematic video to Cloudflare...");
+    const videoToastId = "upload-video-toast";
+    toast.loading("Uploading cinematic video to Cloudflare...", { id: videoToastId });
     uploadToR2(file).then((r2Url) => {
       setProduct(prev => ({ ...prev, video: r2Url }));
-      toast.dismiss(loadingToast);
-      toast.success("Video uploaded successfully to Cloudflare.");
+      toast.success("Video uploaded successfully.", { id: videoToastId });
     }).catch(() => {
-      toast.dismiss(loadingToast);
-      toast.error("Failed to upload video to Cloudflare.");
+      toast.error("Failed to upload video to Cloudflare.", { id: videoToastId });
     });
   };
 
@@ -327,47 +335,43 @@ const AdminProductEdit = () => {
     const newState = !product.removeBackground;
     
     if (newState) {
-      // Toggle ON
+      // Toggle ON — use a single fixed ID for the whole multi-step flow so it
+      // can always be updated in-place and can never be abandoned/stuck.
+      const bgToastId = "bg-removal-toast";
       setIsProcessing(true);
-      const loadingToast = toast.loading("AI is removing background...");
+      toast.loading("AI is removing background...", { id: bgToastId });
       
       try {
-        // Store original if not already stored
         const originalImage = product.originalImage || product.image;
         
-        // Run background removal
         const blob = await removeBackground(originalImage);
         
-        // Convert blob to base64
-        const reader = new FileReader();
-        reader.readAsDataURL(blob);
-        reader.onloadend = async () => {
-          const base64data = reader.result as string;
-          const compressed = await compressImage(base64data);
-          
-          toast.dismiss(loadingToast);
-          const uploadToast = toast.loading("Uploading transparent image to Cloudflare...");
-          
-          try {
-            const r2Url = await uploadToR2(compressed);
-            setProduct(prev => ({
-              ...prev,
-              image: r2Url,
-              originalImage: originalImage,
-              removeBackground: true
-            }));
-            toast.dismiss(uploadToast);
-            toast.success("Background removed and uploaded to Cloudflare.");
-          } catch (e) {
-            toast.dismiss(uploadToast);
-            toast.error("Failed to upload transparent image to Cloudflare.");
-          }
-          setIsProcessing(false);
-        };
+        // Step 2: convert blob → base64 → compress → upload
+        const base64data = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+
+        const compressed = await compressImage(base64data);
+
+        // Update the same toast in-place for the upload step
+        toast.loading("Uploading transparent image to Cloudflare...", { id: bgToastId });
+
+        const r2Url = await uploadToR2(compressed);
+        setProduct(prev => ({
+          ...prev,
+          image: r2Url,
+          originalImage: originalImage,
+          removeBackground: true,
+        }));
+
+        toast.success("Background removed and uploaded.", { id: bgToastId });
       } catch (error) {
         console.error("Background removal failed:", error);
-        toast.dismiss(loadingToast);
-        toast.error("AI background removal failed. Try another image.");
+        toast.error("AI background removal failed. Try another image.", { id: bgToastId });
+      } finally {
         setIsProcessing(false);
       }
     } else {
@@ -376,7 +380,7 @@ const AdminProductEdit = () => {
         setProduct(prev => ({
           ...prev,
           image: prev.originalImage || prev.image,
-          removeBackground: false
+          removeBackground: false,
         }));
       } else {
         setProduct(prev => ({ ...prev, removeBackground: false }));
@@ -384,6 +388,7 @@ const AdminProductEdit = () => {
       toast.success("Original background restored.");
     }
   };
+
 
   const moveImage = (index: number, direction: 'up' | 'down') => {
     const newImages = [...(product.images || [])];
@@ -482,6 +487,17 @@ const AdminProductEdit = () => {
                     onChange={handleChange}
                     placeholder="e.g. Cashmere Double-Breasted Coat"
                     required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-3 font-bold">Custom Description</label>
+                  <textarea 
+                    name="description"
+                    className="w-full bg-transparent border border-border rounded-[16px] p-4 text-sm outline-none focus:border-primary transition-colors placeholder:text-muted-foreground/30 min-h-[140px] resize-y"
+                    value={product.description || ""}
+                    onChange={(e) => setProduct(prev => ({ ...prev, description: e.target.value }))}
+                    placeholder="Enter a unique product description... (Leave blank to use the default description)"
                   />
                 </div>
 
@@ -590,6 +606,73 @@ const AdminProductEdit = () => {
                       />
                     </div>
                   </div>
+                </div>
+              </div>
+
+              {/* Product Gallery Section */}
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-[11px] uppercase tracking-[0.3em] font-bold text-muted-foreground">Product Gallery</h3>
+                  <p className="text-[10px] text-muted-foreground italic">Drag to reorder sequence</p>
+                </div>
+                
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                  {(product.images || []).map((img, index) => (
+                    <div key={index} className="group relative aspect-square rounded-[20px] overflow-hidden border border-border bg-secondary/20 transition-all hover:border-primary">
+                      <img src={img} alt="" className="w-full h-full object-cover" />
+                      
+                      {product.image === img && (
+                        <div className="absolute top-3 left-3 px-2 py-1 bg-primary text-white text-[8px] uppercase tracking-widest rounded-full">
+                          Primary
+                        </div>
+                      )}
+
+                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all flex flex-col items-center justify-center gap-2">
+                        <button 
+                          type="button"
+                          onClick={() => setMainImage(index)}
+                          className="p-2 bg-white text-black rounded-full hover:scale-110 transition-transform"
+                          title="Set as Main"
+                        >
+                          <CheckCircle2 className="w-4 h-4" />
+                        </button>
+                        <div className="flex gap-2">
+                          <button 
+                            type="button"
+                            disabled={index === 0}
+                            onClick={() => moveImage(index, 'up')}
+                            className="p-2 bg-white/20 text-white rounded-full hover:bg-white/40 transition-colors disabled:opacity-30"
+                          >
+                            <ArrowLeft className="w-3 h-3" />
+                          </button>
+                          <button 
+                            type="button"
+                            onClick={() => removeImage(index)}
+                            className="p-2 bg-destructive/80 text-white rounded-full hover:bg-destructive transition-colors"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                          <button 
+                            type="button"
+                            disabled={index === (product.images?.length || 0) - 1}
+                            onClick={() => moveImage(index, 'down')}
+                            className="p-2 bg-white/20 text-white rounded-full hover:bg-white/40 transition-colors disabled:opacity-30"
+                          >
+                            <ArrowRight className="w-3 h-3" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  <button
+                    type="button"
+                    onClick={() => document.getElementById('image-upload')?.click()}
+                    className="aspect-square rounded-[20px] border-2 border-dashed border-border flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-primary hover:text-primary transition-all bg-secondary/5"
+                  >
+                    <Upload className="w-6 h-6" />
+                    <span className="text-[10px] uppercase tracking-widest font-bold">Add Asset</span>
+                  </button>
                 </div>
               </div>
 
@@ -728,73 +811,6 @@ const AdminProductEdit = () => {
                   </div>
                 )}
               </div>
-            </div>
-          </section>
-
-          {/* Product Gallery Section */}
-          <section className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h3 className="text-[11px] uppercase tracking-[0.3em] font-bold text-muted-foreground">Product Gallery</h3>
-              <p className="text-[10px] text-muted-foreground italic">Drag to reorder sequence</p>
-            </div>
-            
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
-              {(product.images || []).map((img, index) => (
-                <div key={index} className="group relative aspect-square rounded-[20px] overflow-hidden border border-border bg-secondary/20 transition-all hover:border-primary">
-                  <img src={img} alt="" className="w-full h-full object-cover" />
-                  
-                  {product.image === img && (
-                    <div className="absolute top-3 left-3 px-2 py-1 bg-primary text-white text-[8px] uppercase tracking-widest rounded-full">
-                      Primary
-                    </div>
-                  )}
-
-                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all flex flex-col items-center justify-center gap-2">
-                    <button 
-                      type="button"
-                      onClick={() => setMainImage(index)}
-                      className="p-2 bg-white text-black rounded-full hover:scale-110 transition-transform"
-                      title="Set as Main"
-                    >
-                      <CheckCircle2 className="w-4 h-4" />
-                    </button>
-                    <div className="flex gap-2">
-                      <button 
-                        type="button"
-                        disabled={index === 0}
-                        onClick={() => moveImage(index, 'up')}
-                        className="p-2 bg-white/20 text-white rounded-full hover:bg-white/40 transition-colors disabled:opacity-30"
-                      >
-                        <ArrowLeft className="w-3 h-3" />
-                      </button>
-                      <button 
-                        type="button"
-                        onClick={() => removeImage(index)}
-                        className="p-2 bg-destructive/80 text-white rounded-full hover:bg-destructive transition-colors"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </button>
-                      <button 
-                        type="button"
-                        disabled={index === (product.images?.length || 0) - 1}
-                        onClick={() => moveImage(index, 'down')}
-                        className="p-2 bg-white/20 text-white rounded-full hover:bg-white/40 transition-colors disabled:opacity-30"
-                      >
-                        <ArrowRight className="w-3 h-3" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-              
-              <button
-                type="button"
-                onClick={() => document.getElementById('image-upload')?.click()}
-                className="aspect-square rounded-[20px] border-2 border-dashed border-border flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-primary hover:text-primary transition-all bg-secondary/5"
-              >
-                <Upload className="w-6 h-6" />
-                <span className="text-[10px] uppercase tracking-widest font-bold">Add Asset</span>
-              </button>
             </div>
           </section>
         </div>

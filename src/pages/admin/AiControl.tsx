@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getAiConfig, saveAiConfig, AiConfig } from "@/lib/store";
 import { Save, Plus, Trash2 } from "lucide-react";
+import ForzaVistaViewer from "@/components/admin/ForzaVistaViewer";
 
 const AdminAiControl = () => {
   const [config, setConfig] = useState<AiConfig>({ suggestions: [], tone: "luxury", featuredIds: [] });
@@ -31,13 +32,17 @@ const AdminAiControl = () => {
   };
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
+    <div className="space-y-8 animate-in fade-in duration-500 pb-12">
       <div>
         <h1 className="text-3xl tracking-tight mb-2">AI Stylist Control</h1>
         <p className="text-muted-foreground">Manage the homepage AI assistant experience.</p>
       </div>
 
-      <form onSubmit={handleSave} className="max-w-2xl space-y-8">
+      <div className="w-full">
+        <ForzaVistaViewer />
+      </div>
+
+      <form onSubmit={handleSave} className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="glass p-8 rounded-2xl space-y-6">
           <h2 className="text-xl mb-4">Tone & Personality</h2>
           
@@ -48,9 +53,9 @@ const AdminAiControl = () => {
               value={config.tone}
               onChange={(e) => setConfig({ ...config, tone: e.target.value })}
             >
-              <option value="minimal" className="bg-background">Minimal & Direct</option>
-              <option value="luxury" className="bg-background">Luxury & Elegant</option>
-              <option value="casual" className="bg-background">Casual & Friendly</option>
+              <option value="minimal" className="bg-background text-foreground">Minimal & Direct</option>
+              <option value="luxury" className="bg-background text-foreground">Luxury & Elegant</option>
+              <option value="casual" className="bg-background text-foreground">Casual & Friendly</option>
             </select>
           </div>
         </div>
@@ -89,7 +94,7 @@ const AdminAiControl = () => {
           </div>
         </div>
 
-        <div className="flex justify-end">
+        <div className="lg:col-span-2 flex justify-end">
           <button type="submit" className="bg-primary text-primary-foreground px-8 py-3 rounded-full uppercase text-xs tracking-wider flex items-center gap-2 hover:opacity-90 transition-opacity">
             <Save className="w-4 h-4" />
             Save AI Config
@@ -101,3 +106,4 @@ const AdminAiControl = () => {
 };
 
 export default AdminAiControl;
+

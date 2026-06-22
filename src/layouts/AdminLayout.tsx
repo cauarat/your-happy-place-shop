@@ -1,12 +1,11 @@
 import { useEffect } from "react";
 import { Outlet, useNavigate, useLocation, Link } from "react-router-dom";
-import { isAuthenticated, logoutAdmin } from "@/lib/auth";
-import { LayoutDashboard, Package, Paintbrush, Bot, Sparkles, LogOut, Home, Tag } from "lucide-react";
+import { LayoutDashboard, Package, Settings, Bot, Sparkles, Home, Tag } from "lucide-react";
 
 const NAV_ITEMS = [
   { label: "Dashboard", path: "/admin/dashboard", icon: LayoutDashboard },
   { label: "Products", path: "/admin/products", icon: Package },
-  { label: "Design", path: "/admin/design", icon: Paintbrush },
+  { label: "Settings", path: "/admin/design", icon: Settings },
   { label: "AI Stylist", path: "/admin/ai", icon: Bot },
   { label: "Catalog Structure", path: "/admin/catalog", icon: Tag },
   { label: "Try The Look", path: "/admin/try-the-look", icon: Sparkles },
@@ -15,14 +14,6 @@ const NAV_ITEMS = [
 const AdminLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
-
-  useEffect(() => {
-    if (!isAuthenticated()) {
-      navigate("/admin/login");
-    }
-  }, [navigate]);
-
-  if (!isAuthenticated()) return null;
 
   return (
     <div className="min-h-screen flex bg-secondary/30">
@@ -62,16 +53,6 @@ const AdminLayout = () => {
             <Home className="w-4 h-4" />
             View Storefront
           </Link>
-          <button 
-            onClick={() => {
-              logoutAdmin();
-              navigate("/admin/login");
-            }}
-            className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm text-destructive hover:bg-destructive/10 w-full transition-colors"
-          >
-            <LogOut className="w-4 h-4" />
-            Sign Out
-          </button>
         </div>
       </aside>
 

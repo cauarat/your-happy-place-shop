@@ -30,8 +30,8 @@ const Footer = () => {
           </ul>
         </div>
         <div>
-          <p className="eyebrow mb-4">{t('newsletter')}</p>
-          <p className="text-sm text-muted-foreground mb-3">{t('newsletter_desc')}</p>
+          <p className="eyebrow mb-4">{t('news')}</p>
+          <p className="text-sm text-muted-foreground mb-3">{t('news_desc')}</p>
           <div className="flex border-b border-foreground">
             <input
               type="email"

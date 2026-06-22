@@ -17,6 +17,9 @@ export interface DesignSettings {
   minimalMode: boolean;
   borderRadius: string;
   buttonColor: string;
+  musicUrl?: string;
+  enableNewsPage?: boolean;
+  enableSalePage?: boolean;
 }
 
 export interface AiConfig {
@@ -48,7 +51,7 @@ const initStore = () => {
   if (!localStorage.getItem(DESIGN_KEY)) {
     localStorage.setItem(
       DESIGN_KEY,
-      JSON.stringify({ minimalMode: true, borderRadius: "0px", buttonColor: "hsl(var(--primary))" })
+      JSON.stringify({ minimalMode: true, borderRadius: "0px", buttonColor: "hsl(var(--primary))", musicUrl: "" })
     );
   }
   if (!localStorage.getItem(AI_KEY)) {
@@ -123,7 +126,16 @@ export function updateProductsList(newOrder: Product[]) {
 // Settings getters/setters
 export function getDesignSettings(): DesignSettings {
   const data = localStorage.getItem(DESIGN_KEY);
-  return data ? JSON.parse(data) : { minimalMode: true, borderRadius: "0px", buttonColor: "hsl(var(--primary))" };
+  const parsed = data ? JSON.parse(data) : {};
+  return { 
+    minimalMode: true, 
+    borderRadius: "0px", 
+    buttonColor: "hsl(var(--primary))", 
+    musicUrl: "", 
+    enableNewsPage: true,
+    enableSalePage: true,
+    ...parsed 
+  };
 }
 
 export function saveDesignSettings(settings: DesignSettings) {
@@ -158,7 +170,9 @@ export function saveLook(look: Look) {
 // Categories & Designers CRUD
 export function getCategories(): string[] {
   const data = localStorage.getItem(CATEGORIES_KEY);
-  return data ? JSON.parse(data) : [];
+  const storedCategories = data ? JSON.parse(data) : [];
+  const productCategories = getProducts().map(p => p.category).filter(Boolean);
+  return Array.from(new Set([...storedCategories, ...productCategories])).sort();
 }
 
 export function saveCategories(categories: string[]) {
@@ -167,7 +181,9 @@ export function saveCategories(categories: string[]) {
 
 export function getDesigners(): string[] {
   const data = localStorage.getItem(DESIGNERS_KEY);
-  return data ? JSON.parse(data) : [];
+  const storedDesigners = data ? JSON.parse(data) : [];
+  const productDesigners = getProducts().map(p => p.designer).filter(Boolean);
+  return Array.from(new Set([...storedDesigners, ...productDesigners])).sort();
 }
 
 export function saveDesigners(designers: string[]) {

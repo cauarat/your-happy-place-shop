@@ -14,8 +14,14 @@ const translations: Record<Language, Record<string, string>> = {
     login: "Login",
     bag: "Bag",
     categories: "Categories",
+    items: "Items",
+    brands: "Brands",
     designers: "Designers",
     sort: "Sort",
+    sale: "Sale",
+    clear_all: "Clear All",
+    apply: "Apply",
+    close: "Close",
     all_products: "All Products",
     no_products: "No products found.",
     latest: "Latest Arrivals",
@@ -25,8 +31,8 @@ const translations: Record<Language, Record<string, string>> = {
     footer_tagline: "Curated luxury. Timeless pieces for the considered wardrobe.",
     shop: "Shop",
     help: "Help",
-    newsletter: "Newsletter",
-    newsletter_desc: "Receive our editorial monthly.",
+    news: "News",
+    news_desc: "Receive our editorial monthly.",
     join: "Join",
     admin_portal: "Admin Portal",
     made_with_care: "Made with care",
@@ -38,6 +44,17 @@ const translations: Record<Language, Record<string, string>> = {
     footwear: "Footwear",
     bags: "Bags",
     jewelry: "Jewelry",
+    caps: "Caps",
+    jackets: "Jackets",
+    objects: "Objects",
+    pants: "Pants",
+    polo: "Polo",
+    set: "Set",
+    shorts: "Shorts",
+    "t-shirt": "T-Shirt",
+    "tank top": "Tank Top",
+    hoodies: "Hoodies",
+    vest: "Vest",
     product: "Product",
     products: "Products",
     back_to_catalog: "Back to Catalog",
@@ -46,6 +63,7 @@ const translations: Record<Language, Record<string, string>> = {
     select_size: "Select a Size",
     quantity: "Quantity",
     add_to_bag: "Add to Bag",
+    proceed_to_checkout: "Proceed to Checkout",
     free_shipping: "Free shipping on orders over $100.",
   },
   PT: {
@@ -53,8 +71,14 @@ const translations: Record<Language, Record<string, string>> = {
     login: "Entrar",
     bag: "Sacola",
     categories: "Categorias",
+    items: "Itens",
+    brands: "Marcas",
     designers: "Designers",
     sort: "Ordenar",
+    sale: "Promoção",
+    clear_all: "Limpar Tudo",
+    apply: "Aplicar",
+    close: "Fechar",
     all_products: "Todos os Produtos",
     no_products: "Nenhum produto encontrado.",
     latest: "Novidades",
@@ -64,8 +88,8 @@ const translations: Record<Language, Record<string, string>> = {
     footer_tagline: "Luxo curado. Peças atemporais para o guarda-roupa ponderado.",
     shop: "Loja",
     help: "Ajuda",
-    newsletter: "Newsletter",
-    newsletter_desc: "Receba nosso editorial mensal.",
+    news: "News",
+    news_desc: "Receba nosso editorial mensal.",
     join: "Assinar",
     admin_portal: "Portal Admin",
     made_with_care: "Feito com cuidado",
@@ -77,6 +101,17 @@ const translations: Record<Language, Record<string, string>> = {
     footwear: "Calçados",
     bags: "Bolsas",
     jewelry: "Joalheria",
+    caps: "Bonés",
+    jackets: "Jaquetas",
+    objects: "Objetos",
+    pants: "Calças",
+    polo: "Polo",
+    set: "Conjuntos",
+    shorts: "Shorts",
+    "t-shirt": "Camisetas",
+    "tank top": "Regatas",
+    hoodies: "Moletons",
+    vest: "Coletes",
     product: "Produto",
     products: "Produtos",
     "adidas Originals Edition Chavarria Superstar Sneakers": "Tênis adidas Originals Edição Chavarria Superstar",
@@ -91,12 +126,17 @@ const translations: Record<Language, Record<string, string>> = {
     "Soft Leather Tote Bag": "Bolsa Tote de Couro Macio",
     "Gold Curb Chain Bracelet": "Pulseira de Corrente de Elos em Ouro",
     "Classic Leather Belt": "Cinto de Couro Clássico",
+    "Black Cotton Polo": "Polo de Algodão Preta",
+    "White Cotton Polo": "Polo de Algodão Branca",
+    "White Bonded nylon reversible outerwear jacket": "Jaqueta Reversível de Nylon Colado Branca",
+    "Brown Flight Jacket shearling-trimmed cashmere blouson": "Blusão de Cashmere Aviador Marrom com Acabamento em Pele de Carneiro",
     back_to_catalog: "Voltar ao Catálogo",
     description: "Descrição",
     default_description: "O {product} reflete a essência da filosofia de design minimalista de {designer}. Criado com materiais premium e foco em detalhes essenciais, oferece estilo atemporal e conforto excepcional.",
     select_size: "Selecione um Tamanho",
     quantity: "Quantidade",
     add_to_bag: "Adicionar à Sacola",
+    proceed_to_checkout: "Proceder para o Checkout",
     free_shipping: "Frete grátis em pedidos acima de $100.",
   },
   ES: {
@@ -104,8 +144,14 @@ const translations: Record<Language, Record<string, string>> = {
     login: "Acceder",
     bag: "Bolsa",
     categories: "Categorías",
+    items: "Artículos",
+    brands: "Marcas",
     designers: "Diseñadores",
     sort: "Ordenar",
+    sale: "Rebajas",
+    clear_all: "Limpiar Todo",
+    apply: "Aplicar",
+    close: "Cerrar",
     all_products: "Todos los Productos",
     no_products: "No se encontraron productos.",
     latest: "Novedades",
@@ -115,8 +161,8 @@ const translations: Record<Language, Record<string, string>> = {
     footer_tagline: "Lujo curado. Piezas atemporales para el armario considerado.",
     shop: "Tienda",
     help: "Ayuda",
-    newsletter: "Boletín",
-    newsletter_desc: "Reciba nuestro editorial mensual.",
+    news: "notícias",
+    news_desc: "Reciba nuestro editorial mensual.",
     join: "Unirse",
     admin_portal: "Portal Admin",
     made_with_care: "Hecho con cuidado",
@@ -128,6 +174,17 @@ const translations: Record<Language, Record<string, string>> = {
     footwear: "Calzado",
     bags: "Bolsos",
     jewelry: "Joyería",
+    caps: "Gorras",
+    jackets: "Chaquetas",
+    objects: "Objetos",
+    pants: "Pantalones",
+    polo: "Polo",
+    set: "Conjuntos",
+    shorts: "Pantalones Cortos",
+    "t-shirt": "Camisetas",
+    "tank top": "Camisetas sin mangas",
+    hoodies: "Sudaderas",
+    vest: "Chalecos",
     product: "Producto",
     products: "Productos",
     "adidas Originals Edition Chavarria Superstar Sneakers": "Zapatillas adidas Originals Edición Chavarria Superstar",
@@ -142,12 +199,17 @@ const translations: Record<Language, Record<string, string>> = {
     "Soft Leather Tote Bag": "Bolso Tote de Cuero Suave",
     "Gold Curb Chain Bracelet": "Pulsera de Cadena de Eslabones de Oro",
     "Classic Leather Belt": "Cinturón de Cuero Clásico",
+    "Black Cotton Polo": "Polo de Algodón Negro",
+    "White Cotton Polo": "Polo de Algodón Blanco",
+    "White Bonded nylon reversible outerwear jacket": "Chaqueta Reversible de Nailon Unido Blanca",
+    "Brown Flight Jacket shearling-trimmed cashmere blouson": "Cazadora de Cachemira Aviador Marrón con Ribete de Piel de Oveja",
     back_to_catalog: "Volver al Catálogo",
     description: "Descripción",
-    default_description: "El {product} refleja la esencia de la filosofía de diseño minimalista de {designer}. Creado con materiales de primera calidad y un enfoque en los detalles esenciales, ofrece un estilo atemporal y una comodidad excepcional.",
+    default_description: "El {product} refleja la esencia de la filosofía de design minimalista de {designer}. Creado con materiales de primera calidad y un enfoque en los detalles esenciales, ofrece un estilo atemporal y una comodidad excepcional.",
     select_size: "Seleccione un Tamaño",
     quantity: "Cantidad",
     add_to_bag: "Añadir a la Bolsa",
+    proceed_to_checkout: "Proceder al Checkout",
     free_shipping: "Envío gratis en pedidos superiores a $100.",
   }
 };
@@ -199,7 +261,17 @@ const commonTerms: Record<string, Record<string, string>> = {
     croc: "crocodilo",
     ankle: "cano curto",
     crewneck: "gola careca",
-    sweater: "suéter"
+    sweater: "suéter",
+    polo: "polo",
+    jacket: "jaqueta",
+    flight: "aviador",
+    shearling: "pele de carneiro",
+    trimmed: "com acabamento",
+    blouson: "blusão",
+    reversible: "reversível",
+    outerwear: "agasalho",
+    bonded: "colado",
+    nylon: "nylon"
   },
   ES: {
     retro: "retro",
@@ -247,7 +319,17 @@ const commonTerms: Record<string, Record<string, string>> = {
     croc: "cocodrilo",
     ankle: "botín",
     crewneck: "cuello redondo",
-    sweater: "suéter"
+    sweater: "suéter",
+    polo: "polo",
+    jacket: "chaqueta",
+    flight: "aviador",
+    shearling: "piel de oveja",
+    trimmed: "con ribete",
+    blouson: "cazadora",
+    reversible: "reversible",
+    outerwear: "ropa de abrigo",
+    bonded: "unido",
+    nylon: "nailon"
   }
 };
 
@@ -257,7 +339,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [language, setLanguageState] = useState<Language>(() => {
     const saved = localStorage.getItem("villaoro_lang");
     if (saved === "PT" || saved === "ES" || saved === "EN") return saved;
-    
+
     // Auto-detect browser language
     const browserLang = navigator.language.split("-")[0].toUpperCase();
     if (browserLang === "PT") return "PT";
@@ -278,21 +360,34 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
     // 2. Smart Translate Fallback: Translate common words if no exact match
     if (language !== "EN" && key && typeof key === 'string' && key.includes(" ")) {
-      const words = key.split(" ");
+      // For Romance languages (PT, ES), the noun usually comes before the adjective.
+      // E.g., "Black Cotton Polo" -> "Polo Cotton Black".
+      // This simple reversal heuristic significantly improves the readability of untranslated products.
+      let words = key.split(" ");
+      if (language === "PT" || language === "ES") {
+        words = words.reverse();
+      }
+
       const translatedWords = words.map(word => {
-        const lowerWord = word.toLowerCase().replace(/[^a-z0-9]/g, "");
+        // Extract leading and trailing punctuation
+        const match = word.match(/^([^a-zA-Z0-9]*)(.*?)([^a-zA-Z0-9]*)$/);
+        if (!match) return word;
+
+        const [, prefix, coreWord, suffix] = match;
+        const lowerWord = coreWord.toLowerCase();
         const translated = commonTerms[language][lowerWord];
-        
+
         if (translated) {
           // Preserve capitalization if original word was capitalized
-          if (word.length > 0 && word[0] === word[0].toUpperCase()) {
-            return translated.charAt(0).toUpperCase() + translated.slice(1);
+          let finalTranslated = translated;
+          if (coreWord.length > 0 && coreWord[0] === coreWord[0].toUpperCase()) {
+            finalTranslated = translated.charAt(0).toUpperCase() + translated.slice(1);
           }
-          return translated;
+          return `${prefix}${finalTranslated}${suffix}`;
         }
         return word;
       });
-      
+
       return translatedWords.join(" ");
     }
 

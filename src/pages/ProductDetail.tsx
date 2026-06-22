@@ -1,18 +1,22 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { getProducts } from "@/lib/store";
 import type { Product } from "@/data/products";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { Minus, Plus, ShoppingBag } from "lucide-react";
+import { Minus, Plus } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useCart } from "@/contexts/CartContext";
 
 const ProductDetail = () => {
   const { id } = useParams();
   const [product, setProduct] = useState<Product | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [isAddedToBag, setIsAddedToBag] = useState(false);
   const { t } = useLanguage();
+  const { addToCart } = useCart();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const products = getProducts();
@@ -48,9 +52,9 @@ const ProductDetail = () => {
           <div className="space-y-8 lg:sticky lg:top-32 h-fit">
             <div className="space-y-6 text-sm leading-relaxed text-foreground/80">
               <p className="font-medium uppercase text-[10px] tracking-widest text-muted-foreground">{t('description')}</p>
-              <p>
-                {product.description || t('default_description').replace('{product}', t(product.name)).replace('{designer}', product.designer)}
-              </p>
+              <div className="whitespace-pre-wrap">
+                {product.description ? t(product.description) : t('default_description').replace('{product}', t(product.name)).replace('{designer}', product.designer)}
+              </div>
               <ul className="space-y-2 list-none pt-4 text-[10px] uppercase tracking-widest">
                 <li className="flex items-center gap-2"><span className="w-1 h-1 bg-primary rounded-full" /> Made in Italy</li>
                 <li className="flex items-center gap-2"><span className="w-1 h-1 bg-primary rounded-full" /> Premium Materials</li>
@@ -127,14 +131,19 @@ const ProductDetail = () => {
               </div>
             </div>
 
-            <button className="w-full bg-primary text-primary-foreground h-14 uppercase text-[11px] font-bold tracking-[0.2em] flex items-center justify-center gap-3 hover:opacity-90 transition-opacity">
-              <ShoppingBag className="w-4 h-4" />
-              {t('add_to_bag')} — ${(product.price * quantity).toFixed(2)}
+            <button 
+              onClick={() => {
+                if (isAddedToBag) {
+                  navigate("/cart");
+                } else {
+                  addToCart(product, quantity, selectedSize);
+                  setIsAddedToBag(true);
+                }
+              }}
+              className="w-full bg-primary text-primary-foreground h-14 uppercase text-[11px] font-bold tracking-[0.2em] flex items-center justify-center hover:opacity-90 transition-all duration-300"
+            >
+              {isAddedToBag ? t('proceed_to_checkout') : t('add_to_bag')}
             </button>
-
-            <p className="text-[10px] text-center text-muted-foreground uppercase tracking-widest">
-              {t('free_shipping')}
-            </p>
           </div>
         </div>
       </main>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { getCategories, saveCategories, getDesigners, saveDesigners, exportDatabase, importDatabase } from "@/lib/store";
-import { Plus, Trash2, Tag, User, Save, ArrowLeft, Download, Upload, Database, RefreshCw } from "lucide-react";
+import { getCategories, saveCategories, getDesigners, saveDesigners, getDesignSettings, saveDesignSettings, exportDatabase, importDatabase } from "@/lib/store";
+import { Plus, Trash2, Tag, User, Save, ArrowLeft, Download, Upload, Database, RefreshCw, Music } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -10,6 +10,12 @@ const CatalogSettings = () => {
   const [designers, setDesigners] = useState<string[]>([]);
   const [newCategory, setNewCategory] = useState("");
   const [newDesigner, setNewDesigner] = useState("");
+  const [designSettings, setDesignSettings] = useState(getDesignSettings());
+
+  const handleSaveMusic = () => {
+    saveDesignSettings(designSettings);
+    toast.success("Background music settings saved");
+  };
 
   useEffect(() => {
     setCategories(getCategories());
@@ -164,6 +170,35 @@ const CatalogSettings = () => {
           </ul>
         </section>
       </div>
+
+      {/* Background Music Section */}
+      <section className="glass p-8 rounded-[32px] border border-white/20 shadow-sm space-y-6 mt-8">
+        <div className="flex items-center gap-3 border-b border-border pb-4">
+          <Music className="w-5 h-5 text-primary" />
+          <h2 className="text-xl font-display">Background Music</h2>
+        </div>
+        <p className="text-xs text-muted-foreground leading-relaxed">
+          Paste a YouTube URL to automatically play music for visitors when they browse your store.
+        </p>
+
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={designSettings.musicUrl || ""}
+            onChange={(e) => setDesignSettings({ ...designSettings, musicUrl: e.target.value })}
+            onKeyDown={(e) => e.key === 'Enter' && handleSaveMusic()}
+            placeholder="https://www.youtube.com/watch?v=..."
+            className="flex-1 bg-secondary/30 border border-border rounded-xl px-4 py-2 text-sm outline-none focus:border-primary transition-colors"
+          />
+          <button
+            onClick={handleSaveMusic}
+            className="flex items-center gap-2 px-6 py-2 bg-primary text-primary-foreground rounded-xl hover:opacity-90 transition-opacity"
+          >
+            <Save className="w-4 h-4" />
+            <span className="text-xs uppercase tracking-widest font-bold">Save</span>
+          </button>
+        </div>
+      </section>
 
       {/* Persistence Section */}
       <section className="glass p-8 rounded-[32px] border border-white/20 shadow-sm space-y-8 mt-8">

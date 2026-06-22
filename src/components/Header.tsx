@@ -1,70 +1,154 @@
 import { useState, useRef, useEffect } from "react";
-import { Sparkles, X, Menu, Search, User, ShoppingBag } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Sparkles, X, ShoppingBag, UserPlus } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useSearch } from "@/contexts/SearchContext";
+import { useMusicPlayer } from "@/contexts/MusicContext";
+import { VinylButton } from "@/components/BackgroundMusic";
 import LanguageSwitcher from "./LanguageSwitcher";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { useCart } from "@/contexts/CartContext";
+import { getDesignSettings, getProducts, getDesigners, getCategories } from "@/lib/store";
 
-const SsenseBagIcon = ({ count }: { count: number }) => (
-  <div className="relative flex items-center justify-center w-5 h-5">
-    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.2">
-      <path d="M4 6V15C4 15.5523 4.44772 16 5 16H13C13.5523 16 14 15.5523 14 15V6" />
-      <path d="M6 8V5C6 3.34315 7.34315 2 9 2C10.6569 2 12 3.34315 12 5V8" />
-    </svg>
-    <span className="absolute top-[5px] text-[8px] font-bold tracking-tight text-center w-full">
-      {count}
-    </span>
-  </div>
-);
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 
 const Header = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const { itemCount } = useCart();
   const { searchQuery, setSearchQuery } = useSearch();
+  const { isPlaying, isVisible, togglePlay } = useMusicPlayer();
   const [isFocused, setIsFocused] = useState(false);
-  const [showSearchMobile, setShowSearchMobile] = useState(false);
+  const [enableNews, setEnableNews] = useState(true);
+  const [suggestion, setSuggestion] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
-  const mobileInputRef = useRef<HTMLInputElement>(null);
+  const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    if (showSearchMobile && mobileInputRef.current) {
-      mobileInputRef.current.focus();
+    setEnableNews(getDesignSettings().enableNewsPage !== false);
+  }, []);
+
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSuggestion("");
+      return;
     }
-  }, [showSearchMobile]);
+
+    const q = searchQuery.toLowerCase();
+
+    // Group 1: High Priority (Designers & Categories)
+    const highPriority: string[] = [];
+    getDesigners().forEach(d => highPriority.push(d));
+    getCategories().forEach(c => {
+      const translated = t(c.toLowerCase());
+      highPriority.push(translated !== c.toLowerCase() ? translated : c);
+    });
+
+    // Group 2: Medium Priority (Full Product Names)
+    const mediumPriority: string[] = [];
+    getProducts().forEach(p => {
+      mediumPriority.push(p.name);
+      const translatedName = t(p.name);
+      if (translatedName !== p.name) mediumPriority.push(translatedName);
+    });
+
+    // Group 3: Low Priority (Individual words from product names)
+    const lowPriority: string[] = [];
+    mediumPriority.forEach(name => {
+      name.split(' ').forEach(w => {
+        // Only consider words longer than 2 chars
+        if (w.length > 2) {
+          lowPriority.push(w);
+        }
+      });
+    });
+
+    const findMatch = (list: string[], query: string) => {
+      const matches = list.filter(item => item.toLowerCase().startsWith(query) && item.length > query.length);
+      if (matches.length > 0) {
+        // Sort by length to give the most concise completion
+        matches.sort((a, b) => a.length - b.length);
+        return matches[0];
+      }
+      return null;
+    };
+
+    // Attempt full query match
+    let match = findMatch(highPriority, q) || findMatch(mediumPriority, q) || findMatch(lowPriority, q);
+
+    // If no match for the full query, but it has multiple words, try completing the last word
+    if (!match && q.includes(' ')) {
+      const words = q.split(' ');
+      const lastWord = words[words.length - 1];
+      if (lastWord.length > 0) {
+        const lastWordMatch = findMatch(highPriority, lastWord) || findMatch(mediumPriority, lastWord) || findMatch(lowPriority, lastWord);
+        if (lastWordMatch) {
+          // Append the completion to the full query
+          const completion = lastWordMatch.slice(lastWord.length);
+          match = searchQuery + completion;
+        }
+      }
+    }
+
+    setSuggestion(match || "");
+  }, [searchQuery, t]);
 
   return (
     <header className="bg-background border-b border-border sticky top-0 z-50">
-      {/* Desktop Header */}
-      <div className="hidden lg:flex items-center justify-between px-6 lg:px-10 h-16 max-w-[1600px] mx-auto w-full gap-4">
-        <div className="flex items-center gap-8 lg:gap-16 flex-1">
-          {/* Logo */}
-          <a href="/" className="text-3xl font-bold tracking-tighter leading-none shrink-0 uppercase">
+      {/* Unified Header — same layout on all screen sizes */}
+      <div className="flex items-center justify-between px-3 sm:px-6 lg:px-10 h-14 sm:h-16 max-w-[1600px] mx-auto w-full gap-2 sm:gap-4">
+        {/* Left: Logo */}
+        <div className="flex items-center shrink-0">
+          <Link to={enableNews ? "/news" : "/"} className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tighter leading-none shrink-0">
             Villaoro
-          </a>
+          </Link>
+        </div>
 
-          {/* AI Search Bar */}
-          <div className="flex-1 max-w-[480px]">
+        {/* Center: AI Search Bar */}
+        <div className="flex-1 max-w-[600px] flex justify-center mx-2 sm:mx-4">
+          <div className="w-full">
             <div
-              className={`flex items-center gap-2.5 px-4 py-2 rounded-full border transition-all duration-300 ${
-                isFocused
+              className={`flex items-center gap-1.5 sm:gap-2.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border transition-all duration-300 ${isFocused
                   ? "border-black bg-white shadow-sm"
                   : "border-[#e0e0e0] bg-[#f8f8f8] hover:border-[#ccc]"
-              }`}
+                }`}
             >
-              <Sparkles size={14} className={`shrink-0 transition-colors ${isFocused ? "text-black" : "text-[#aaa]"}`} />
-              <input
-                ref={inputRef}
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onFocus={() => setIsFocused(true)}
-                onBlur={() => setIsFocused(false)}
-                placeholder={t('search') + " products, designers..."}
-                className="flex-1 text-[12px] outline-none bg-transparent placeholder:text-[#bbb] text-black"
-              />
+              <Sparkles size={12} className={`shrink-0 transition-colors sm:w-[14px] sm:h-[14px] ${isFocused ? "text-black" : "text-[#aaa]"}`} />
+              <div className="relative flex-1 min-w-0 flex items-center">
+                {suggestion && isFocused && searchQuery && suggestion.toLowerCase().startsWith(searchQuery.toLowerCase()) && (
+                  <div className="absolute inset-0 pointer-events-none flex items-center text-[11px] sm:text-[12px] text-[#bbb] whitespace-pre overflow-hidden">
+                    <span className="opacity-0">{searchQuery}</span>
+                    <span>{suggestion.slice(searchQuery.length)}</span>
+                  </div>
+                )}
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    if (location.pathname !== "/") {
+                      navigate("/");
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Tab" && suggestion && isFocused) {
+                      e.preventDefault();
+                      setSearchQuery(searchQuery + suggestion.slice(searchQuery.length));
+                    } else if (e.key === "ArrowRight" && suggestion && isFocused && inputRef.current && inputRef.current.selectionStart === searchQuery.length) {
+                      e.preventDefault();
+                      setSearchQuery(searchQuery + suggestion.slice(searchQuery.length));
+                    }
+                  }}
+                  onFocus={() => setIsFocused(true)}
+                  onBlur={() => setIsFocused(false)}
+                  placeholder={t('search') + " products, designers..."}
+                  className="w-full text-[11px] sm:text-[12px] outline-none bg-transparent placeholder:text-[#bbb] text-black relative z-10"
+                />
+              </div>
               {searchQuery && (
                 <button
                   onClick={() => { setSearchQuery(""); inputRef.current?.focus(); }}
-                  className="text-[#999] hover:text-black transition-colors shrink-0"
+                  className="text-[#999] hover:text-black transition-colors shrink-0 z-20"
                 >
                   <X size={14} />
                 </button>
@@ -74,107 +158,56 @@ const Header = () => {
         </div>
 
         {/* Right Nav */}
-        <div className="flex items-center justify-end gap-6 shrink-0">
-          <LanguageSwitcher />
-          <button className="text-[10px] uppercase font-bold tracking-widest hover:underline underline-offset-4">{t('login')}</button>
-          <button className="hover:opacity-70 transition-opacity flex items-center gap-1">
-            <ShoppingBag size={18} strokeWidth={1.5} />
-            <span className="text-[10px] font-medium">(0)</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Mobile Header (Inspired by SSENSE) */}
-      <div className="lg:hidden flex items-center justify-between px-4 h-14 w-full relative">
-        {/* Left Side: Hamburger Menu & Search Toggle */}
-        <div className="flex items-center gap-4">
-          <Sheet>
-            <SheetTrigger asChild>
-              <button className="hover:opacity-75 transition-opacity py-2" aria-label="Menu">
-                <Menu size={18} strokeWidth={1.5} />
-              </button>
-            </SheetTrigger>
-            <SheetContent side="left" className="w-[80%] max-w-[300px] p-6 flex flex-col justify-between bg-white z-[100]">
-              <div className="space-y-8 pt-8">
-                <a href="/" className="text-2xl font-bold tracking-[0.2em] uppercase leading-none block border-b border-black pb-4">
-                  Villaoro
-                </a>
-                <nav className="flex flex-col gap-6">
-                  <a href="/" className="text-xs uppercase tracking-widest font-medium hover:text-black text-[#555]">
-                    {t('shop') || "Shop"}
-                  </a>
-                  <a href="/admin/login" className="text-xs uppercase tracking-widest font-medium hover:text-black text-[#555]">
-                    {t('admin_portal') || "Admin Portal"}
-                  </a>
-                  <button className="text-left text-xs uppercase tracking-widest font-medium hover:text-black text-[#555]">
-                    {t('login')}
-                  </button>
-                </nav>
-              </div>
-              <div className="space-y-4 border-t border-border pt-6">
-                <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-2">Language</p>
-                <LanguageSwitcher />
-              </div>
-            </SheetContent>
-          </Sheet>
-
-          <button 
-            onClick={() => setShowSearchMobile(!showSearchMobile)}
-            className="hover:opacity-75 transition-opacity py-2"
-            aria-label="Search"
-          >
-            <Search size={18} strokeWidth={1.5} />
-          </button>
-        </div>
-
-        {/* Center Side: Centered Logo */}
-        <div className="absolute left-1/2 -translate-x-1/2 flex items-center">
-          <a href="/" className="text-[15px] font-bold tracking-[0.3em] uppercase leading-none select-none text-black">
-            Villaoro
+        <div className="flex items-center justify-end gap-3 sm:gap-4 lg:gap-5 shrink-0">
+          <VinylButton isPlaying={isPlaying} isVisible={isVisible} onToggle={togglePlay} />
+          <a href="https://www.altadaily.com/" target="_blank" rel="noopener noreferrer" className="hover:opacity-70 transition-opacity flex items-center justify-center text-black" title="Create a look on Alta Daily">
+            <svg width="20" height="14" viewBox="0 0 48 32" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" className="sm:w-[22px] sm:h-[16px]">
+              {/* Left person */}
+              <circle cx="10" cy="8" r="3.8" strokeWidth="2.2" />
+              <path d="M3.5 23c0-3.6 2.9-6.5 6.5-6.5s6.5 2.9 6.5 6.5" strokeWidth="2.2" />
+              {/* Center person (slightly forward) */}
+              <circle cx="24" cy="6" r="3.8" strokeWidth="2.2" />
+              <path d="M17.5 21c0-3.6 2.9-6.5 6.5-6.5s6.5 2.9 6.5 6.5" strokeWidth="2.2" />
+              {/* Right person */}
+              <circle cx="38" cy="8" r="3.8" strokeWidth="2.2" />
+              <path d="M31.5 23c0-3.6 2.9-6.5 6.5-6.5s6.5 2.9 6.5 6.5" strokeWidth="2.2" />
+            </svg>
           </a>
-        </div>
+          <Link to="/cart" className="hover:opacity-70 transition-opacity flex items-center gap-1">
+            <ShoppingBag size={16} strokeWidth={1.5} className="sm:w-[18px] sm:h-[18px]" />
+            <span className="text-[9px] sm:text-[10px] font-medium">({itemCount})</span>
+          </Link>
 
-        {/* Right Side: Profile & Bag */}
-        <div className="flex items-center gap-4">
-          <button className="hover:opacity-75 transition-opacity py-2" aria-label="Profile">
-            <User size={18} strokeWidth={1.5} />
-          </button>
-          <button className="hover:opacity-75 transition-opacity py-2 flex items-center" aria-label="Shopping Bag">
-            <SsenseBagIcon count={0} />
-          </button>
+          {/* Menu (Language & Login) for all screen sizes */}
+          <div className="flex items-center">
+            <Sheet>
+              <SheetTrigger asChild>
+                <button className="hover:opacity-75 transition-opacity p-1" aria-label="Menu">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="sm:w-[24px] sm:h-[24px]">
+                    <line x1="8" y1="8" x2="20" y2="8" />
+                    <line x1="4" y1="12" x2="20" y2="12" />
+                    <line x1="4" y1="16" x2="16" y2="16" />
+                  </svg>
+                </button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[80%] max-w-[300px] p-6 bg-white z-[100]">
+                <SheetTitle className="sr-only">Menu</SheetTitle>
+                <div className="flex flex-col gap-6 mt-8">
+                  <div className="flex flex-col w-full">
+                    <LanguageSwitcher />
+                  </div>
+                  <div className="space-y-4 border-t border-border pt-6">
+                    <button className="flex items-center gap-2 text-left text-xs uppercase tracking-widest font-bold hover:text-[#555] transition-colors">
+                      <UserPlus size={18} strokeWidth={2} />
+                      {t('login')}
+                    </button>
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
         </div>
       </div>
-
-      {/* Mobile Search Bar Row (slides down/toggles inline) */}
-      {showSearchMobile && (
-        <div className="lg:hidden bg-background border-t border-b border-border px-4 py-2.5 flex items-center gap-3 animate-in fade-in slide-in-from-top duration-200">
-          <div className="flex-1 flex items-center gap-2 border border-black px-3 py-1.5 bg-white">
-            <Search size={13} className="text-black shrink-0" />
-            <input
-              ref={mobileInputRef}
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={t('search') + " products, designers..."}
-              className="flex-1 text-[11px] outline-none bg-transparent placeholder:text-[#bbb] text-black"
-            />
-            {searchQuery && (
-              <button onClick={() => setSearchQuery("")} className="text-[#999] hover:text-black shrink-0">
-                <X size={13} />
-              </button>
-            )}
-          </div>
-          <button 
-            onClick={() => {
-              setShowSearchMobile(false);
-              setSearchQuery("");
-            }}
-            className="text-[10px] uppercase tracking-widest font-bold text-black shrink-0"
-          >
-            Cancel
-          </button>
-        </div>
-      )}
     </header>
   );
 };

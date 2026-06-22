@@ -67,9 +67,8 @@ export const uploadToR2 = async (fileOrBase64: File | string, customExtension?: 
   const uniqueFileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExtension}`;
   
   const isVideo = file.type.startsWith('video/');
-  const timeoutMs = isVideo ? 45000 : 4000; // 45s for video, 4s for images
+  const timeoutMs = isVideo ? 45000 : 10000; // 45s for video, 10s for images
   const controller = new AbortController();
-  let timeoutId: any;
 
   try {
     // Convert File to Uint8Array to bypass the AWS SDK v3 stream reader bug in Vite
@@ -83,10 +82,20 @@ export const uploadToR2 = async (fileOrBase64: File | string, customExtension?: 
       ContentType: file.type,
     });
 
-    timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    // Use Promise.race to guarantee the upload never hangs indefinitely.
+    // The AWS SDK v3 does not reliably honour AbortSignal in browser environments,
+    // so we must enforce the timeout externally via a racing rejection promise.
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(() => {
+        controller.abort();
+        reject(new Error(`Upload timed out after ${timeoutMs / 1000}s`));
+      }, timeoutMs)
+    );
 
-    // Pass options with abortSignal to abort the request if it hangs
-    await S3.send(command, { abortSignal: controller.signal });
+    await Promise.race([
+      S3.send(command, { abortSignal: controller.signal }),
+      timeoutPromise,
+    ]);
 
     const publicDomain = import.meta.env.VITE_R2_PUBLIC_DOMAIN;
     
@@ -109,7 +118,5 @@ export const uploadToR2 = async (fileOrBase64: File | string, customExtension?: 
       reader.onloadend = () => resolve(reader.result as string);
       reader.readAsDataURL(file);
     });
-  } finally {
-    if (timeoutId) clearTimeout(timeoutId);
   }
 };
