@@ -138,7 +138,7 @@ const getCategoryIcon = (cat: string) => {
 
 const Index = () => {
   const [searchParams] = useSearchParams();
-  const [category, setCategory] = useState<string>("All");
+  const [category, setCategory] = useState<string>("Footwear");
   const [designer, setDesigner] = useState<string>(() => {
     const paramDesigner = searchParams.get("designer");
     if (paramDesigner) {
