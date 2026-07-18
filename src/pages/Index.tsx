@@ -351,12 +351,12 @@ const Index = () => {
       <main className="flex-1 w-full max-w-[1800px] mx-auto px-0 md:px-0 pb-[96px] xl:pb-0">
 
         {/* 3. BRANDS / SORT Split Bar with Inline Dropdowns */}
-        <div className="sticky top-14 z-40 bg-white">
+        <div className="sticky top-[calc(3.5rem+env(safe-area-inset-top))] sm:top-[calc(4rem+env(safe-area-inset-top))] z-40 bg-white">
           {/* Toggle Row */}
-          <div className="border-b border-border flex w-full">
+          <div className="border-b border-border flex w-full h-[46px]">
             <button
               onClick={toggleDesigners}
-              className="flex-1 py-3 text-[11px] font-bold uppercase tracking-[0.25em] border-r border-border text-center hover:bg-neutral-50 transition-colors flex items-center justify-center gap-1.5"
+              className="flex-1 h-full text-[11px] font-bold uppercase tracking-[0.25em] border-r border-border text-center hover:bg-neutral-50 transition-colors flex items-center justify-center gap-1.5"
             >
               {t('brands') || "BRANDS"}
               <span className="text-muted-foreground ml-1 font-light normal-case tracking-normal">({dynamicDesigners.length})</span>
@@ -364,7 +364,7 @@ const Index = () => {
             </button>
             <button
               onClick={toggleSort}
-              className="flex-1 py-3 text-[11px] font-bold uppercase tracking-[0.25em] text-center hover:bg-neutral-50 transition-colors flex items-center justify-center gap-1.5"
+              className="flex-1 h-full text-[11px] font-bold uppercase tracking-[0.25em] text-center hover:bg-neutral-50 transition-colors flex items-center justify-center gap-1.5"
             >
               {t('sort')}
               <ChevronDown className={`w-3 h-3 transition-transform duration-300 ${isSortOpen ? "rotate-180" : ""}`} />
@@ -437,14 +437,14 @@ const Index = () => {
               </motion.div>
             )}
           </AnimatePresence>
-        </div>
 
-        {/* 2. Label / Count Bar — directly connected to brand selector above */}
-        <div className="border-b border-border py-3 flex items-center justify-center bg-[#fafafa]">
-          <h2 className="text-xs md:text-[13px] lowercase tracking-[0.22em] font-bold text-black">
-            {topBarLabel}
-            <span className="text-muted-foreground ml-2.5 font-normal">({filtered.length})</span>
-          </h2>
+          {/* 2. Label / Count Bar — directly connected to brand selector above */}
+          <div className="border-b border-border h-[46px] flex items-center justify-center bg-[#fafafa]">
+            <h2 className="text-xs md:text-[13px] lowercase tracking-[0.22em] font-bold text-black">
+              {topBarLabel}
+              <span className="text-muted-foreground ml-2.5 font-normal">({filtered.length})</span>
+            </h2>
+          </div>
         </div>
 
         <div className="border-b border-border min-h-[calc(100vh-200px)] flex">
