@@ -4,7 +4,8 @@ import { useCart } from "@/contexts/CartContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { getProducts, Product, getLooks, Look } from "@/lib/store";
+import { getProducts, getLooks, Look } from "@/lib/store";
+import type { Product } from "@/data/products";
 import { toast } from "sonner";
 import { ShoppingBag, ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -46,7 +47,7 @@ const variants = {
 };
 
 export default function CommunityLooks() {
-  const { addItem } = useCart();
+  const { addToCart } = useCart();
   const { t } = useLanguage();
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [looks, setLooks] = useState<Look[]>([]);
@@ -77,7 +78,7 @@ export default function CommunityLooks() {
 
   const handleAddAllToCart = (products: Product[]) => {
     products.forEach(product => {
-      addItem({ ...product, quantity: 1, selectedSize: product.sizes?.[0] || 'M' });
+      addToCart(product, 1, (product as any).sizes?.[0] || null);
     });
     toast.success("Outfit added to your cart");
     setSelectedLook(null);
