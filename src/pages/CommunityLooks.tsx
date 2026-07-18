@@ -78,7 +78,7 @@ export default function CommunityLooks() {
 
   const handleAddAllToCart = (products: Product[]) => {
     products.forEach(product => {
-      addItem({ ...product, quantity: 1, selectedSize: product.sizes?.[0] || 'M' });
+      addToCart(product, 1, (product as any).sizes?.[0] || null);
     });
     toast.success("Outfit added to your cart");
     setSelectedLook(null);
