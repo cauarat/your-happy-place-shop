@@ -1,5 +1,60 @@
 [
   {
+    "id": "1800000000001",
+    "name": "White Swimshorts",
+    "designer": "Villebrequin",
+    "category": "Shorts",
+    "price": 250,
+    "images": [],
+    "colors": [
+      "White"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL"
+    ],
+    "description": "Classic white swimshorts for a clean summer look."
+  },
+  {
+    "id": "1800000000002",
+    "name": "White Pants",
+    "designer": "Moncler",
+    "category": "Pants",
+    "price": 650,
+    "images": [],
+    "colors": [
+      "White"
+    ],
+    "sizes": [
+      "30",
+      "32",
+      "34",
+      "36"
+    ],
+    "description": "Crisp white trousers with a tailored fit."
+  },
+  {
+    "id": "1800000000003",
+    "name": "Black Slip-ons",
+    "designer": "Moncler",
+    "category": "Footwear",
+    "price": 450,
+    "images": [],
+    "colors": [
+      "Black"
+    ],
+    "sizes": [
+      "40",
+      "41",
+      "42",
+      "43",
+      "44"
+    ],
+    "description": "Minimalist black slip-on shoes for effortless style."
+  },
+  {
     "id": "1780252664243",
     "name": "Navy Blue No Brand Polo ( Lp Style ) ",
     "category": "Clothing",

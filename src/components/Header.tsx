@@ -141,7 +141,7 @@ const Header = () => {
                   }}
                   onFocus={() => setIsFocused(true)}
                   onBlur={() => setIsFocused(false)}
-                  placeholder={t('search') + " products, designers..."}
+                  placeholder={t('search') + " " + t('search_placeholder')}
                   className="w-full text-[11px] sm:text-[12px] outline-none bg-transparent placeholder:text-[#bbb] text-black relative z-10"
                 />
               </div>
@@ -160,7 +160,7 @@ const Header = () => {
         {/* Right Nav */}
         <div className="flex items-center justify-end gap-3 sm:gap-4 lg:gap-5 shrink-0">
           <VinylButton isPlaying={isPlaying} isVisible={isVisible} onToggle={togglePlay} />
-          <a href="https://www.altadaily.com/" target="_blank" rel="noopener noreferrer" className="hover:opacity-70 transition-opacity flex items-center justify-center text-black" title="Create a look on Alta Daily">
+          <Link to="/community" className="hover:opacity-70 transition-opacity flex items-center justify-center text-black" title="Community Looks">
             <svg width="20" height="14" viewBox="0 0 48 32" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" className="sm:w-[22px] sm:h-[16px]">
               {/* Left person */}
               <circle cx="10" cy="8" r="3.8" strokeWidth="2.2" />
@@ -172,7 +172,7 @@ const Header = () => {
               <circle cx="38" cy="8" r="3.8" strokeWidth="2.2" />
               <path d="M31.5 23c0-3.6 2.9-6.5 6.5-6.5s6.5 2.9 6.5 6.5" strokeWidth="2.2" />
             </svg>
-          </a>
+          </Link>
           <Link to="/cart" className="hover:opacity-70 transition-opacity flex items-center gap-1">
             <ShoppingBag size={16} strokeWidth={1.5} className="sm:w-[18px] sm:h-[18px]" />
             <span className="text-[9px] sm:text-[10px] font-medium">({itemCount})</span>

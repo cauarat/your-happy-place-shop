@@ -1,6 +1,8 @@
 import { useEffect } from "react";
 import { Outlet, useNavigate, useLocation, Link } from "react-router-dom";
-import { LayoutDashboard, Package, Settings, Bot, Sparkles, Home, Tag } from "lucide-react";
+import { LayoutDashboard, Package, Settings, Bot, Sparkles, Home, Tag, Users } from "lucide-react";
+import { useMusicPlayer } from "@/contexts/MusicContext";
+import { VinylButton } from "@/components/BackgroundMusic";
 
 const NAV_ITEMS = [
   { label: "Dashboard", path: "/admin/dashboard", icon: LayoutDashboard },
@@ -8,12 +10,14 @@ const NAV_ITEMS = [
   { label: "Settings", path: "/admin/design", icon: Settings },
   { label: "AI Stylist", path: "/admin/ai", icon: Bot },
   { label: "Catalog Structure", path: "/admin/catalog", icon: Tag },
+  { label: "Community Looks", path: "/admin/looks", icon: Users },
   { label: "Try The Look", path: "/admin/try-the-look", icon: Sparkles },
 ];
 
 const AdminLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { isPlaying, isVisible, togglePlay } = useMusicPlayer();
 
   return (
     <div className="min-h-screen flex bg-secondary/30">
@@ -45,14 +49,17 @@ const AdminLayout = () => {
           })}
         </nav>
 
-        <div className="p-4 border-t border-border space-y-2">
+        <div className="p-4 border-t border-border flex items-center gap-2">
           <Link 
             to="/"
-            className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm text-muted-foreground hover:bg-secondary hover:text-foreground w-full transition-colors"
+            className="flex-1 flex items-center gap-3 px-4 py-3 rounded-lg text-sm text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
           >
             <Home className="w-4 h-4" />
-            View Storefront
+            Storefront
           </Link>
+          <div className="shrink-0 flex items-center justify-center w-10">
+            <VinylButton isPlaying={isPlaying} isVisible={isVisible} onToggle={togglePlay} />
+          </div>
         </div>
       </aside>
 

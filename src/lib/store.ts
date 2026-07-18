@@ -10,7 +10,7 @@ const LOOKS_KEY = "villaoro_looks";
 const CATEGORIES_KEY = "villaoro_categories";
 const DESIGNERS_KEY = "villaoro_designers";
 const CATALOG_VERSION_KEY = "villaoro_catalog_version";
-const CATALOG_VERSION = "v10";
+const CATALOG_VERSION = "v13";
 
 // Types
 export interface DesignSettings {
@@ -44,6 +44,7 @@ const initStore = () => {
     const dess = Array.from(new Set((catalogSeed as Product[]).map(p => p.designer))).sort();
     localStorage.setItem(CATEGORIES_KEY, JSON.stringify(cats));
     localStorage.setItem(DESIGNERS_KEY, JSON.stringify(dess));
+    localStorage.removeItem(LOOKS_KEY); // Force looks reseed
     localStorage.setItem(CATALOG_VERSION_KEY, CATALOG_VERSION);
   } else if (!localStorage.getItem(PRODUCTS_KEY)) {
     localStorage.setItem(PRODUCTS_KEY, JSON.stringify(catalogSeed));
@@ -77,10 +78,22 @@ const initStore = () => {
       JSON.stringify([
         {
           id: "look-1",
-          name: "Minimalist Fall Look",
+          name: "Minimalist Look 1",
           modelImage: "/images/fashion_model_minimal_look_1776798867177.png",
-          productIds: ["3", "5", "8"], // IDs matching some defaults or to be matched
+          productIds: ["1778433652573", "1800000000001", "1780164035819"], 
         },
+        {
+          id: "look-2",
+          name: "Minimalist Look 2",
+          modelImage: "/images/media__1776798670043.png",
+          productIds: ["1780155796617", "1778433408141", "1800000000002", "1800000000003"],
+        },
+        {
+          id: "look-3",
+          name: "Minimalist Look 3",
+          modelImage: "/images/media__1776798653612.png", 
+          productIds: ["1780178615436", "1778447161445", "1780164146319"],
+        }
       ])
     );
   }
@@ -108,6 +121,7 @@ export function saveProduct(product: Product) {
   }
   try {
     localStorage.setItem(PRODUCTS_KEY, JSON.stringify(products));
+    window.dispatchEvent(new Event('products-updated'));
   } catch (e) {
     console.error("Storage quota exceeded", e);
     alert("The site database is full because of high-quality images. Please try to use slightly smaller images or remove some products.");
@@ -167,12 +181,39 @@ export function saveLook(look: Look) {
   localStorage.setItem(LOOKS_KEY, JSON.stringify(looks));
 }
 
+export function deleteLook(id: string) {
+  const looks = getLooks().filter((l) => l.id !== id);
+  localStorage.setItem(LOOKS_KEY, JSON.stringify(looks));
+}
+
 // Categories & Designers CRUD
 export function getCategories(): string[] {
   const data = localStorage.getItem(CATEGORIES_KEY);
   const storedCategories = data ? JSON.parse(data) : [];
   const productCategories = getProducts().map(p => p.category).filter(Boolean);
-  return Array.from(new Set([...storedCategories, ...productCategories])).sort();
+  const uniqueCategories = Array.from(new Set([...storedCategories, ...productCategories]));
+  
+  // Custom strategic order
+  const priorityOrder = [
+    "Footwear",   // Calçados
+    "T-Shirt",    // Camisetas
+    "Tank top",   // Regatas
+  ];
+
+  return uniqueCategories.sort((a, b) => {
+    const indexA = priorityOrder.indexOf(a);
+    const indexB = priorityOrder.indexOf(b);
+    
+    // Both in priority list: sort by priority order
+    if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+    // Only A is in priority list: A comes first
+    if (indexA !== -1) return -1;
+    // Only B is in priority list: B comes first
+    if (indexB !== -1) return 1;
+    
+    // Neither in priority list: sort alphabetically
+    return a.localeCompare(b);
+  });
 }
 
 export function saveCategories(categories: string[]) {
@@ -182,7 +223,7 @@ export function saveCategories(categories: string[]) {
 export function getDesigners(): string[] {
   const data = localStorage.getItem(DESIGNERS_KEY);
   const storedDesigners = data ? JSON.parse(data) : [];
-  const productDesigners = getProducts().map(p => p.designer).filter(Boolean);
+  const productDesigners = getProducts().flatMap(p => p.designers || [p.designer]).filter(Boolean);
   return Array.from(new Set([...storedDesigners, ...productDesigners])).sort();
 }
 

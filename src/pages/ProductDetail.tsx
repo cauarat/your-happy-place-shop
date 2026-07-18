@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import { Minus, Plus } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useCart } from "@/contexts/CartContext";
+import MobileBottomDock from "@/components/MobileBottomDock";
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -14,7 +15,7 @@ const ProductDetail = () => {
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [isAddedToBag, setIsAddedToBag] = useState(false);
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { addToCart } = useCart();
   const navigate = useNavigate();
 
@@ -27,29 +28,39 @@ const ProductDetail = () => {
 
   if (!product) return null;
 
-  const sizes = ["40", "41", "42", "43", "44"];
+  const shoeSizes = ["40", "41", "42", "43", "44"];
+  const clothingSizes = language === 'PT' ? ['P', 'M', 'G'] : ['S', 'M', 'L'];
+  
+  const productCategory = product.category.toLowerCase();
+  const isShoe = productCategory === 'footwear';
+  const isClothing = ['clothing', 'sweater', 'vest', 'shorts', 'pants', 't-shirts', 't-shirt', 'hoodies', 'tank tops', 'tank top'].includes(productCategory);
+  
+  const sizes = isShoe ? shoeSizes : isClothing ? clothingSizes : [];
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
       
-      <main className="flex-1 max-w-screen-2xl mx-auto w-full px-6 lg:px-12 py-12">
-        <div className="flex flex-col items-center justify-center mb-16 text-center">
-          <Link to="/" className="text-[11px] uppercase tracking-widest hover:opacity-60 transition-opacity mb-8">
+      <main className="flex-1 max-w-screen-2xl mx-auto w-full px-5 lg:px-12 py-6 md:py-12 pb-[96px] xl:pb-12 relative">
+        <div className="w-full mb-4 md:absolute md:top-12 md:left-12 md:w-auto">
+          <Link to="/" className="inline-flex items-center text-[11px] uppercase tracking-widest hover:opacity-60 transition-opacity">
             ← {t('back_to_catalog')}
           </Link>
-          <p className="text-[10px] uppercase font-bold tracking-[0.2em] text-muted-foreground mb-3">
+        </div>
+        
+        <div className="flex flex-col items-center justify-center mb-8 md:mb-16 text-center">
+          <p className="text-[10px] uppercase font-bold tracking-[0.2em] text-muted-foreground mb-2 md:mb-3">
             {t(product.category.toLowerCase())}
           </p>
           <h1 className="text-xl md:text-2xl font-bold tracking-tighter uppercase mb-3 max-w-2xl">
             {product.designer} {t(product.name)}
           </h1>
-          <div className="w-12 h-px bg-border mb-6" />
+          <div className="w-12 h-px bg-border mb-4 md:mb-6" />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr_1fr] gap-16 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr_1fr] gap-10 md:gap-16 items-start">
           {/* Left Column: Description */}
-          <div className="space-y-8 lg:sticky lg:top-32 h-fit">
+          <div className="order-3 lg:order-none space-y-8 lg:sticky lg:top-32 h-fit mt-4 lg:mt-0">
             <div className="space-y-6 text-sm leading-relaxed text-foreground/80">
               <p className="font-medium uppercase text-[10px] tracking-widest text-muted-foreground">{t('description')}</p>
               <div className="whitespace-pre-wrap">
@@ -64,7 +75,7 @@ const ProductDetail = () => {
           </div>
 
           {/* Center Column: Images */}
-          <div className="space-y-12">
+          <div className="order-1 lg:order-none space-y-6 md:space-y-12">
             {(product.images && product.images.length > 0 ? product.images : [product.image]).map((img, i) => (
               <div key={i} className="aspect-[4/5] bg-transparent flex items-center justify-center overflow-hidden">
                 <img 
@@ -78,7 +89,7 @@ const ProductDetail = () => {
           </div>
 
           {/* Right Column: Checkout */}
-          <div className="space-y-10 lg:sticky lg:top-1/2 lg:-translate-y-1/2 h-fit">
+          <div className="order-2 lg:order-none space-y-8 md:space-y-10 lg:sticky lg:top-1/2 lg:-translate-y-1/2 h-fit">
             <div>
               <div className="flex flex-col gap-1 mb-6">
                 <span className="text-xl font-medium">${product.price.toFixed(2)} USD</span>
@@ -93,28 +104,30 @@ const ProductDetail = () => {
               </div>
             </div>
 
-            <div>
-              <p className="text-[10px] uppercase font-bold tracking-widest mb-4">{t('select_size')}</p>
-              <div className="flex flex-wrap gap-2">
-                {sizes.map((size) => (
-                  <button
-                    key={size}
-                    onClick={() => setSelectedSize(size)}
-                    className={`w-12 h-12 border text-xs flex items-center justify-center transition-all ${
-                      selectedSize === size 
-                        ? "border-primary bg-primary text-primary-foreground" 
-                        : "border-border hover:border-primary"
-                    }`}
-                  >
-                    {size}
-                  </button>
-                ))}
+            {(isShoe || isClothing) && (
+              <div>
+                <p className="text-[10px] uppercase font-bold tracking-widest mb-4">{t('select_size')}</p>
+                <div className="flex flex-wrap gap-2">
+                  {sizes.map((size) => (
+                    <button
+                      key={size}
+                      onClick={() => setSelectedSize(size)}
+                      className={`w-12 h-12 border rounded-full text-xs flex items-center justify-center transition-all ${
+                        selectedSize === size 
+                          ? "border-primary bg-primary text-primary-foreground" 
+                          : "border-border hover:border-primary"
+                      }`}
+                    >
+                      {size}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             <div>
               <p className="text-[10px] uppercase font-bold tracking-widest mb-4">{t('quantity')}</p>
-              <div className="flex items-center w-32 border border-border">
+              <div className="flex items-center w-32 border border-border rounded-full overflow-hidden">
                 <button 
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
                   className="w-10 h-10 flex items-center justify-center hover:bg-secondary transition-colors"
@@ -140,7 +153,7 @@ const ProductDetail = () => {
                   setIsAddedToBag(true);
                 }
               }}
-              className="w-full bg-primary text-primary-foreground h-14 uppercase text-[11px] font-bold tracking-[0.2em] flex items-center justify-center hover:opacity-90 transition-all duration-300"
+              className="w-full bg-primary text-primary-foreground h-14 rounded-full uppercase text-[11px] font-bold tracking-[0.2em] flex items-center justify-center hover:opacity-90 transition-all duration-300"
             >
               {isAddedToBag ? t('proceed_to_checkout') : t('add_to_bag')}
             </button>
@@ -148,6 +161,7 @@ const ProductDetail = () => {
         </div>
       </main>
 
+      <MobileBottomDock />
       <Footer />
     </div>
   );

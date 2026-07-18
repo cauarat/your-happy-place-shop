@@ -3,11 +3,39 @@ import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ProductCard from "@/components/ProductCard";
-import { getProducts, getDesigners, getDesignSettings } from "@/lib/store";
+import { getProducts, getDesigners, getDesignSettings, getCategories } from "@/lib/store";
 import type { Product } from "@/data/products";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { motion } from "framer-motion";
-import { Newspaper } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Newspaper, Shirt, Footprints, ShoppingBag, Gem, Glasses, Box, Layers, SlidersHorizontal } from "lucide-react";
+import { CapIcon, PantsIcon, ShortsIcon, JacketIcon, HoodieIcon, VestIcon, PoloIcon, TankTopIcon, BagIcon, PufferJacketIcon, SweaterIcon } from "@/components/Icons";
+import MobileBottomDock from "@/components/MobileBottomDock";
+
+const getCategoryIcon = (cat: string) => {
+  switch (cat.toUpperCase()) {
+    case 'CLOTHING': return Shirt;
+    case 'FOOTWEAR': return Footprints;
+    case 'BAGS': return BagIcon;
+    case 'JEWELRY': return Gem;
+    case 'ACCESSORIES': return Glasses;
+    case 'CAPS': return CapIcon;
+    case 'JACKETS': return JacketIcon;
+    case "PUFFER JACKET": return PufferJacketIcon;
+    case "PUFFER JACKETS": return PufferJacketIcon;
+    case 'OBJECTS': return Box;
+    case 'PANTS': return PantsIcon;
+    case 'POLO': return PoloIcon;
+    case 'SET': return Layers;
+    case 'SHORTS': return ShortsIcon;
+    case 'SWEATER': return SweaterIcon;
+    case 'SWEATERS': return SweaterIcon;
+    case 'T-SHIRT': return Shirt;
+    case 'TANK TOP': return TankTopIcon;
+    case 'HOODIES': return HoodieIcon;
+    case 'VEST': return VestIcon;
+    default: return null;
+  }
+};
 
 const News = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -66,8 +94,12 @@ const News = () => {
     }, {} as Record<string, Product[]>);
 
     return Object.entries(grouped)
-      .map(([d, prods]) => ({ designer: d, products: prods }))
-      .sort((a, b) => b.products.length - a.products.length);
+      .map(([d, prods]) => ({ 
+        designer: d, 
+        products: prods,
+        latestDate: Math.max(...prods.map(p => p.createdAt || 0))
+      }))
+      .sort((a, b) => b.latestDate - a.latestDate);
   }, [products]);
 
   const totalCount = useMemo(
@@ -75,86 +107,119 @@ const News = () => {
     [productsByDesigner]
   );
 
+  // Navigate to Index with a category pre-selected
+  const goToCategory = (categoryName: string) => {
+    navigate(`/?category=${encodeURIComponent(categoryName)}`);
+  };
+
   // Navigate to Index with a designer pre-selected
   const goToDesigner = (designerName: string) => {
     navigate(`/?designer=${encodeURIComponent(designerName)}`);
   };
 
+
   return (
     <div className="min-h-screen flex flex-col bg-white">
       <Header />
 
-      <main className="flex-1 w-full max-w-[1800px] mx-auto px-0 md:px-0">
-        {/* Full-Width Top Bar */}
-        <div className="border-y border-border py-2.5 mb-0 flex items-center justify-center">
-          <h2 className="text-[11px] lowercase tracking-[0.2em] font-medium text-foreground">
-            {t('news') || "news"}
-            <span className="text-muted-foreground ml-2 font-light">({totalCount})</span>
+      <main className="flex-1 w-full max-w-[1800px] mx-auto px-0 md:px-0 pb-[96px] xl:pb-0">
+        {/* Apple-style Segmented Control Filter Bar */}
+        <div
+          className="hidden xl:block border-b border-[#f0f0f0] bg-white"
+          style={{ WebkitBackdropFilter: 'blur(20px)' }}
+        >
+          <div
+            ref={scrollRef}
+            onMouseDown={onMouseDown}
+            onMouseLeave={onMouseLeave}
+            onMouseUp={onMouseUp}
+            onMouseMove={onMouseMove}
+            onDoubleClick={onDoubleClick}
+            className="overflow-x-auto no-scrollbar flex items-center px-3 py-2 gap-1 select-none whitespace-nowrap cursor-grab active:cursor-grabbing"
+          >
+            {/* Filter icon chip — navigates to catalog (all products) */}
+            <motion.button
+              layout
+              key="filter-all"
+              onClick={() => { if (hasDragged.current) return; navigate('/'); }}
+              className="relative shrink-0 flex items-center justify-center w-8 h-8 rounded-full transition-colors duration-200 mr-0.5 text-[#555] hover:bg-[#f2f2f2]"
+              whileHover={{ backgroundColor: '#f2f2f2' }}
+            >
+              <span className="relative z-10 flex items-center justify-center">
+                <SlidersHorizontal size={15} strokeWidth={1.8} />
+              </span>
+            </motion.button>
+
+            <AnimatePresence mode="popLayout">
+              {/* News Chip — active on this page */}
+              {getDesignSettings().enableNewsPage !== false && (
+                <motion.button
+                  layout
+                  key="news"
+                  initial={{ opacity: 0, scale: 0.85 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.85 }}
+                  transition={{ type: 'spring', stiffness: 120, damping: 20, mass: 1.1 }}
+                  className="relative flex items-center gap-1.5 px-3.5 h-8 rounded-full text-[11px] font-semibold tracking-wide text-white shrink-0"
+                >
+                  <motion.div className="absolute inset-0 rounded-full bg-black" />
+                  <span className="relative z-10 flex items-center gap-1.5">
+                    <Newspaper size={12} strokeWidth={2} className="shrink-0" />
+                    {t('news') || 'News'}
+                  </span>
+                </motion.button>
+              )}
+
+              {/* Sale Chip — navigates to catalog with sale filter */}
+              {getDesignSettings().enableSalePage !== false && (
+                <motion.button
+                  layout
+                  key="sale"
+                  initial={{ opacity: 0, scale: 0.85 }}
+                  animate={{ opacity: 0.6, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.85 }}
+                  transition={{ type: 'spring', stiffness: 120, damping: 20, mass: 1.1 }}
+                  onClick={() => { if (hasDragged.current) return; navigate('/'); }}
+                  className="relative flex items-center gap-1.5 px-3.5 h-8 rounded-full text-[11px] font-medium tracking-wide text-[#333] shrink-0 transition-colors duration-200 hover:bg-[#f2f2f2]"
+                >
+                  {t('sale')}
+                </motion.button>
+              )}
+
+              {/* All Categories — navigate to catalog with that category */}
+              {getCategories().map((c) => {
+                const Icon = getCategoryIcon(c);
+                return (
+                  <motion.button
+                    layout
+                    key={`cat-${c}`}
+                    initial={{ opacity: 0, scale: 0.85 }}
+                    animate={{ opacity: 0.6, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.85 }}
+                    transition={{ type: 'spring', stiffness: 120, damping: 20, mass: 1.1 }}
+                    onClick={() => { if (hasDragged.current) return; goToCategory(c); }}
+                    whileHover={{ backgroundColor: '#f2f2f2' }}
+                    className="relative flex items-center gap-1.5 px-3.5 h-8 rounded-full text-[11px] font-medium tracking-wide text-[#333] shrink-0 transition-colors duration-150"
+                  >
+                    <span className="relative z-10 flex items-center gap-1.5">
+                      {Icon && <Icon size={12} strokeWidth={1.8} className="shrink-0 opacity-60" />}
+                      {t(c.toLowerCase()) === c.toLowerCase() ? c : t(c.toLowerCase())}
+                    </span>
+                  </motion.button>
+                );
+              })}
+            </AnimatePresence>
+          </div>
+        </div>
+
+        {/* Label / Count Bar */}
+        <div className="border-b border-border py-3 flex items-center justify-center bg-[#fafafa]">
+          <h2 className="text-xs md:text-[13px] lowercase tracking-[0.22em] font-bold text-black">
+            {t('news') || 'news'}
+            <span className="text-[#aaa] ml-2 font-light">({totalCount})</span>
           </h2>
         </div>
 
-        {/* Sticky CATEGORIES / SORT Sub-header — navigates back to catalog */}
-        <div className="sticky top-14 z-40 bg-white border-b border-border flex w-full">
-          <button
-            onClick={() => navigate('/')}
-            className="flex-1 py-3 text-[11px] font-bold uppercase tracking-[0.25em] border-r border-border text-center hover:bg-neutral-50 transition-colors"
-          >
-            {t('categories')}
-          </button>
-          <button
-            onClick={() => navigate('/')}
-            className="flex-1 py-3 text-[11px] font-bold uppercase tracking-[0.25em] text-center hover:bg-neutral-50 transition-colors"
-          >
-            {t('sort')}
-          </button>
-        </div>
-
-        {/* Filter Pills / Designers Scroll Row */}
-        <div
-          ref={scrollRef}
-          onMouseDown={onMouseDown}
-          onMouseLeave={onMouseLeave}
-          onMouseUp={onMouseUp}
-          onMouseMove={onMouseMove}
-          onDoubleClick={onDoubleClick}
-          className="border-b border-border py-2 px-4 overflow-x-auto no-scrollbar flex items-center gap-2 bg-white select-none whitespace-nowrap cursor-grab active:cursor-grabbing"
-        >
-          {/* News Pill (active on this page) */}
-          <button
-            className="flex items-center gap-2 px-3 py-1.5 border border-black bg-black text-white text-[10px] font-bold uppercase tracking-[0.15em] transition-colors"
-          >
-            <Newspaper size={12} strokeWidth={2} className="shrink-0" />
-            {t('news') || 'News'}
-          </button>
-
-          {/* Sale pill — navigates to catalog with sale */}
-          {getDesignSettings().enableSalePage !== false && (
-            <button
-              onClick={(e) => {
-                if (hasDragged.current) return;
-                navigate('/');
-              }}
-              className="flex items-center gap-2 px-3 py-1.5 border border-border text-black hover:border-black text-[10px] font-bold uppercase tracking-[0.15em] transition-colors"
-            >
-              <span className="w-2 h-2 border border-black bg-transparent" />
-              {t('sale')}
-            </button>
-          )}
-
-          {/* All Designers — click navigates to Index filtered by that brand */}
-          {getDesigners().map((d) => (
-            <button
-              key={d}
-              onClick={(e) => {
-                if (hasDragged.current) return;
-                goToDesigner(d);
-              }}
-              className="px-3 py-1.5 border border-border text-black hover:border-black text-[10px] font-bold uppercase tracking-[0.15em] transition-colors"
-            >
-              {d}
-            </button>
-          ))}
-        </div>
 
         {/* News Content */}
         <div className="border-b border-border min-h-[calc(100vh-200px)]">
@@ -229,6 +294,7 @@ const News = () => {
         </div>
       </main>
 
+      <MobileBottomDock />
       <Footer />
     </div>
   );

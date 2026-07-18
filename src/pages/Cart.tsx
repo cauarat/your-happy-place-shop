@@ -6,6 +6,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { getProducts } from "@/lib/store";
 import type { Product } from "@/data/products";
 import { Lock } from "lucide-react";
+import MobileBottomDock from "@/components/MobileBottomDock";
 
 const Cart = () => {
   const { t } = useLanguage();
@@ -26,27 +27,27 @@ const Cart = () => {
     <div className="min-h-screen flex flex-col bg-white text-black font-sans selection:bg-black selection:text-white">
       <Header />
       
-      <main className="flex-1 w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 pt-16 pb-24">
+      <main className="flex-1 w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 pt-16 pb-[112px] xl:pb-24">
         
         <div className="flex flex-col lg:flex-row gap-16 lg:gap-24 items-start">
           
           {/* Left Column: Shopping Bag */}
           <div className="flex-[2] w-full">
-            <h1 className="text-[11px] font-bold tracking-widest uppercase mb-12">Shopping Bag</h1>
+            <h1 className="text-[11px] font-bold tracking-widest uppercase mb-12">{t('shopping_bag')}</h1>
             
             {items.length === 0 ? (
               <div className="border-t border-[#e5e5e5] pt-8">
-                <p className="text-sm">Your shopping bag is empty.</p>
+                <p className="text-sm">{t('bag_empty')}</p>
                 <Link to="/" className="text-xs underline mt-4 inline-block hover:opacity-70">
-                  Continue Shopping
+                  {t('continue_shopping')}
                 </Link>
               </div>
             ) : (
               <div className="w-full">
                 {/* Table Header */}
                 <div className="flex justify-between text-[10px] text-[#777] uppercase tracking-widest border-b border-[#e5e5e5] pb-4 mb-4">
-                  <span>Item</span>
-                  <span>Total</span>
+                  <span>{t('item')}</span>
+                  <span>{t('total')}</span>
                 </div>
 
                 {/* Items List */}
@@ -71,16 +72,16 @@ const Cart = () => {
                           {item.size && (
                             <p className="text-[11px] text-[#777] mt-3">Size: {item.size}</p>
                           )}
-                          <p className="text-[10px] text-[#777] mt-1">Quantity: {item.quantity}</p>
+                          <p className="text-[10px] text-[#777] mt-1">{t('quantity')}: {item.quantity}</p>
                         </div>
                         
                         <div className="flex gap-4 mt-6">
-                          <button className="text-[10px] underline hover:opacity-70">Move to Wishlist</button>
+                          <button className="text-[10px] underline hover:opacity-70">{t('move_to_wishlist')}</button>
                           <button 
                             onClick={() => removeFromCart(item.id)}
                             className="text-[10px] underline hover:opacity-70"
                           >
-                            Remove
+                            {t('remove')}
                           </button>
                         </div>
                       </div>
@@ -97,19 +98,19 @@ const Cart = () => {
                 <div className="flex justify-end pt-8">
                   <div className="w-full max-w-[320px] text-xs">
                     <div className="flex justify-between mb-3">
-                      <span className="text-[#555]">Total</span>
+                      <span className="text-[#555]">{t('total')}</span>
                       <span>${cartTotal.toFixed(2)} USD</span>
                     </div>
                     <div className="flex justify-between mb-3">
-                      <span className="text-[#555]">Shipping estimate</span>
-                      <span className="text-[#777]">Calculated at Checkout</span>
+                      <span className="text-[#555]">{t('shipping_estimate')}</span>
+                      <span className="text-[#777]">{t('calculated_at_checkout')}</span>
                     </div>
                     <div className="flex justify-between mb-8">
-                      <span className="text-[#555]">Duties and taxes</span>
-                      <span className="text-[#777]">Included</span>
+                      <span className="text-[#555]">{t('duties_and_taxes')}</span>
+                      <span className="text-[#777]">{t('included')}</span>
                     </div>
                     <div className="flex justify-between font-bold text-sm">
-                      <span>Order Total</span>
+                      <span>{t('order_total')}</span>
                       <span>${cartTotal.toFixed(2)} USD</span>
                     </div>
                   </div>
@@ -120,15 +121,15 @@ const Cart = () => {
 
           {/* Right Column: Checkout */}
           <div className="flex-1 w-full lg:max-w-[400px]">
-            <h2 className="text-[11px] font-bold tracking-widest uppercase mb-12">Checkout</h2>
+            <h2 className="text-[11px] font-bold tracking-widest uppercase mb-12">{t('checkout')}</h2>
             
             <div className="space-y-6">
               <p className="text-[11px] text-[#333]">
-                Enter your email to login or continue to checkout as a guest.
+                {t('checkout_email_prompt')}
               </p>
               
               <div className="space-y-2">
-                <label htmlFor="email" className="block text-[11px] text-[#333]">Email address</label>
+                <label htmlFor="email" className="block text-[11px] text-[#333]">{t('email_address')}</label>
                 <input 
                   id="email" 
                   type="email" 
@@ -141,7 +142,7 @@ const Cart = () => {
                 disabled={items.length === 0}
                 className="w-full bg-black text-white h-[50px] text-[11px] font-bold tracking-widest uppercase hover:bg-[#222] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Proceed to Checkout
+                {t('proceed_to_checkout')}
               </button>
             </div>
           </div>
@@ -151,7 +152,7 @@ const Cart = () => {
         {/* Popular Items Section */}
         {popularItems.length > 0 && (
           <div className="mt-32">
-            <h3 className="text-[11px] font-bold tracking-widest uppercase mb-8">Add These Popular Items</h3>
+            <h3 className="text-[11px] font-bold tracking-widest uppercase mb-8">{t('add_popular_items')}</h3>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 lg:gap-8">
               {popularItems.map((prod) => (
                 <Link to={`/product/${prod.id}`} key={prod.id} className="group flex flex-col">
@@ -186,7 +187,7 @@ const Cart = () => {
           <div className="flex flex-wrap items-center gap-4 mb-16">
             <div className="flex items-center gap-1.5 text-[10px] font-bold tracking-widest uppercase mr-4">
               <Lock size={12} strokeWidth={2} />
-              Secure Payment
+              {t('secure_payment')}
             </div>
             {/* Payment Icons Simulation */}
             <div className="flex gap-2">
@@ -200,14 +201,14 @@ const Cart = () => {
 
           {/* Institutional Links */}
           <div className="flex flex-wrap justify-center gap-x-6 gap-y-4 text-[9px] uppercase tracking-widest text-[#333] mb-8">
-            <a href="#" className="hover:text-black">Customer Care</a>
-            <a href="#" className="hover:text-black">Location</a>
-            <a href="#" className="hover:text-black">Editorial Archive</a>
-            <a href="#" className="hover:text-black">Careers</a>
-            <a href="#" className="hover:text-black">Country/Region: Brazil</a>
-            <a href="#" className="hover:text-black">Email Signup</a>
-            <a href="#" className="hover:text-black">Affiliates</a>
-            <a href="#" className="hover:text-black">Sitemap</a>
+            <a href="#" className="hover:text-black">{t('customer_care')}</a>
+            <a href="#" className="hover:text-black">{t('location')}</a>
+            <a href="#" className="hover:text-black">{t('editorial_archive')}</a>
+            <a href="#" className="hover:text-black">{t('careers')}</a>
+            <a href="#" className="hover:text-black">{t('country_region')}</a>
+            <a href="#" className="hover:text-black">{t('email_signup')}</a>
+            <a href="#" className="hover:text-black">{t('affiliates')}</a>
+            <a href="#" className="hover:text-black">{t('sitemap')}</a>
             <a href="#" className="hover:text-black">Facebook</a>
             <a href="#" className="hover:text-black">Instagram</a>
             <a href="#" className="hover:text-black">X</a>
@@ -216,13 +217,14 @@ const Cart = () => {
 
           <div className="flex flex-wrap justify-center gap-6 text-[9px] text-[#777]">
             <span>© {new Date().getFullYear()} VILLAORO.COM</span>
-            <a href="#" className="hover:text-black">Terms & Conditions</a>
-            <a href="#" className="hover:text-black">Privacy Policy</a>
-            <a href="#" className="hover:text-black">Cookies</a>
-            <a href="#" className="hover:text-black">Accessibility</a>
+            <a href="#" className="hover:text-black">{t('terms_conditions')}</a>
+            <a href="#" className="hover:text-black">{t('privacy_policy')}</a>
+            <a href="#" className="hover:text-black">{t('cookies')}</a>
+            <a href="#" className="hover:text-black">{t('accessibility')}</a>
           </div>
         </div>
       </footer>
+      <MobileBottomDock />
     </div>
   );
 };

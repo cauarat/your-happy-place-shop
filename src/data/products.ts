@@ -15,6 +15,7 @@ export interface Product {
   name: string;
   category: Category;
   designer: Designer;
+  designers?: Designer[];
   price: number;
   oldPrice?: number;
   image: string;

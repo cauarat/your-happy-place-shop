@@ -40,12 +40,39 @@ export const MusicProvider = ({ children }: { children: React.ReactNode }) => {
     const initPlayer = () => {
       if (playerRef.current) return; // prevent double init
       playerRef.current = new (window as any).YT.Player("youtube-audio-global", {
-        height: "0",
-        width: "0",
+        height: "1",
+        width: "1",
         videoId,
         playerVars: { autoplay: 0, controls: 0, showinfo: 0, modestbranding: 1, loop: 1, playlist: videoId },
         events: {
           onReady: (event: any) => { event.target.setVolume(50); },
+          onStateChange: (event: any) => {
+            // 0 = ENDED, 1 = PLAYING
+            if (event.data === 0) {
+              event.target.seekTo(0);
+              event.target.playVideo();
+            }
+            if (event.data === 1) {
+              if ((window as any).ytSeamlessLoop) clearInterval((window as any).ytSeamlessLoop);
+              (window as any).ytSeamlessLoop = setInterval(() => {
+                try {
+                  const player = event.target;
+                  if (player && typeof player.getDuration === 'function') {
+                    const duration = player.getDuration();
+                    const current = player.getCurrentTime();
+                    // Seek back to 0 just before it ends (0.2s)
+                    if (duration > 0 && current > 0 && (duration - current) < 0.2) {
+                      player.seekTo(0);
+                    }
+                  }
+                } catch (e) {
+                  // ignore
+                }
+              }, 50);
+            } else {
+              if ((window as any).ytSeamlessLoop) clearInterval((window as any).ytSeamlessLoop);
+            }
+          }
         },
       });
     };
@@ -60,6 +87,7 @@ export const MusicProvider = ({ children }: { children: React.ReactNode }) => {
     }
 
     return () => {
+      if ((window as any).ytSeamlessLoop) clearInterval((window as any).ytSeamlessLoop);
       if (playerRef.current) { playerRef.current.destroy(); playerRef.current = null; }
     };
   }, []);
@@ -96,7 +124,9 @@ export const MusicProvider = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <MusicContext.Provider value={{ isPlaying, isVisible, togglePlay }}>
-      <div id="youtube-audio-global" className="hidden" />
+      <div className="fixed top-0 left-0 w-[1px] h-[1px] opacity-0 pointer-events-none -z-50 overflow-hidden">
+        <div id="youtube-audio-global" />
+      </div>
       {children}
     </MusicContext.Provider>
   );

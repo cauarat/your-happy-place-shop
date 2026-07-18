@@ -8,6 +8,8 @@ import Index from "./pages/Index.tsx";
 import ProductDetail from "./pages/ProductDetail.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import News from "./pages/News.tsx";
+import CommunityLooks from "./pages/CommunityLooks.tsx";
+import Onboarding from "./pages/Onboarding.tsx";
 import AdminLayout from "./layouts/AdminLayout.tsx";
 import BackgroundMusic, { BackgroundMusicHandle } from "./components/BackgroundMusic.tsx";
 import { MusicProvider } from "./contexts/MusicContext";
@@ -15,17 +17,19 @@ import { LanguageProvider } from "./contexts/LanguageContext";
 import { SearchProvider } from "./contexts/SearchContext";
 import { CartProvider } from "./contexts/CartContext";
 
-// Mock placeholders for now until they are created
-const AdminAiControl = () => <div>AI Control placeholder</div>;
-const AdminTryTheLook = () => <div>Try The Look placeholder</div>;
 
 import AdminDashboard from "./pages/admin/Dashboard.tsx";
 import AdminProducts from "./pages/admin/Products.tsx";
 import AdminProductEdit from "./pages/admin/ProductEdit.tsx";
+import AdminLooks from "./pages/admin/Looks.tsx";
+import AdminLookEdit from "./pages/admin/LookEdit.tsx";
 import AdminSettings from "./pages/admin/Settings.tsx";
 import AdminCatalog from "./pages/admin/CatalogSettings.tsx";
+import AdminAiControl from "./pages/admin/AiControl.tsx";
+import AdminTryTheLook from "./pages/admin/TryTheLookControl.tsx";
 import Cart from "./pages/Cart.tsx";
 import Checkout from "./pages/Checkout.tsx";
+import Success from "./pages/Success.tsx";
 
 const queryClient = new QueryClient();
 
@@ -45,16 +49,23 @@ const App = () => {
                   <BrowserRouter>
                     <Routes>
                       <Route path="/" element={<Index />} />
+                      <Route path="/onboarding" element={<Onboarding />} />
                       <Route path="/news" element={<News />} />
+                      <Route path="/community" element={<CommunityLooks />} />
                       <Route path="/cart" element={<Cart />} />
                       <Route path="/checkout" element={<Checkout />} />
+                      <Route path="/success" element={<Success />} />
                       <Route path="/product/:id" element={<ProductDetail />} />
                       <Route path="/admin/login" element={<Navigate to="/admin/dashboard" replace />} />
                       <Route path="/admin" element={<AdminLayout />}>
+                        <Route index element={<Navigate to="/admin/dashboard" replace />} />
                         <Route path="dashboard" element={<AdminDashboard />} />
                         <Route path="products" element={<AdminProducts />} />
                         <Route path="products/:id" element={<AdminProductEdit />} />
                         <Route path="design" element={<AdminSettings />} />
+                        <Route path="looks" element={<AdminLooks />} />
+                        <Route path="looks/new" element={<AdminLookEdit />} />
+                        <Route path="looks/:id" element={<AdminLookEdit />} />
                         <Route path="ai" element={<AdminAiControl />} />
                         <Route path="catalog" element={<AdminCatalog />} />
                         <Route path="try-the-look" element={<AdminTryTheLook />} />

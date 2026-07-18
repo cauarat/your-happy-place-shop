@@ -1,12 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { getProducts, deleteProduct, saveProduct } from "@/lib/store";
+import { getProducts, deleteProduct, saveProduct, getCategories } from "@/lib/store";
 import type { Product } from "@/data/products";
-import { Edit2, Trash2, Copy, Plus, ExternalLink } from "lucide-react";
+import { Edit2, Trash2, Copy, Plus, ExternalLink, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 
 const AdminProducts = () => {
   const [products, setProducts] = useState<Product[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const navigate = useNavigate();
 
   const loadProducts = () => {
@@ -40,6 +42,55 @@ const AdminProducts = () => {
     saveProduct(duplicated);
     loadProducts();
   };
+
+  const handleCategoryCycle = (product: Product, direction: 'prev' | 'next') => {
+    const categories = getCategories();
+    const currentIndex = categories.indexOf(product.category);
+    let nextIndex = 0;
+    
+    if (currentIndex === -1) {
+      nextIndex = 0;
+    } else if (direction === 'prev') {
+      nextIndex = currentIndex <= 0 ? categories.length - 1 : currentIndex - 1;
+    } else {
+      nextIndex = currentIndex === categories.length - 1 ? 0 : currentIndex + 1;
+    }
+
+    const updatedProduct = { ...product, category: categories[nextIndex] };
+    saveProduct(updatedProduct);
+    loadProducts();
+  };
+
+  // Derive unique tags from products (categories and designers)
+  const availableTags = useMemo(() => {
+    const tags = new Set<string>();
+    products.forEach(p => {
+      if (p.category) tags.add(p.category);
+      if (p.designer) tags.add(p.designer);
+    });
+    return Array.from(tags).sort();
+  }, [products]);
+
+  const handleToggleTag = (tag: string) => {
+    setSelectedTags(prev => 
+      prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
+    );
+  };
+
+  const filteredProducts = useMemo(() => {
+    return products.filter(p => {
+      const matchesSearch = searchQuery === "" || 
+        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.designer.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.category.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      const matchesTags = selectedTags.length === 0 || 
+        selectedTags.includes(p.category) ||
+        selectedTags.includes(p.designer);
+
+      return matchesSearch && matchesTags;
+    });
+  }, [products, searchQuery, selectedTags]);
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -75,6 +126,37 @@ const AdminProducts = () => {
         </div>
       </div>
 
+      <div className="space-y-4">
+        <div className="relative">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <input 
+            type="text"
+            placeholder="Search products by name, designer, or category..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-11 pr-4 py-3 bg-secondary/50 border border-border rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-black transition-all"
+          />
+        </div>
+        
+        {availableTags.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {availableTags.map(tag => (
+              <button
+                key={tag}
+                onClick={() => handleToggleTag(tag)}
+                className={`px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider transition-colors ${
+                  selectedTags.includes(tag) 
+                    ? "bg-black text-white border border-black" 
+                    : "bg-secondary border border-border text-foreground hover:border-black"
+                }`}
+              >
+                {tag}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
       <div className="glass rounded-xl overflow-hidden">
         <table className="w-full text-left border-collapse">
           <thead>
@@ -86,7 +168,7 @@ const AdminProducts = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {products.map((product) => (
+            {filteredProducts.map((product) => (
               <tr key={product.id} className="hover:bg-secondary/30 transition-colors">
                 <td className="p-4">
                   <div className="flex items-center gap-4">
@@ -118,7 +200,27 @@ const AdminProducts = () => {
                     </div>
                   </div>
                 </td>
-                <td className="p-4 text-sm">{product.category}</td>
+                <td className="p-4 text-sm">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-[#e5e5e5] rounded-full hover:border-[#d0d0d0] transition-colors shadow-sm">
+                    <button 
+                      onClick={() => handleCategoryCycle(product, 'prev')}
+                      className="text-muted-foreground hover:text-black transition-colors"
+                      title="Previous Category"
+                    >
+                      <ChevronLeft className="w-3.5 h-3.5" />
+                    </button>
+                    <span className="min-w-[80px] text-center font-medium text-[11px] uppercase tracking-widest text-black select-none">
+                      {product.category}
+                    </span>
+                    <button 
+                      onClick={() => handleCategoryCycle(product, 'next')}
+                      className="text-muted-foreground hover:text-black transition-colors"
+                      title="Next Category"
+                    >
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </td>
                 <td className="p-4 text-sm">${product.price}</td>
                 <td className="p-4">
                   <div className="flex justify-end gap-2">
@@ -147,7 +249,7 @@ const AdminProducts = () => {
                 </td>
               </tr>
             ))}
-            {products.length === 0 && (
+            {filteredProducts.length === 0 && (
               <tr>
                 <td colSpan={4} className="p-8 text-center text-muted-foreground text-sm">
                   No products found.

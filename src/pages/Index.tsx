@@ -12,7 +12,7 @@ import type { Product } from "@/data/products";
 import ImmersiveAi from "@/components/ImmersiveAi";
 import TryTheLook from "@/components/TryTheLook";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Newspaper, ChevronDown } from "lucide-react";
+import { X, Newspaper, ChevronDown, SlidersHorizontal } from "lucide-react";
 
 /* Shared slide-down animation config — mirrors LanguageSwitcher */
 const dropdownVariants = {
@@ -111,23 +111,27 @@ function getTranslatedQueries(q: string) {
   return translatedQueries;
 }
 
-import { Shirt, Footprints, ShoppingBag, Gem, Glasses, Box, Layers } from "lucide-react";
-import { CapIcon, PantsIcon, ShortsIcon, JacketIcon, HoodieIcon, VestIcon, PoloIcon, TankTopIcon } from "@/components/Icons";
+import { Shirt, Footprints, ShoppingBag, Gem, Glasses, Box, Layers, Search } from "lucide-react";
+import { CapIcon, PantsIcon, ShortsIcon, JacketIcon, HoodieIcon, VestIcon, PoloIcon, TankTopIcon, BagIcon, PufferJacketIcon, SweaterIcon } from "@/components/Icons";
 
 const getCategoryIcon = (cat: string) => {
   switch (cat.toUpperCase()) {
     case 'CLOTHING': return Shirt;
     case 'FOOTWEAR': return Footprints;
-    case 'BAGS': return ShoppingBag;
+    case 'BAGS': return BagIcon;
     case 'JEWELRY': return Gem;
     case 'ACCESSORIES': return Glasses;
     case 'CAPS': return CapIcon;
     case 'JACKETS': return JacketIcon;
+    case 'PUFFER JACKET': return PufferJacketIcon;
+    case 'PUFFER JACKETS': return PufferJacketIcon;
     case 'OBJECTS': return Box;
     case 'PANTS': return PantsIcon;
     case 'POLO': return PoloIcon;
     case 'SET': return Layers;
     case 'SHORTS': return ShortsIcon;
+    case 'SWEATER': return SweaterIcon;
+    case 'SWEATERS': return SweaterIcon;
     case 'T-SHIRT': return Shirt;
     case 'TANK TOP': return TankTopIcon;
     case 'HOODIES': return HoodieIcon;
@@ -138,7 +142,11 @@ const getCategoryIcon = (cat: string) => {
 
 const Index = () => {
   const [searchParams] = useSearchParams();
-  const [category, setCategory] = useState<string>("Footwear");
+  const [category, setCategory] = useState<string>(() => {
+    const paramCategory = searchParams.get("category");
+    if (paramCategory) return paramCategory;
+    return "Footwear";
+  });
   const [designer, setDesigner] = useState<string>(() => {
     const paramDesigner = searchParams.get("designer");
     if (paramDesigner) {
@@ -150,18 +158,30 @@ const Index = () => {
   const [sort, setSort] = useState<SortKey>("latest");
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { searchQuery } = useSearch();
+  const { searchQuery, setSearchQuery } = useSearch();
   const [isDesignersOpen, setIsDesignersOpen] = useState(false);
   const [isSortOpen, setIsSortOpen] = useState(false);
   const [showSaleOnly, setShowSaleOnly] = useState(false);
   const navigate = useNavigate();
+  const [isAnimating, setIsAnimating] = useState(false);
 
-  // Drag to scroll refs
+  // Drag to scroll refs (top bar — desktop)
   const scrollRef = useRef<HTMLDivElement>(null);
   const isDragging = useRef(false);
   const startX = useRef(0);
   const scrollLeft = useRef(0);
   const hasDragged = useRef(false);
+
+  // Bottom dock scroll ref (mobile)
+  const bottomScrollRef = useRef<HTMLDivElement>(null);
+
+  const handleCategorySelect = (c: string) => {
+    if (hasDragged.current) return;
+    setCategory(c);
+    if (c === 'All' && scrollRef.current) {
+      scrollRef.current.scrollTo({ left: 0, behavior: "smooth" });
+    }
+  };
 
   const onMouseDown = (e: React.MouseEvent) => {
     isDragging.current = true;
@@ -201,16 +221,22 @@ const Index = () => {
     setIsLoading(true);
     setProducts(getProducts());
     const timer = setTimeout(() => setIsLoading(false), 600);
-    return () => clearTimeout(timer);
+    
+    const handleProductsUpdate = () => {
+      setProducts(getProducts());
+    };
+    
+    window.addEventListener('products-updated', handleProductsUpdate);
+    window.addEventListener('storage', handleProductsUpdate);
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('products-updated', handleProductsUpdate);
+      window.removeEventListener('storage', handleProductsUpdate);
+    };
   }, []);
 
-  // When search is active, reset sidebar filters so all results show
-  useEffect(() => {
-    if (searchQuery.trim()) {
-      setCategory("All");
-      setDesigner("All");
-    }
-  }, [searchQuery]);
+  // Removed useEffect that resets sidebar filters on searchQuery change so category and designer filters persist while searching.
 
   const availableProducts = useMemo(() => {
     let list = products;
@@ -227,19 +253,21 @@ const Index = () => {
       list = list.filter((p) => {
         const pName = p.name.toLowerCase();
         const pDesigner = p.designer.toLowerCase();
+        const pDesigners = p.designers ? p.designers.map(d => d.toLowerCase()) : [];
         const pCategory = p.category.toLowerCase();
         const pDescription = (p.description || "").toLowerCase();
         return translatedQueries.some(tq =>
           pName.includes(tq) ||
           pDesigner.includes(tq) ||
+          pDesigners.some(d => d.includes(tq)) ||
           pCategory.includes(tq) ||
           pDescription.includes(tq)
         );
       });
-    } else {
-      // Normal category filter when not searching
-      list = list.filter((p) => category === "All" || p.category === category);
     }
+
+    // Always apply category filter
+    list = list.filter((p) => category === "All" || p.category === category);
     
     return list;
   }, [products, showSaleOnly, searchQuery, category]);
@@ -247,9 +275,8 @@ const Index = () => {
   const filtered = useMemo(() => {
     let list = availableProducts;
 
-    if (!searchQuery.trim()) {
-      list = list.filter((p) => designer === "All" || p.designer === designer);
-    }
+    // Always apply designer filter
+    list = list.filter((p) => designer === "All" || p.designer === designer || (p.designers && p.designers.includes(designer)));
 
     switch (sort) {
       case "price-asc":
@@ -275,6 +302,18 @@ const Index = () => {
     return getDesigners().filter(d => available.has(d));
   }, [availableProducts]);
 
+  // Categories that the selected designer actually has products in
+  const categoriesForDesigner = useMemo(() => {
+    if (designer === 'All') return null;
+    const cats = new Set<string>();
+    products.forEach(p => {
+      if (p.designer === designer || (p.designers && p.designers.includes(designer))) {
+        cats.add(p.category);
+      }
+    });
+    return cats;
+  }, [designer, products]);
+
   // Sort options for the sort dropdown
   const sortOptions: { key: SortKey; label: string }[] = [
     { key: "latest", label: t('latest') },
@@ -283,14 +322,15 @@ const Index = () => {
     { key: "rated", label: t('rated') },
   ];
 
-  // Build the top bar label
-  const topBarLabel = searchQuery.trim()
-    ? `"${searchQuery}"`
-    : category !== "All"
-      ? t(category.toLowerCase())
-      : designer !== "All"
-        ? designer
-        : t("all_products");
+  const activeFilters = [];
+  if (category !== "All") activeFilters.push(t(category.toLowerCase()));
+  if (designer !== "All") activeFilters.push(designer);
+  if (showSaleOnly) activeFilters.push(t('sale_items') || 'Sale Items');
+  if (searchQuery.trim()) activeFilters.push(`"${searchQuery}"`);
+
+  const topBarLabel = activeFilters.length > 0
+    ? activeFilters.join(" ; ")
+    : t("all_products");
 
   // Toggle helpers — only one dropdown open at a time
   const toggleDesigners = () => {
@@ -302,87 +342,13 @@ const Index = () => {
     setIsDesignersOpen(false);
   };
 
+  const isAnyActive = category !== 'All' || showSaleOnly;
+
   return (
     <div className="min-h-screen flex flex-col bg-white">
       <Header />
 
-      <main className="flex-1 w-full max-w-[1800px] mx-auto px-0 md:px-0">
-        {/* 1. Filter Pills / Designers Scroll Row — topmost */}
-        <div
-          ref={scrollRef}
-          onMouseDown={onMouseDown}
-          onMouseLeave={onMouseLeave}
-          onMouseUp={onMouseUp}
-          onMouseMove={onMouseMove}
-          onDoubleClick={onDoubleClick}
-          className="border-b border-border py-2 px-4 overflow-x-auto no-scrollbar flex items-center gap-2 bg-white select-none whitespace-nowrap cursor-grab active:cursor-grabbing"
-        >
-          {/* News Pill */}
-          {getDesignSettings().enableNewsPage !== false && (
-            <button
-              onClick={(e) => {
-                if (hasDragged.current) return;
-                navigate('/news');
-              }}
-              className="flex items-center gap-2 px-3 py-1.5 border border-border text-black hover:border-black text-[10px] font-bold uppercase tracking-[0.15em] transition-colors"
-            >
-              <Newspaper size={12} strokeWidth={2} className="shrink-0" />
-              {t('news') || 'News'}
-            </button>
-          )}
-
-          {/* Sale Toggle Pill */}
-          {getDesignSettings().enableSalePage !== false && (
-            <button
-              onClick={(e) => {
-                if (hasDragged.current) return;
-                setShowSaleOnly(!showSaleOnly);
-              }}
-              className={`flex items-center gap-2 px-3 py-1.5 border text-[10px] font-bold uppercase tracking-[0.15em] transition-colors ${showSaleOnly
-                  ? "border-black bg-black text-white"
-                  : "border-border text-black hover:border-black"
-                }`}
-            >
-              <span className={`w-2 h-2 border transition-colors ${showSaleOnly ? "border-white bg-white" : "border-black bg-transparent"}`} />
-              {t('sale')}
-            </button>
-          )}
-
-          {/* Designer Pill (if a designer is selected) */}
-          {designer !== "All" && (
-            <button
-              onClick={(e) => {
-                if (hasDragged.current) return;
-                setDesigner("All");
-              }}
-              className="flex items-center gap-1.5 px-3 py-1.5 border border-black bg-black text-white text-[10px] font-bold uppercase tracking-[0.15em]"
-            >
-              {designer}
-              <X size={10} className="shrink-0" />
-            </button>
-          )}
-
-          {/* All Categories Toggles */}
-          {getCategories().map((c) => {
-            const Icon = getCategoryIcon(c);
-            return (
-              <button
-                key={c}
-                onClick={(e) => {
-                  if (hasDragged.current) return;
-                  setCategory(category === c ? "All" : c);
-                }}
-                className={`flex items-center gap-1.5 px-3 py-1.5 border text-[10px] font-bold uppercase tracking-[0.15em] transition-colors ${category === c
-                    ? "border-black bg-black text-white"
-                    : "border-border text-black hover:border-black"
-                  }`}
-              >
-                {Icon && <Icon size={12} strokeWidth={2} />}
-                {t(c.toLowerCase()) === c.toLowerCase() ? c : t(c.toLowerCase())}
-              </button>
-            );
-          })}
-        </div>
+      <main className="flex-1 w-full max-w-[1800px] mx-auto px-0 md:px-0 pb-[96px] xl:pb-0">
 
         {/* 3. BRANDS / SORT Split Bar with Inline Dropdowns */}
         <div className="sticky top-14 z-40 bg-white">
@@ -474,10 +440,10 @@ const Index = () => {
         </div>
 
         {/* 2. Label / Count Bar — directly connected to brand selector above */}
-        <div className="border-b border-border py-2.5 flex items-center justify-center">
-          <h2 className="text-[11px] lowercase tracking-[0.2em] font-medium text-foreground">
+        <div className="border-b border-border py-3 flex items-center justify-center bg-[#fafafa]">
+          <h2 className="text-xs md:text-[13px] lowercase tracking-[0.22em] font-bold text-black">
             {topBarLabel}
-            <span className="text-muted-foreground ml-2 font-light">({filtered.length})</span>
+            <span className="text-muted-foreground ml-2.5 font-normal">({filtered.length})</span>
           </h2>
         </div>
 
@@ -498,8 +464,51 @@ const Index = () => {
                 )}
               </div> :
               filtered.length === 0 ?
-                <div className="text-center py-24 w-full">
-                  <p className="text-[12px] uppercase tracking-widest text-[#999]">{t('no_products')}</p>
+                <div className="flex flex-col items-center justify-center py-32 px-4 text-center w-full max-w-2xl mx-auto font-sans">
+                  <div className="w-20 h-20 mb-8 rounded-full bg-[#FAFAFA] flex items-center justify-center border border-border/50">
+                    <ShoppingBag className="w-8 h-8 text-[#555] stroke-[1.5]" />
+                  </div>
+                  <h3 className="text-3xl font-semibold mb-3 tracking-tight text-foreground">
+                    {t('no_products')}
+                  </h3>
+                  <div className="flex flex-col items-center text-[#666] text-[15px] mb-10 leading-relaxed">
+                    <p className="mb-1">
+                      {searchQuery.trim() ? `${t('no_results_for')} "${searchQuery}"` : t('no_results_for').replace(' for', '').replace(' para', '')}{(category !== "All" || designer !== "All" || showSaleOnly) ? ` ${t('in_category')} ` + [category !== "All" ? (t(category.toLowerCase()) === category.toLowerCase() ? category : t(category.toLowerCase())) : null, designer !== "All" ? designer : null, showSaleOnly ? t('sale_items') : null].filter(Boolean).join(", ") : ""}.
+                    </p>
+                    <p>{t('try_searching')}</p>
+                  </div>
+                  
+                  <button 
+                    onClick={() => {
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                      const searchInput = document.querySelector('input[type="text"]') as HTMLInputElement;
+                      if (searchInput) {
+                        setTimeout(() => searchInput.focus(), 500);
+                      }
+                    }}
+                    className="flex items-center gap-2 px-6 py-2.5 rounded-full border border-border bg-white text-sm font-medium hover:bg-neutral-50 transition-colors shadow-sm mb-8"
+                  >
+                    <Search className="w-4 h-4 text-foreground" />
+                    {t('search_again')}
+                  </button>
+                  
+                  <div className="flex items-center w-full max-w-[240px] gap-4 mb-8">
+                    <div className="flex-1 h-px bg-border/60"></div>
+                    <span className="text-[#999] text-[13px]">{t('or')}</span>
+                    <div className="flex-1 h-px bg-border/60"></div>
+                  </div>
+
+                  <button 
+                    onClick={() => {
+                      setSearchQuery("");
+                      setCategory("All");
+                      setDesigner("All");
+                      setShowSaleOnly(false);
+                    }}
+                    className="px-10 py-3.5 bg-black text-white text-[15px] font-medium rounded-full hover:bg-black/90 transition-colors"
+                  >
+                    {t('clear_all_filters')}
+                  </button>
                 </div> :
 
                 <motion.div
@@ -516,6 +525,145 @@ const Index = () => {
           </div>
         </div>
       </main>
+
+      {/* ─── Global App Store-style floating bottom dock ─── */}
+      <div
+        className="fixed bottom-0 left-0 right-0 flex justify-center z-50 pointer-events-none"
+        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)' }}
+      >
+        {/* Outer frosted-glass pill */}
+        <div className="bg-[#f2f2f6]/70 backdrop-blur-[32px] saturate-[180%] rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.12),0_2px_8px_rgba(0,0,0,0.06),inset_0_1px_1px_rgba(255,255,255,0.8)] overflow-hidden pointer-events-auto border border-white/20 mx-3 max-w-[100vw]">
+          <div
+            ref={bottomScrollRef}
+            className="overflow-x-auto no-scrollbar flex items-center px-1.5 py-1.5 gap-0"
+          >
+            {/* All / Filter */}
+            {(() => {
+              const isAllActive = category === 'All' && !showSaleOnly && designer === 'All';
+              return (
+                <motion.button
+                  layout
+                  key="bd-all"
+                  onClick={() => { handleCategorySelect('All'); setShowSaleOnly(false); setDesigner('All'); }}
+                  className="relative flex flex-col items-center gap-0.5 px-3.5 py-2 rounded-full shrink-0 min-w-[56px]"
+                >
+                  {isAllActive && (
+                    <motion.div
+                      layoutId="active-dock-bg"
+                      className="absolute inset-0 rounded-full bg-black z-0 shadow-[inset_0_1px_2px_rgba(255,255,255,0.15)]"
+                      transition={{ type: 'spring', stiffness: 120, damping: 20, mass: 1 }}
+                    />
+                  )}
+                  <motion.span 
+                    className="relative z-10 flex flex-col items-center gap-0.5"
+                    animate={{ color: isAllActive ? '#ffffff' : '#4a4a4d' }}
+                    transition={{ duration: 0.15, ease: "linear" }}
+                  >
+                    <SlidersHorizontal size={20} strokeWidth={isAllActive ? 2 : 1.7} />
+                    <span className="text-[9px] font-semibold tracking-wide">All</span>
+                  </motion.span>
+                </motion.button>
+              );
+            })()}
+
+            {/* News */}
+            {getDesignSettings().enableNewsPage !== false && (
+              <motion.button
+                layout
+                key="bd-news"
+                onClick={() => navigate('/news')}
+                animate={{ opacity: isAnyActive || designer !== 'All' ? 0.45 : 1 }}
+                transition={{ type: 'spring', stiffness: 120, damping: 20, mass: 1.1 }}
+                className="relative flex flex-col items-center gap-0.5 px-3.5 py-2 rounded-full shrink-0 min-w-[56px] text-[#4a4a4d] hover:bg-black/5"
+              >
+                <motion.span 
+                  className="flex flex-col items-center gap-0.5"
+                  animate={{ color: '#4a4a4d' }}
+                >
+                  <Newspaper size={20} strokeWidth={1.7} />
+                  <span className="text-[9px] font-semibold tracking-wide">{t('news') || 'News'}</span>
+                </motion.span>
+              </motion.button>
+            )}
+
+            {/* Sale */}
+            {getDesignSettings().enableSalePage !== false && (() => {
+              const isSaleActive = showSaleOnly;
+              return (
+                <motion.button
+                  layout
+                  key="bd-sale"
+                  onClick={() => setShowSaleOnly(!showSaleOnly)}
+                  animate={{ opacity: isSaleActive ? 1 : (isAnyActive && !isSaleActive ? 0.45 : 1) }}
+                  transition={{ type: 'spring', stiffness: 120, damping: 20, mass: 1.1 }}
+                  className="relative flex flex-col items-center gap-0.5 px-3.5 py-2 rounded-full shrink-0 min-w-[56px]"
+                >
+                  {isSaleActive && (
+                    <motion.div
+                      layoutId="active-dock-bg"
+                      className="absolute inset-0 rounded-full bg-black z-0 shadow-[inset_0_1px_2px_rgba(255,255,255,0.15)]"
+                      transition={{ type: 'spring', stiffness: 120, damping: 20, mass: 1 }}
+                    />
+                  )}
+                  <motion.span 
+                    className="relative z-10 flex flex-col items-center gap-0.5"
+                    animate={{ color: isSaleActive ? '#ffffff' : '#4a4a4d' }}
+                    transition={{ duration: 0.15, ease: "linear" }}
+                  >
+                    <span className="text-[18px] leading-none font-light">%</span>
+                    <span className="text-[9px] font-semibold tracking-wide">{t('sale')}</span>
+                  </motion.span>
+                </motion.button>
+              );
+            })()}
+
+            {/* Divider */}
+            <div className="w-px h-6 bg-black/10 shrink-0 mx-0.5" />
+
+            {/* Category chips */}
+            <AnimatePresence mode="popLayout">
+              {getCategories().map((c) => {
+                const isActive = category === c;
+                const Icon = getCategoryIcon(c);
+                const belongsToDesigner = categoriesForDesigner ? categoriesForDesigner.has(c) : true;
+                const isDimmed = (categoriesForDesigner && !belongsToDesigner && !isActive) || (!isActive && isAnyActive && !categoriesForDesigner);
+                return (
+                  <motion.button
+                    layout
+                    key={`bd-cat-${c}`}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: isActive ? 1 : isDimmed ? 0.38 : 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    transition={{ type: 'spring', stiffness: 120, damping: 20, mass: 1 }}
+                    onClick={() => handleCategorySelect(isActive ? 'All' : c)}
+                    className="relative flex flex-col items-center gap-0.5 px-3 py-2 rounded-full shrink-0 min-w-[54px]"
+                  >
+                    {isActive && (
+                      <motion.div
+                        layoutId="active-dock-bg"
+                        className="absolute inset-0 rounded-full bg-black z-0 shadow-[inset_0_1px_2px_rgba(255,255,255,0.15)]"
+                        transition={{ type: 'spring', stiffness: 120, damping: 20, mass: 1 }}
+                      />
+                    )}
+                    <motion.span 
+                      className="relative z-10 flex flex-col items-center gap-0.5"
+                      animate={{ color: isActive ? '#ffffff' : '#4a4a4d' }}
+                      transition={{ duration: 0.15, ease: "linear" }}
+                    >
+                      {Icon
+                        ? <Icon size={20} strokeWidth={isActive ? 2 : 1.7} />
+                        : <span className="w-5 h-5" />}
+                      <span className="text-[9px] font-semibold tracking-wide leading-tight max-w-[48px] text-center">
+                        {t(c.toLowerCase()) === c.toLowerCase() ? c : t(c.toLowerCase())}
+                      </span>
+                    </motion.span>
+                  </motion.button>
+                );
+              })}
+            </AnimatePresence>
+          </div>
+        </div>
+      </div>
 
       <Footer />
     </div>

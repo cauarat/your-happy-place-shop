@@ -1,9 +1,21 @@
 import { useEffect, useState } from "react";
 import { getProducts, getLooks } from "@/lib/store";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Package, Paintbrush, Sparkles } from "lucide-react";
 
 const AdminDashboard = () => {
+  const navigate = useNavigate();
+
+  const handleTestOnboarding = (e: React.MouseEvent) => {
+    e.preventDefault();
+    localStorage.removeItem('villaoro_onboarding_done');
+    localStorage.removeItem('villaoro_user_name');
+    localStorage.removeItem('villaoro_user_email');
+    localStorage.removeItem('villaoro_user_gender');
+    localStorage.removeItem('villaoro_user_category');
+    localStorage.removeItem('villaoro_user_brands');
+    navigate('/onboarding');
+  };
   const [stats, setStats] = useState({
     totalProducts: 0,
     activeLooks: 0,
@@ -70,6 +82,16 @@ const AdminDashboard = () => {
               <p className="text-xs text-muted-foreground mt-1">Adjust UI & styling</p>
             </div>
           </Link>
+
+          <button onClick={handleTestOnboarding} className="flex items-center text-left gap-4 p-4 rounded-xl border border-border hover:border-primary hover:bg-secondary transition-colors group">
+            <div className="p-3 bg-secondary rounded-lg group-hover:bg-background">
+              <Sparkles className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="font-medium">Test Onboarding</p>
+              <p className="text-xs text-muted-foreground mt-1">Preview user flow</p>
+            </div>
+          </button>
         </div>
       </div>
     </div>

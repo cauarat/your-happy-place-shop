@@ -24,9 +24,9 @@ const Footer = () => {
         <div>
           <p className="eyebrow mb-4">{t('help')}</p>
           <ul className="space-y-2 text-sm">
-            <li><a href="#" className="hover:text-accent">Shipping</a></li>
-            <li><a href="#" className="hover:text-accent">Returns</a></li>
-            <li><a href="#" className="hover:text-accent">Contact</a></li>
+            <li><a href="#" className="hover:text-accent">{t('shipping')}</a></li>
+            <li><a href="#" className="hover:text-accent">{t('returns')}</a></li>
+            <li><a href="#" className="hover:text-accent">{t('contact')}</a></li>
           </ul>
         </div>
         <div>

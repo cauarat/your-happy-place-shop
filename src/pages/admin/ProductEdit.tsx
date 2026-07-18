@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getProducts, saveProduct, getCategories, getDesigners } from "@/lib/store";
+import { getProducts, saveProduct, getCategories, getDesigners, saveDesigners } from "@/lib/store";
 import type { Product, Category, Designer } from "@/data/products";
-import { ArrowLeft, Save, Upload, Image as ImageIcon, Crop, X, Eraser, ArrowUp, ArrowDown, Trash2, CheckCircle2, ArrowRight, Plus, Film, FlipHorizontal, FlipVertical } from "lucide-react";
-import ProductCard from "@/components/ProductCard";
+import { ArrowLeft, Save, Upload, Image as ImageIcon, Crop, X, Eraser, ArrowUp, ArrowDown, Trash2, CheckCircle2, ArrowRight, Plus, Film, FlipHorizontal, FlipVertical, User } from "lucide-react";
 import { toast } from "sonner";
 import Cropper from "react-easy-crop";
 import { getCroppedImg } from "@/lib/cropImage";
@@ -179,6 +178,36 @@ const AdminProductEdit = () => {
   const [product, setProduct] = useState<Product>(defaultProduct);
   const [dynamicCategories, setDynamicCategories] = useState<string[]>([]);
   const [dynamicDesigners, setDynamicDesigners] = useState<string[]>([]);
+  const [newDesignerName, setNewDesignerName] = useState("");
+
+  const handleAddDesigner = () => {
+    if (!newDesignerName.trim()) return;
+    const name = newDesignerName.trim();
+    if (!dynamicDesigners.includes(name)) {
+      const updated = [...dynamicDesigners, name].sort();
+      setDynamicDesigners(updated);
+      saveDesigners(updated);
+    }
+    toggleDesigner(name);
+    setNewDesignerName("");
+  };
+
+  const toggleDesigner = (d: string) => {
+    setProduct(prev => {
+      const current = prev.designers || (prev.designer ? [prev.designer] : []);
+      let next: string[];
+      if (current.includes(d)) {
+        next = current.filter(x => x !== d);
+      } else {
+        next = [...current, d];
+      }
+      return {
+        ...prev,
+        designers: next,
+        designer: next.length > 0 ? next[0] : "",
+      };
+    });
+  };
   
   // Cropping state
   const [imageToCrop, setImageToCrop] = useState<string | null>(null);
@@ -201,11 +230,12 @@ const AdminProductEdit = () => {
       if (existing) {
         setProduct({
           ...existing,
-          images: existing.images || (existing.image ? [existing.image] : [])
+          images: existing.images || (existing.image ? [existing.image] : []),
+          designers: existing.designers || (existing.designer ? [existing.designer] : []),
         });
       }
     } else {
-      setProduct({ ...defaultProduct, id: Date.now().toString(), images: [] });
+      setProduct({ ...defaultProduct, id: Date.now().toString(), images: [], designers: [defaultProduct.designer] });
     }
   }, [id, isNew]);
 
@@ -471,8 +501,7 @@ const AdminProductEdit = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-[1fr_450px] gap-12 items-start">
-        <div className="space-y-12">
+      <div className="space-y-8">
           {/* Main Form Section */}
           <section className="glass p-10 rounded-[32px] border border-white/20 shadow-sm space-y-10">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
@@ -543,35 +572,19 @@ const AdminProductEdit = () => {
                       ))}
                     </div>
                   </div>
-                </div>
 
-                <div className="grid grid-cols-2 gap-8">
-                  <div>
-                    <label className="block text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-3 font-bold">Category</label>
-                    <select 
-                      name="category"
-                      className="w-full bg-transparent border-b border-border py-3 text-xs uppercase tracking-widest outline-none focus:border-primary transition-colors"
-                      value={product.category}
-                      onChange={handleChange}
-                    >
-                      {dynamicCategories.map(c => (
-                        <option key={c} value={c} className="bg-background text-foreground">{c}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-3 font-bold">Designer</label>
-                    <select 
-                      name="designer"
-                      className="w-full bg-transparent border-b border-border py-3 text-xs uppercase tracking-widest outline-none focus:border-primary transition-colors"
-                      value={product.designer}
-                      onChange={handleChange}
-                    >
-                      {dynamicDesigners.map(d => (
-                        <option key={d} value={d} className="bg-background text-foreground">{d}</option>
-                      ))}
-                    </select>
-                  </div>
+                <div>
+                  <label className="block text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-3 font-bold">Category</label>
+                  <select 
+                    name="category"
+                    className="w-full bg-transparent border-b border-border py-3 text-xs uppercase tracking-widest outline-none focus:border-primary transition-colors"
+                    value={product.category}
+                    onChange={handleChange}
+                  >
+                    {dynamicCategories.map(c => (
+                      <option key={c} value={c} className="bg-background text-foreground">{c}</option>
+                    ))}
+                  </select>
                 </div>
 
                 <div className="grid grid-cols-2 gap-8">
@@ -609,72 +622,111 @@ const AdminProductEdit = () => {
                 </div>
               </div>
 
-              {/* Product Gallery Section */}
+              {/* Designer Selector - right column */}
               <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-[11px] uppercase tracking-[0.3em] font-bold text-muted-foreground">Product Gallery</h3>
-                  <p className="text-[10px] text-muted-foreground italic">Drag to reorder sequence</p>
-                </div>
-                
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
-                  {(product.images || []).map((img, index) => (
-                    <div key={index} className="group relative aspect-square rounded-[20px] overflow-hidden border border-border bg-secondary/20 transition-all hover:border-primary">
-                      <img src={img} alt="" className="w-full h-full object-cover" />
-                      
-                      {product.image === img && (
-                        <div className="absolute top-3 left-3 px-2 py-1 bg-primary text-white text-[8px] uppercase tracking-widest rounded-full">
-                          Primary
-                        </div>
-                      )}
-
-                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all flex flex-col items-center justify-center gap-2">
-                        <button 
+                <div>
+                  <label className="block text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-3 font-bold">Designer</label>
+                  <div className="flex gap-3 mb-4">
+                    <input
+                      type="text"
+                      placeholder="New designer name..."
+                      value={newDesignerName}
+                      onChange={(e) => setNewDesignerName(e.target.value)}
+                      onKeyDown={(e) => { if(e.key === 'Enter') { e.preventDefault(); handleAddDesigner(); } }}
+                      className="flex-1 bg-transparent border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary transition-colors"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddDesigner}
+                      className="bg-foreground text-background w-10 h-10 rounded-xl flex items-center justify-center hover:opacity-80 transition-opacity shrink-0"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <div className="space-y-1.5 max-h-[360px] overflow-y-auto pr-1 custom-scrollbar">
+                    {dynamicDesigners.map(d => {
+                      const isSelected = (product.designers || []).includes(d) || (!product.designers?.length && product.designer === d);
+                      return (
+                        <button
+                          key={d}
                           type="button"
-                          onClick={() => setMainImage(index)}
-                          className="p-2 bg-white text-black rounded-full hover:scale-110 transition-transform"
-                          title="Set as Main"
+                          onClick={() => toggleDesigner(d)}
+                          className={`w-full text-left px-4 py-3 rounded-xl transition-colors text-sm flex items-center justify-between ${
+                            isSelected ? 'bg-secondary text-foreground font-medium' : 'hover:bg-secondary/50 text-foreground'
+                          }`}
                         >
-                          <CheckCircle2 className="w-4 h-4" />
+                          {d}
+                          {isSelected && <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />}
                         </button>
-                        <div className="flex gap-2">
-                          <button 
-                            type="button"
-                            disabled={index === 0}
-                            onClick={() => moveImage(index, 'up')}
-                            className="p-2 bg-white/20 text-white rounded-full hover:bg-white/40 transition-colors disabled:opacity-30"
-                          >
-                            <ArrowLeft className="w-3 h-3" />
-                          </button>
-                          <button 
-                            type="button"
-                            onClick={() => removeImage(index)}
-                            className="p-2 bg-destructive/80 text-white rounded-full hover:bg-destructive transition-colors"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </button>
-                          <button 
-                            type="button"
-                            disabled={index === (product.images?.length || 0) - 1}
-                            onClick={() => moveImage(index, 'down')}
-                            className="p-2 bg-white/20 text-white rounded-full hover:bg-white/40 transition-colors disabled:opacity-30"
-                          >
-                            <ArrowRight className="w-3 h-3" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                  
-                  <button
-                    type="button"
-                    onClick={() => document.getElementById('image-upload')?.click()}
-                    className="aspect-square rounded-[20px] border-2 border-dashed border-border flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-primary hover:text-primary transition-all bg-secondary/5"
-                  >
-                    <Upload className="w-6 h-6" />
-                    <span className="text-[10px] uppercase tracking-widest font-bold">Add Asset</span>
-                  </button>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
+            </div>
+
+            {/* Product Gallery - full width below the 2-col grid */}
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h3 className="text-[11px] uppercase tracking-[0.3em] font-bold text-muted-foreground">Product Gallery</h3>
+                <p className="text-[10px] text-muted-foreground italic">Drag to reorder sequence</p>
+              </div>
+              <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-8 lg:grid-cols-10 gap-4">
+                {(product.images || []).map((img, index) => (
+                  <div key={index} className="group relative aspect-square rounded-[16px] overflow-hidden border border-border bg-secondary/20 transition-all hover:border-primary">
+                    <img src={img} alt="" className="w-full h-full object-cover" />
+                    {product.image === img && (
+                      <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 bg-primary text-white text-[7px] uppercase tracking-widest rounded-full">
+                        Primary
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all flex flex-col items-center justify-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setMainImage(index)}
+                        className="p-1.5 bg-white text-black rounded-full hover:scale-110 transition-transform"
+                        title="Set as Main"
+                      >
+                        <CheckCircle2 className="w-3 h-3" />
+                      </button>
+                      <div className="flex gap-1">
+                        <button
+                          type="button"
+                          disabled={index === 0}
+                          onClick={() => moveImage(index, 'up')}
+                          className="p-1.5 bg-white/20 text-white rounded-full hover:bg-white/40 transition-colors disabled:opacity-30"
+                        >
+                          <ArrowLeft className="w-2.5 h-2.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => removeImage(index)}
+                          className="p-1.5 bg-destructive/80 text-white rounded-full hover:bg-destructive transition-colors"
+                        >
+                          <Trash2 className="w-2.5 h-2.5" />
+                        </button>
+                        <button
+                          type="button"
+                          disabled={index === (product.images?.length || 0) - 1}
+                          onClick={() => moveImage(index, 'down')}
+                          className="p-1.5 bg-white/20 text-white rounded-full hover:bg-white/40 transition-colors disabled:opacity-30"
+                        >
+                          <ArrowRight className="w-2.5 h-2.5" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => document.getElementById('image-upload')?.click()}
+                  className="aspect-square rounded-[16px] border-2 border-dashed border-border flex flex-col items-center justify-center gap-1 text-muted-foreground hover:border-primary hover:text-primary transition-all bg-secondary/5"
+                >
+                  <Upload className="w-4 h-4" />
+                  <span className="text-[9px] uppercase tracking-widest font-bold">Add</span>
+                </button>
+              </div>
+            </div>
 
               {/* Image Lab */}
               <div className="space-y-6">
@@ -813,45 +865,7 @@ const AdminProductEdit = () => {
               </div>
             </div>
           </section>
-        </div>
 
-        {/* Sidebar Preview - SSENSE style */}
-        <aside className="space-y-8 sticky top-24">
-          <div className="flex items-center justify-between border-b border-border pb-4">
-            <h3 className="text-[11px] uppercase tracking-[0.3em] font-bold text-muted-foreground">Live Context</h3>
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[10px] uppercase tracking-widest text-emerald-500 font-bold">Real-time</span>
-            </div>
-          </div>
-          
-          <div className="space-y-4">
-            <p className="text-[10px] text-muted-foreground uppercase tracking-widest text-center italic">Catalog View</p>
-            <div className="p-8 bg-background border border-border shadow-2xl rounded-sm">
-              <ProductCard product={product} />
-            </div>
-          </div>
-
-          <div className="glass p-6 rounded-2xl border border-white/20 space-y-4">
-             <h4 className="text-[10px] uppercase tracking-widest font-bold border-b border-border/50 pb-2">Asset Quality Report</h4>
-             <div className="space-y-3">
-               <div className="flex justify-between items-center text-[10px]">
-                 <span className="text-muted-foreground uppercase">Resolution</span>
-                 <span className="font-bold text-emerald-500">2048px (Optimized)</span>
-               </div>
-               <div className="flex justify-between items-center text-[10px]">
-                 <span className="text-muted-foreground uppercase">Compression</span>
-                 <span className="font-bold">90% Quality</span>
-               </div>
-               <div className="flex justify-between items-center text-[10px]">
-                 <span className="text-muted-foreground uppercase">AI Clipping</span>
-                 <span className={product.removeBackground ? "font-bold text-emerald-500" : "font-bold text-amber-500"}>
-                   {product.removeBackground ? "Enabled" : "Original"}
-                 </span>
-               </div>
-             </div>
-          </div>
-        </aside>
       </div>
 
       {/* Cropper Modal */}
