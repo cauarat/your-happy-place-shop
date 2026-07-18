@@ -93,7 +93,7 @@ const Header = () => {
   }, [searchQuery, t]);
 
   return (
-    <header className="bg-background border-b border-border sticky top-0 z-50">
+    <header className="bg-background border-b border-border sticky top-0 z-50 pt-[env(safe-area-inset-top)]">
       {/* Unified Header — same layout on all screen sizes */}
       <div className="flex items-center justify-between px-3 sm:px-6 lg:px-10 h-14 sm:h-16 max-w-[1600px] mx-auto w-full gap-2 sm:gap-4">
         {/* Left: Logo */}
