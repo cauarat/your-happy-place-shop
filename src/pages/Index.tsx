@@ -304,6 +304,20 @@ const Index = () => {
     return list;
   }, [availableProducts, designer, sort, searchQuery]);
 
+  // Group filtered products by designer for News-style layout
+  const filteredByDesigner = useMemo(() => {
+    const grouped = filtered.reduce((acc, p) => {
+      if (!acc[p.designer]) acc[p.designer] = [];
+      acc[p.designer].push(p);
+      return acc;
+    }, {} as Record<string, Product[]>);
+
+    return Object.entries(grouped).map(([d, prods]) => ({
+      designer: d,
+      products: prods,
+    }));
+  }, [filtered]);
+
   const { t } = useLanguage();
 
   // Dynamic designer list for the brands dropdown based on available products
@@ -526,10 +540,49 @@ const Index = () => {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.3 }}
-                  className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-1 sm:gap-x-2 lg:gap-x-4 gap-y-4 sm:gap-y-5 lg:gap-y-8 w-full">
-                  {filtered.map((product, i) =>
-                    <ProductCard key={product.id} product={product} index={i} />
-                  )}
+                  className="flex flex-col w-full"
+                >
+                  {filteredByDesigner.map(({ designer: brandName, products: brandProducts }, sectionIndex) => (
+                    <section key={brandName}>
+                      {/* Big brand name header */}
+                      <div className="flex items-center justify-center py-5 sm:py-7 md:py-9">
+                        <motion.button
+                          onClick={() => { setDesigner(designer === brandName ? "All" : brandName); setIsDesignersOpen(false); }}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.4, delay: sectionIndex * 0.08 }}
+                          className="text-[1.6rem] sm:text-[2rem] md:text-[2.6rem] font-black uppercase leading-none tracking-tight text-black text-center hover:opacity-60 transition-opacity cursor-pointer"
+                        >
+                          {brandName}
+                        </motion.button>
+                      </div>
+
+                      {/* Product grid: first 2 large, rest standard */}
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.4, delay: sectionIndex * 0.08 + 0.12 }}
+                        className="grid grid-cols-2 md:grid-cols-4 gap-x-1 sm:gap-x-2 lg:gap-x-4 gap-y-4 sm:gap-y-5 lg:gap-y-8 mb-0"
+                      >
+                        {brandProducts.map((product, i) => {
+                          const isBig = i < 2;
+                          const spanClass = isBig ? "col-span-1 md:col-span-2" : "col-span-1";
+
+                          return (
+                            <motion.div
+                              key={product.id}
+                              initial={{ opacity: 0, y: 15 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ duration: 0.35, delay: i * 0.04 }}
+                              className={`${spanClass} flex flex-col`}
+                            >
+                              <ProductCard product={product} index={sectionIndex * 10 + i} isFeatured={isBig} />
+                            </motion.div>
+                          );
+                        })}
+                      </motion.div>
+                    </section>
+                  ))}
                 </motion.div>
             }
           </div>
