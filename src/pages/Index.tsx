@@ -145,7 +145,7 @@ const Index = () => {
   const [category, setCategory] = useState<string>(() => {
     const paramCategory = searchParams.get("category");
     if (paramCategory) return paramCategory;
-    return "Footwear";
+    return getDesignSettings().defaultCategory || "Footwear";
   });
   const [designer, setDesigner] = useState<string>(() => {
     const paramDesigner = searchParams.get("designer");

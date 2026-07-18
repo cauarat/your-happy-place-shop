@@ -171,6 +171,35 @@ const CatalogSettings = () => {
         </section>
       </div>
 
+      {/* Default Landing Category */}
+      <section className="glass p-8 rounded-[32px] border border-white/20 shadow-sm space-y-6 mt-8">
+        <div className="flex items-center gap-3 border-b border-border pb-4">
+          <Tag className="w-5 h-5 text-primary" />
+          <h2 className="text-xl font-display">Default Landing Category</h2>
+        </div>
+        <p className="text-xs text-muted-foreground leading-relaxed">
+          Select which category should be displayed first when a user visits your site.
+        </p>
+
+        <div className="flex gap-2">
+          <select
+            value={designSettings.defaultCategory || "Footwear"}
+            onChange={(e) => {
+              const newSettings = { ...designSettings, defaultCategory: e.target.value };
+              setDesignSettings(newSettings);
+              saveDesignSettings(newSettings);
+              toast.success("Default category saved");
+            }}
+            className="flex-1 bg-secondary/30 border border-border rounded-xl px-4 py-3 text-sm outline-none focus:border-primary transition-colors appearance-none"
+          >
+            <option value="All">All Products</option>
+            {categories.map(cat => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
+          </select>
+        </div>
+      </section>
+
       {/* Background Music Section */}
       <section className="glass p-8 rounded-[32px] border border-white/20 shadow-sm space-y-6 mt-8">
         <div className="flex items-center gap-3 border-b border-border pb-4">

@@ -20,6 +20,7 @@ export interface DesignSettings {
   musicUrl?: string;
   enableNewsPage?: boolean;
   enableSalePage?: boolean;
+  defaultCategory?: string;
 }
 
 export interface AiConfig {
@@ -148,6 +149,7 @@ export function getDesignSettings(): DesignSettings {
     musicUrl: parsed.musicUrl || "https://www.youtube.com/watch?v=jfKfPfyJRdk", 
     enableNewsPage: true,
     enableSalePage: true,
+    defaultCategory: "Footwear",
     ...parsed,
     // Ensure musicUrl defaults if it was saved as empty string
     musicUrl: parsed.musicUrl || "https://www.youtube.com/watch?v=jfKfPfyJRdk"
