@@ -20,7 +20,7 @@ const dropdownVariants = {
   animate: { height: "auto", opacity: 1 },
   exit:    { height: 0, opacity: 0 },
 };
-const dropdownTransition = { duration: 0.3, ease: [0.16, 1, 0.3, 1] };
+const dropdownTransition = { duration: 0.3, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] };
 
 const searchTranslations: Record<string, string[]> = {
   // Colors
