@@ -15,7 +15,9 @@ const ProductCard = ({ product, index, isFeatured }: { product: Product, index?:
         <img 
           src={product.image} 
           alt={product.name} 
-          loading="lazy" 
+          loading={(index !== undefined && index < 8) || isFeatured ? "eager" : "lazy"}
+          {...(((index !== undefined && index < 4) || isFeatured) ? { fetchPriority: "high" } as any : {})}
+          decoding="async"
           className={`w-full ${isFeatured ? 'h-auto object-contain' : 'h-full object-contain'} transition-transform duration-700 ease-out group-hover:scale-[1.02]`}
         />
       </div>
