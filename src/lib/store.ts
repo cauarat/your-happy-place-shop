@@ -156,6 +156,7 @@ export function getDesignSettings(): DesignSettings {
 
 export function saveDesignSettings(settings: DesignSettings) {
   localStorage.setItem(DESIGN_KEY, JSON.stringify(settings));
+  window.dispatchEvent(new Event('design-settings-updated'));
 }
 
 export function getAiConfig(): AiConfig {
