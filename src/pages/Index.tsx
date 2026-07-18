@@ -142,10 +142,13 @@ const getCategoryIcon = (cat: string) => {
 
 const Index = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [category, setCategory] = useState<string>(() => {
     const paramCategory = searchParams.get("category");
     if (paramCategory) return paramCategory;
-    return getDesignSettings().defaultCategory || "Footwear";
+    const defaultCat = getDesignSettings().defaultCategory || "Footwear";
+    if (defaultCat === "News") return "All";
+    return defaultCat;
   });
   const [designer, setDesigner] = useState<string>(() => {
     const paramDesigner = searchParams.get("designer");
@@ -162,7 +165,6 @@ const Index = () => {
   const [isDesignersOpen, setIsDesignersOpen] = useState(false);
   const [isSortOpen, setIsSortOpen] = useState(false);
   const [showSaleOnly, setShowSaleOnly] = useState(false);
-  const navigate = useNavigate();
   const [isAnimating, setIsAnimating] = useState(false);
 
   // Drag to scroll refs (top bar — desktop)
@@ -216,6 +218,14 @@ const Index = () => {
       scrollRef.current.scrollTo({ left: 0, behavior: 'smooth' });
     }
   };
+
+  // Redirect to News page if admin set it as default landing
+  useEffect(() => {
+    const defaultCat = getDesignSettings().defaultCategory;
+    if (defaultCat === "News" && !searchParams.get("category")) {
+      navigate("/news", { replace: true });
+    }
+  }, []);
 
   useEffect(() => {
     setIsLoading(true);

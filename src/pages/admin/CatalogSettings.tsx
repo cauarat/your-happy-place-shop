@@ -192,6 +192,7 @@ const CatalogSettings = () => {
             }}
             className="flex-1 bg-secondary/30 border border-border rounded-xl px-4 py-3 text-sm outline-none focus:border-primary transition-colors appearance-none"
           >
+            <option value="News">📰 News Page</option>
             <option value="All">All Products</option>
             {categories.map(cat => (
               <option key={cat} value={cat}>{cat}</option>
