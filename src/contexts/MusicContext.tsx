@@ -60,7 +60,16 @@ export const MusicProvider = ({ children }: { children: React.ReactNode }) => {
           height: "10",
           width: "10",
           videoId: currentVideoId,
-          playerVars: { autoplay: 0, controls: 0, showinfo: 0, modestbranding: 1, loop: 1, playlist: currentVideoId },
+          playerVars: { 
+            autoplay: 0, 
+            controls: 0, 
+            showinfo: 0, 
+            modestbranding: 1, 
+            loop: 1, 
+            playlist: currentVideoId,
+            origin: window.location.origin,
+            playsinline: 1
+          },
           events: {
             onReady: (event: any) => { event.target.setVolume(50); },
             onStateChange: (event: any) => {
