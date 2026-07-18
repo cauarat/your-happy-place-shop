@@ -52,7 +52,7 @@ const initStore = () => {
   if (!localStorage.getItem(DESIGN_KEY)) {
     localStorage.setItem(
       DESIGN_KEY,
-      JSON.stringify({ minimalMode: true, borderRadius: "0px", buttonColor: "hsl(var(--primary))", musicUrl: "" })
+      JSON.stringify({ minimalMode: true, borderRadius: "0px", buttonColor: "hsl(var(--primary))", musicUrl: "https://www.youtube.com/watch?v=jfKfPfyJRdk" })
     );
   }
   if (!localStorage.getItem(AI_KEY)) {
@@ -145,10 +145,12 @@ export function getDesignSettings(): DesignSettings {
     minimalMode: true, 
     borderRadius: "0px", 
     buttonColor: "hsl(var(--primary))", 
-    musicUrl: "", 
+    musicUrl: parsed.musicUrl || "https://www.youtube.com/watch?v=jfKfPfyJRdk", 
     enableNewsPage: true,
     enableSalePage: true,
-    ...parsed 
+    ...parsed,
+    // Ensure musicUrl defaults if it was saved as empty string
+    musicUrl: parsed.musicUrl || "https://www.youtube.com/watch?v=jfKfPfyJRdk"
   };
 }
 
