@@ -54,7 +54,7 @@ const initStore = () => {
   if (!localStorage.getItem(DESIGN_KEY)) {
     localStorage.setItem(
       DESIGN_KEY,
-      JSON.stringify({ minimalMode: true, borderRadius: "0px", buttonColor: "hsl(var(--primary))", musicUrl: "https://www.youtube.com/watch?v=jfKfPfyJRdk" })
+      JSON.stringify({ minimalMode: true, borderRadius: "0px", buttonColor: "hsl(var(--primary))", musicUrl: "", enableNewsPage: true, enableSalePage: false, showPrices: false })
     );
   }
   if (!localStorage.getItem(AI_KEY)) {
