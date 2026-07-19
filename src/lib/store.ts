@@ -143,18 +143,16 @@ export function updateProductsList(newOrder: Product[]) {
 export function getDesignSettings(): DesignSettings {
   const data = localStorage.getItem(DESIGN_KEY);
   const parsed = data ? JSON.parse(data) : {};
-  return { 
-    minimalMode: true, 
-    borderRadius: "0px", 
-    buttonColor: "hsl(var(--primary))", 
-    musicUrl: parsed.musicUrl || "https://www.youtube.com/watch?v=jfKfPfyJRdk", 
+  return {
+    minimalMode: true,
+    borderRadius: "0px",
+    buttonColor: "hsl(var(--primary))",
+    musicUrl: "",
     enableNewsPage: true,
-    enableSalePage: true,
+    enableSalePage: false,
     defaultCategory: "Footwear",
-    showPrices: true,
+    showPrices: false,
     ...parsed,
-    // Ensure musicUrl defaults if it was saved as empty string
-    musicUrl: parsed.musicUrl || "https://www.youtube.com/watch?v=jfKfPfyJRdk"
   };
 }
 
