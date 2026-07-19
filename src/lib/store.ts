@@ -53,6 +53,10 @@ const initStore = () => {
   } else if (!localStorage.getItem(PRODUCTS_KEY)) {
     localStorage.setItem(PRODUCTS_KEY, JSON.stringify(catalogSeed));
   }
+  if (localStorage.getItem(DESIGN_VERSION_KEY) !== DESIGN_VERSION) {
+    localStorage.removeItem(DESIGN_KEY);
+    localStorage.setItem(DESIGN_VERSION_KEY, DESIGN_VERSION);
+  }
   if (!localStorage.getItem(DESIGN_KEY)) {
     localStorage.setItem(
       DESIGN_KEY,
