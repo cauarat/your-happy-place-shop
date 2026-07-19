@@ -11,6 +11,8 @@ const CATEGORIES_KEY = "villaoro_categories";
 const DESIGNERS_KEY = "villaoro_designers";
 const CATALOG_VERSION_KEY = "villaoro_catalog_version";
 const CATALOG_VERSION = "v14";
+const DESIGN_VERSION_KEY = "villaoro_design_version";
+const DESIGN_VERSION = "v2";
 
 // Types
 export interface DesignSettings {
@@ -51,10 +53,14 @@ const initStore = () => {
   } else if (!localStorage.getItem(PRODUCTS_KEY)) {
     localStorage.setItem(PRODUCTS_KEY, JSON.stringify(catalogSeed));
   }
+  if (localStorage.getItem(DESIGN_VERSION_KEY) !== DESIGN_VERSION) {
+    localStorage.removeItem(DESIGN_KEY);
+    localStorage.setItem(DESIGN_VERSION_KEY, DESIGN_VERSION);
+  }
   if (!localStorage.getItem(DESIGN_KEY)) {
     localStorage.setItem(
       DESIGN_KEY,
-      JSON.stringify({ minimalMode: true, borderRadius: "0px", buttonColor: "hsl(var(--primary))", musicUrl: "https://www.youtube.com/watch?v=jfKfPfyJRdk" })
+      JSON.stringify({ minimalMode: true, borderRadius: "0px", buttonColor: "hsl(var(--primary))", musicUrl: "", enableNewsPage: true, enableSalePage: false, showPrices: false })
     );
   }
   if (!localStorage.getItem(AI_KEY)) {
@@ -143,18 +149,16 @@ export function updateProductsList(newOrder: Product[]) {
 export function getDesignSettings(): DesignSettings {
   const data = localStorage.getItem(DESIGN_KEY);
   const parsed = data ? JSON.parse(data) : {};
-  return { 
-    minimalMode: true, 
-    borderRadius: "0px", 
-    buttonColor: "hsl(var(--primary))", 
-    musicUrl: parsed.musicUrl || "https://www.youtube.com/watch?v=jfKfPfyJRdk", 
+  return {
+    minimalMode: true,
+    borderRadius: "0px",
+    buttonColor: "hsl(var(--primary))",
+    musicUrl: "",
     enableNewsPage: true,
-    enableSalePage: true,
+    enableSalePage: false,
     defaultCategory: "Footwear",
-    showPrices: true,
+    showPrices: false,
     ...parsed,
-    // Ensure musicUrl defaults if it was saved as empty string
-    musicUrl: parsed.musicUrl || "https://www.youtube.com/watch?v=jfKfPfyJRdk"
   };
 }
 
