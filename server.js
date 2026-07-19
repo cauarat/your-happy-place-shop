@@ -11,13 +11,13 @@ app.use(express.json());
 
 const stripeKey = process.env.STRIPE_SECRET_KEY;
 if (!stripeKey) {
-  console.error('ERROR: STRIPE_SECRET_KEY is not set in .env');
-  process.exit(1);
+  console.warn('\n⚠️  WARNING: STRIPE_SECRET_KEY is not set in .env');
+  console.warn('⚠️  Checkout will not work until you add a valid Stripe Secret Key.\n');
 }
 
-const stripe = new Stripe(stripeKey, {
+const stripe = stripeKey ? new Stripe(stripeKey, {
   apiVersion: '2023-10-16',
-});
+}) : null;
 
 // The public URL of your site (for Stripe redirects)
 // In development: use your ngrok or deployed URL
@@ -26,6 +26,10 @@ const SITE_URL = process.env.SITE_URL || 'http://localhost:8081';
 
 app.post('/api/create-checkout-session', async (req, res) => {
   try {
+    if (!stripe) {
+      return res.status(500).json({ error: "The payment server is missing the STRIPE_SECRET_KEY. Please add it to your .env file." });
+    }
+
     const { items, orderId } = req.body;
 
     if (!items || items.length === 0) {

@@ -65,6 +65,12 @@ const Checkout = () => {
         body: JSON.stringify({ items, orderId }),
       });
 
+      // Check if response is JSON (Vite might return index.html if the proxy target is down)
+      const contentType = response.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        throw new Error("The payment server is not running. Please ensure you have added STRIPE_SECRET_KEY to your .env file and restarted the server.");
+      }
+
       const data = await response.json();
 
       if (!response.ok) {
