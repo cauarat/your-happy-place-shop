@@ -1,14 +1,22 @@
 import React, { useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useCart } from "@/contexts/CartContext";
 import { CheckCircle2 } from "lucide-react";
+import { updateOrderStatus } from "@/lib/store";
 
 const Success = () => {
   const { clearCart } = useCart();
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
     clearCart();
-  }, [clearCart]);
+    
+    // Check if there is an order ID returned from Stripe
+    const orderId = searchParams.get('order_id');
+    if (orderId) {
+      updateOrderStatus(orderId, 'Paid');
+    }
+  }, [clearCart, searchParams]);
 
   return (
     <div className="min-h-screen flex flex-col bg-white text-black font-sans selection:bg-black selection:text-white items-center justify-center">

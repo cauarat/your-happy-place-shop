@@ -1,11 +1,12 @@
 import { useEffect } from "react";
 import { Outlet, useNavigate, useLocation, Link } from "react-router-dom";
-import { LayoutDashboard, Package, Settings, Bot, Sparkles, Home, Tag, Users } from "lucide-react";
+import { LayoutDashboard, Package, Settings, Bot, Sparkles, Home, Tag, Users, ShoppingCart } from "lucide-react";
 import { useMusicPlayer } from "@/contexts/MusicContext";
 import { VinylButton } from "@/components/BackgroundMusic";
 
 const NAV_ITEMS = [
   { label: "Dashboard", path: "/admin/dashboard", icon: LayoutDashboard },
+  { label: "Orders", path: "/admin/orders", icon: ShoppingCart },
   { label: "Products", path: "/admin/products", icon: Package },
   { label: "Settings", path: "/admin/design", icon: Settings },
   { label: "AI Stylist", path: "/admin/ai", icon: Bot },

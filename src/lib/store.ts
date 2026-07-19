@@ -162,6 +162,88 @@ export function getDesignSettings(): DesignSettings {
   };
 }
 
+export const saveLooks = (looks: Look[]) => {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem('villaoro_looks', JSON.stringify(looks));
+  // Dispatch custom event to notify listeners (e.g. other tabs/components)
+  window.dispatchEvent(new Event('looksUpdated'));
+};
+
+// --- Orders State ---
+
+export interface OrderItem {
+  id: string; // Cart item ID
+  productId: string;
+  name: string;
+  price: number;
+  quantity: number;
+  size?: string;
+  image?: string;
+  designer?: string;
+}
+
+export type OrderStatus = "Pending" | "Paid" | "Processing" | "Shipped" | "Delivered" | "Cancelled";
+
+export interface Order {
+  id: string;
+  createdAt: number;
+  status: OrderStatus;
+  total: number;
+  items: OrderItem[];
+  customerInfo: {
+    firstName: string;
+    lastName: string;
+    email?: string;
+    phone?: string;
+    address: string;
+    city: string;
+    state: string;
+    zip: string;
+    country: string;
+  };
+}
+
+export const getOrders = (): Order[] => {
+  if (typeof window === 'undefined') return [];
+  const stored = localStorage.getItem('villaoro_orders');
+  if (stored) {
+    try {
+      return JSON.parse(stored);
+    } catch (e) {
+      console.error("Failed to parse orders", e);
+      return [];
+    }
+  }
+  return [];
+};
+
+export const saveOrder = (order: Order) => {
+  if (typeof window === 'undefined') return;
+  const currentOrders = getOrders();
+  const existingIndex = currentOrders.findIndex(o => o.id === order.id);
+  
+  if (existingIndex >= 0) {
+    currentOrders[existingIndex] = order;
+  } else {
+    currentOrders.unshift(order); // Add new order to top
+  }
+  
+  localStorage.setItem('villaoro_orders', JSON.stringify(currentOrders));
+  window.dispatchEvent(new Event('ordersUpdated'));
+};
+
+export const updateOrderStatus = (orderId: string, status: OrderStatus) => {
+  if (typeof window === 'undefined') return;
+  const currentOrders = getOrders();
+  const orderIndex = currentOrders.findIndex(o => o.id === orderId);
+  
+  if (orderIndex >= 0) {
+    currentOrders[orderIndex].status = status;
+    localStorage.setItem('villaoro_orders', JSON.stringify(currentOrders));
+    window.dispatchEvent(new Event('ordersUpdated'));
+  }
+};
+
 export function saveDesignSettings(settings: DesignSettings) {
   localStorage.setItem(DESIGN_KEY, JSON.stringify(settings));
   window.dispatchEvent(new Event('design-settings-updated'));

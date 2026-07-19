@@ -27,6 +27,7 @@ import AdminSettings from "./pages/admin/Settings.tsx";
 import AdminCatalog from "./pages/admin/CatalogSettings.tsx";
 import AdminAiControl from "./pages/admin/AiControl.tsx";
 import AdminTryTheLook from "./pages/admin/TryTheLookControl.tsx";
+import AdminOrders from "./pages/admin/Orders.tsx";
 import Cart from "./pages/Cart.tsx";
 import Checkout from "./pages/Checkout.tsx";
 import Success from "./pages/Success.tsx";
@@ -60,6 +61,7 @@ const App = () => {
                       <Route path="/admin" element={<AdminLayout />}>
                         <Route index element={<Navigate to="/admin/dashboard" replace />} />
                         <Route path="dashboard" element={<AdminDashboard />} />
+                        <Route path="orders" element={<AdminOrders />} />
                         <Route path="products" element={<AdminProducts />} />
                         <Route path="products/:id" element={<AdminProductEdit />} />
                         <Route path="design" element={<AdminSettings />} />

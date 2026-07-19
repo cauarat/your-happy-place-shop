@@ -26,7 +26,7 @@ const SITE_URL = process.env.SITE_URL || 'http://localhost:8081';
 
 app.post('/api/create-checkout-session', async (req, res) => {
   try {
-    const { items } = req.body;
+    const { items, orderId } = req.body;
 
     if (!items || items.length === 0) {
       return res.status(400).json({ error: "Cart is empty" });
@@ -53,7 +53,8 @@ app.post('/api/create-checkout-session', async (req, res) => {
       payment_method_types: ['card'],
       line_items: lineItems,
       mode: 'payment',
-      success_url: `${SITE_URL}/success`,
+      client_reference_id: orderId,
+      success_url: `${SITE_URL}/success?session_id={CHECKOUT_SESSION_ID}&order_id=${orderId || ''}`,
       cancel_url: `${SITE_URL}/checkout`,
     });
 

@@ -5,6 +5,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { Lock } from "lucide-react";
 import { toast } from "sonner";
 import MobileBottomDock from "@/components/MobileBottomDock";
+import { saveOrder, Order } from "@/lib/store";
 
 const Checkout = () => {
   const { t } = useLanguage();
@@ -14,24 +15,64 @@ const Checkout = () => {
   const [paymentMethod, setPaymentMethod] = useState("credit_card");
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const handlePlaceOrder = async (e: React.FormEvent) => {
+  const handlePlaceOrder = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (items.length === 0) {
       toast.error(t('cart_empty'));
       return;
     }
 
+    const formData = new FormData(e.currentTarget);
+    const orderId = `ORD-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+
+    const newOrder: Order = {
+      id: orderId,
+      createdAt: Date.now(),
+      status: "Pending",
+      total: cartTotal,
+      items: items.map(item => ({
+        id: item.id,
+        productId: item.productId,
+        name: item.product?.name || 'Unknown Item',
+        price: item.product?.price || 0,
+        quantity: item.quantity,
+        size: item.size,
+        image: item.product?.image,
+        designer: item.product?.designer
+      })),
+      customerInfo: {
+        firstName: formData.get('firstName') as string,
+        lastName: formData.get('lastName') as string,
+        address: formData.get('address') as string,
+        city: formData.get('city') as string,
+        state: formData.get('state') as string,
+        zip: formData.get('zip') as string,
+        country: formData.get('country') as string,
+        phone: formData.get('phone') as string,
+      }
+    };
+
     setIsProcessing(true);
     const loadingToast = toast.loading('Redirecting to secure checkout...');
 
     try {
-      // Since this is a frontend-only app without a backend Stripe integration,
-      // we simulate the checkout process and redirect directly to success.
-      setTimeout(() => {
-        toast.dismiss(loadingToast);
-        clearCart();
-        navigate('/success');
-      }, 1500);
+      // Save order as pending in localStorage
+      saveOrder(newOrder);
+
+      const response = await fetch('/api/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items, orderId }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create checkout session');
+      }
+
+      // Redirect securely to Stripe Checkout
+      window.location.href = data.url;
 
     } catch (error: any) {
       console.error("Checkout error:", error);
@@ -72,31 +113,31 @@ const Checkout = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
                 <div>
                   <label className={labelClasses}>{t('first_name')}</label>
-                  <input type="text" required className={inputClasses} />
+                  <input type="text" name="firstName" required className={inputClasses} />
                 </div>
                 <div>
                   <label className={labelClasses}>{t('last_name')}</label>
-                  <input type="text" required className={inputClasses} />
+                  <input type="text" name="lastName" required className={inputClasses} />
                 </div>
                 <div className="md:col-span-2">
                   <label className={labelClasses}>{t('street_address')}</label>
-                  <input type="text" required className={inputClasses} />
+                  <input type="text" name="address" required className={inputClasses} />
                 </div>
                 <div className="md:col-span-2">
                   <label className={labelClasses}>{t('company_optional')}</label>
-                  <input type="text" className={inputClasses} />
+                  <input type="text" name="company" className={inputClasses} />
                 </div>
                 <div>
                   <label className={labelClasses}>{t('city')}</label>
-                  <input type="text" required className={inputClasses} />
+                  <input type="text" name="city" required className={inputClasses} />
                 </div>
                 <div>
                   <label className={labelClasses}>{t('zip_code')}</label>
-                  <input type="text" required className={inputClasses} />
+                  <input type="text" name="zip" required className={inputClasses} />
                 </div>
                 <div>
                   <label className={labelClasses}>{t('country_region_label')}</label>
-                  <select className={inputClasses} required defaultValue="BR">
+                  <select name="country" className={inputClasses} required defaultValue="BR">
                     <option value="US">United States</option>
                     <option value="BR">Brazil</option>
                     <option value="UK">United Kingdom</option>
@@ -106,11 +147,11 @@ const Checkout = () => {
                 </div>
                 <div>
                   <label className={labelClasses}>{t('state_province')}</label>
-                  <input type="text" required className={inputClasses} />
+                  <input type="text" name="state" required className={inputClasses} />
                 </div>
                 <div className="md:col-span-2">
                   <label className={labelClasses}>{t('phone')}</label>
-                  <input type="tel" required className={inputClasses} />
+                  <input type="tel" name="phone" required className={inputClasses} />
                 </div>
               </div>
             </section>
