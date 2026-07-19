@@ -557,29 +557,24 @@ const Index = () => {
                         </motion.button>
                       </div>
 
-                      {/* Product grid: first 2 large, rest standard */}
+                      {/* Product grid: standard 4 column layout */}
                       <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ duration: 0.4, delay: sectionIndex * 0.08 + 0.12 }}
                         className="grid grid-cols-2 md:grid-cols-4 gap-x-1 sm:gap-x-2 lg:gap-x-4 gap-y-4 sm:gap-y-5 lg:gap-y-8 mb-0"
                       >
-                        {brandProducts.map((product, i) => {
-                          const isBig = i < 2;
-                          const spanClass = isBig ? "col-span-1 md:col-span-2" : "col-span-1";
-
-                          return (
+                        {brandProducts.map((product, i) => (
                             <motion.div
                               key={product.id}
                               initial={{ opacity: 0, y: 15 }}
                               animate={{ opacity: 1, y: 0 }}
                               transition={{ duration: 0.35, delay: i * 0.04 }}
-                              className={`${spanClass} flex flex-col`}
+                              className="col-span-1 flex flex-col"
                             >
-                              <ProductCard product={product} index={sectionIndex * 10 + i} isFeatured={isBig} />
+                              <ProductCard product={product} index={sectionIndex * 10 + i} isFeatured={false} />
                             </motion.div>
-                          );
-                        })}
+                        ))}
                       </motion.div>
                     </section>
                   ))}
