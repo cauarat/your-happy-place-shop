@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { getProducts } from "@/lib/store";
+import { getProducts, getDesignSettings } from "@/lib/store";
 import type { Product } from "@/data/products";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -90,19 +90,21 @@ const ProductDetail = () => {
 
           {/* Right Column: Checkout */}
           <div className="order-2 lg:order-none space-y-8 md:space-y-10 lg:sticky lg:top-1/2 lg:-translate-y-1/2 h-fit">
-            <div>
-              <div className="flex flex-col gap-1 mb-6">
-                <span className="text-xl font-medium">${product.price.toFixed(2)} USD</span>
-                {product.oldPrice && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground line-through">${product.oldPrice.toFixed(2)} USD</span>
-                    <span className="text-[10px] uppercase tracking-widest text-destructive">
-                      Save {Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100)}%
-                    </span>
-                  </div>
-                )}
+            {getDesignSettings().showPrices !== false && (
+              <div>
+                <div className="flex flex-col gap-1 mb-6">
+                  <span className="text-xl font-medium">${product.price.toFixed(2)} USD</span>
+                  {product.oldPrice && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground line-through">${product.oldPrice.toFixed(2)} USD</span>
+                      <span className="text-[10px] uppercase tracking-widest text-destructive">
+                        Save {Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100)}%
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
 
             {(isShoe || isClothing) && (
               <div>

@@ -74,6 +74,31 @@ const AdminSettings = () => {
             />
           </button>
         </div>
+
+        {/* Show Prices Toggle */}
+        <div className="flex items-center justify-between border border-border px-6 py-5 bg-white rounded-none">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 border border-border flex items-center justify-center">
+              <Tag size={18} strokeWidth={1.5} />
+            </div>
+            <div>
+              <p className="text-sm font-semibold tracking-tight">Show Prices</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Show product prices across the catalog and product views.</p>
+            </div>
+          </div>
+          <button
+            onClick={() => toggle("showPrices")}
+            className={`relative w-12 h-7 rounded-full transition-colors duration-200 ${
+              settings.showPrices !== false ? "bg-black" : "bg-neutral-300"
+            }`}
+          >
+            <span
+              className={`absolute top-0.5 left-0.5 w-6 h-6 rounded-full bg-white shadow transition-transform duration-200 ${
+                settings.showPrices !== false ? "translate-x-5" : "translate-x-0"
+              }`}
+            />
+          </button>
+        </div>
       </div>
     </div>
   );

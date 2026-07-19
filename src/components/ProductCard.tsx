@@ -1,6 +1,7 @@
 import { Product } from "@/data/products";
 import { Link } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { getDesignSettings } from "@/lib/store";
 
 const ProductCard = ({ product, index, isFeatured }: { product: Product, index?: number, isFeatured?: boolean }) => {
   const { t } = useLanguage();
@@ -28,14 +29,16 @@ const ProductCard = ({ product, index, isFeatured }: { product: Product, index?:
         <p className="text-[11px] md:text-[12px] text-neutral-800 font-light tracking-tight leading-snug line-clamp-2 min-h-[2.4em]">
           {t(product.name)}
         </p>
-        <p className="text-[11px] md:text-[12px] text-black pt-0.5 font-normal tracking-wide flex items-center gap-1.5">
-          <span>{formatPrice(product.price)}</span>
-          {product.oldPrice && (
-            <span className="text-[#999] line-through text-[10px] md:text-[11px]">
-              {formatPrice(product.oldPrice)}
-            </span>
-          )}
-        </p>
+        {getDesignSettings().showPrices !== false && (
+          <p className="text-[11px] md:text-[12px] text-black pt-0.5 font-normal tracking-wide flex items-center gap-1.5">
+            <span>{formatPrice(product.price)}</span>
+            {product.oldPrice && (
+              <span className="text-[#999] line-through text-[10px] md:text-[11px]">
+                {formatPrice(product.oldPrice)}
+              </span>
+            )}
+          </p>
+        )}
       </div>
     </Link>
   );

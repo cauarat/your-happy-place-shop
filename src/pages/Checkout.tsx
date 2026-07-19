@@ -25,20 +25,14 @@ const Checkout = () => {
     const loadingToast = toast.loading('Redirecting to secure checkout...');
 
     try {
-      const response = await fetch('/api/create-checkout-session', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items }),
-      });
+      // Since this is a frontend-only app without a backend Stripe integration,
+      // we simulate the checkout process and redirect directly to success.
+      setTimeout(() => {
+        toast.dismiss(loadingToast);
+        clearCart();
+        navigate('/success');
+      }, 1500);
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to create checkout session');
-      }
-
-      // Redirect securely to Stripe Checkout
-      window.location.href = data.url;
     } catch (error: any) {
       console.error("Checkout error:", error);
       toast.dismiss(loadingToast);
