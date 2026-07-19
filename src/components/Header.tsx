@@ -98,8 +98,11 @@ const Header = () => {
       <div className="flex items-center justify-between px-3 sm:px-6 lg:px-10 h-14 sm:h-16 max-w-[1600px] mx-auto w-full gap-2 sm:gap-4">
         {/* Left: Logo */}
         <div className="flex items-center shrink-0">
-          <Link to={enableNews ? "/news" : "/"} className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tighter leading-none shrink-0">
-            Villaoro
+          <Link 
+            to={enableNews ? "/news" : "/"}
+            className="text-[2rem] sm:text-[2.5rem] md:text-[3rem] font-black uppercase leading-none tracking-tighter hover:opacity-70 transition-opacity whitespace-nowrap pr-2 sm:pr-6 border-r border-transparent sm:border-border"
+          >
+            VI
           </Link>
         </div>
 
