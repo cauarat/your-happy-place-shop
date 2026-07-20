@@ -363,4 +363,32 @@ export function importDatabase(jsonData: any) {
   setTimeout(() => window.location.reload(), 1000);
 }
 
+// ========== Customer Suggestions ==========
+export interface CustomerSuggestion {
+  id: string;
+  type: 'product_request' | 'feedback';
+  productName?: string;
+  productBrand?: string;
+  message?: string;
+  email?: string;
+  searchQuery?: string;
+  createdAt: number;
+}
+
+const SUGGESTIONS_KEY = 'villaoro_customer_suggestions';
+
+export const getCustomerSuggestions = (): CustomerSuggestion[] => {
+  if (typeof window === 'undefined') return [];
+  const data = localStorage.getItem(SUGGESTIONS_KEY);
+  return data ? JSON.parse(data) : [];
+};
+
+export const saveCustomerSuggestion = (suggestion: CustomerSuggestion) => {
+  if (typeof window === 'undefined') return;
+  const current = getCustomerSuggestions();
+  current.unshift(suggestion);
+  localStorage.setItem(SUGGESTIONS_KEY, JSON.stringify(current));
+  window.dispatchEvent(new Event('suggestionsUpdated'));
+};
+
 initStore();

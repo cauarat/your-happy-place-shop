@@ -7,12 +7,12 @@ import Footer from "@/components/Footer";
 import Sidebar from "@/components/Sidebar";
 import SortBar, { SortKey } from "@/components/SortBar";
 import ProductCard from "@/components/ProductCard";
-import { getProducts, getDesigners, getCategories, getDesignSettings } from "@/lib/store";
+import { getProducts, getDesigners, getCategories, getDesignSettings, saveCustomerSuggestion } from "@/lib/store";
 import type { Product } from "@/data/products";
 import ImmersiveAi from "@/components/ImmersiveAi";
 import TryTheLook from "@/components/TryTheLook";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Newspaper, ChevronDown, SlidersHorizontal } from "lucide-react";
+import { X, Newspaper, ChevronDown, SlidersHorizontal, Package, MessageSquare, Send, CheckCircle } from "lucide-react";
 
 /* Shared slide-down animation config — mirrors LanguageSwitcher */
 const dropdownVariants = {
@@ -165,6 +165,8 @@ const Index = () => {
   const [isDesignersOpen, setIsDesignersOpen] = useState(false);
   const [isSortOpen, setIsSortOpen] = useState(false);
   const [showSaleOnly, setShowSaleOnly] = useState(false);
+  const [suggestionCard, setSuggestionCard] = useState<'product' | 'feedback' | null>(null);
+  const [suggestionSent, setSuggestionSent] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
 
   // Drag to scroll refs (top bar — desktop)
@@ -488,51 +490,239 @@ const Index = () => {
                 )}
               </div> :
               filtered.length === 0 ?
-                <div className="flex flex-col items-center justify-center py-32 px-4 text-center w-full max-w-2xl mx-auto font-sans">
-                  <div className="w-20 h-20 mb-8 rounded-full bg-[#FAFAFA] flex items-center justify-center border border-border/50">
+                <div className="flex flex-col items-center justify-center py-20 sm:py-32 px-4 text-center w-full max-w-2xl mx-auto font-sans">
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
+                    className="w-20 h-20 mb-8 rounded-full bg-gradient-to-b from-[#f7f7f7] to-[#ececec] flex items-center justify-center shadow-[0_2px_12px_rgba(0,0,0,0.06)]"
+                  >
                     <ShoppingBag className="w-8 h-8 text-[#555] stroke-[1.5]" />
-                  </div>
-                  <h3 className="text-3xl font-semibold mb-3 tracking-tight text-foreground">
+                  </motion.div>
+
+                  <motion.h3
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: 0.1 }}
+                    className="text-[1.7rem] sm:text-3xl font-semibold mb-3 tracking-tight text-foreground"
+                  >
                     {t('no_products')}
-                  </h3>
-                  <div className="flex flex-col items-center text-[#666] text-[15px] mb-10 leading-relaxed">
+                  </motion.h3>
+
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: 0.15 }}
+                    className="flex flex-col items-center text-[#666] text-[15px] mb-8 leading-relaxed"
+                  >
                     <p className="mb-1">
                       {searchQuery.trim() ? `${t('no_results_for')} "${searchQuery}"` : t('no_results_for').replace(' for', '').replace(' para', '')}{(category !== "All" || designer !== "All" || showSaleOnly) ? ` ${t('in_category')} ` + [category !== "All" ? (t(category.toLowerCase()) === category.toLowerCase() ? category : t(category.toLowerCase())) : null, designer !== "All" ? designer : null, showSaleOnly ? t('sale_items') : null].filter(Boolean).join(", ") : ""}.
                     </p>
                     <p>{t('try_searching')}</p>
-                  </div>
+                  </motion.div>
                   
-                  <button 
-                    onClick={() => {
-                      window.scrollTo({ top: 0, behavior: 'smooth' });
-                      const searchInput = document.querySelector('input[type="text"]') as HTMLInputElement;
-                      if (searchInput) {
-                        setTimeout(() => searchInput.focus(), 500);
-                      }
-                    }}
-                    className="flex items-center gap-2 px-6 py-2.5 rounded-full border border-border bg-white text-sm font-medium hover:bg-neutral-50 transition-colors shadow-sm mb-8"
+                  {/* Action buttons row */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: 0.2 }}
+                    className="flex flex-col sm:flex-row items-center gap-3 mb-10"
                   >
-                    <Search className="w-4 h-4 text-foreground" />
-                    {t('search_again')}
-                  </button>
-                  
-                  <div className="flex items-center w-full max-w-[240px] gap-4 mb-8">
-                    <div className="flex-1 h-px bg-border/60"></div>
-                    <span className="text-[#999] text-[13px]">{t('or')}</span>
-                    <div className="flex-1 h-px bg-border/60"></div>
-                  </div>
+                    <button 
+                      onClick={() => {
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                        const searchInput = document.querySelector('input[type="text"]') as HTMLInputElement;
+                        if (searchInput) {
+                          setTimeout(() => searchInput.focus(), 500);
+                        }
+                      }}
+                      className="flex items-center gap-2 px-6 py-2.5 rounded-full border border-border bg-white text-sm font-medium hover:bg-neutral-50 transition-all shadow-sm active:scale-[0.97]"
+                    >
+                      <Search className="w-4 h-4 text-foreground" />
+                      {t('search_again')}
+                    </button>
+                    
+                    <button 
+                      onClick={() => {
+                        setSearchQuery("");
+                        setCategory("All");
+                        setDesigner("All");
+                        setShowSaleOnly(false);
+                      }}
+                      className="px-8 py-2.5 bg-black text-white text-sm font-medium rounded-full hover:bg-black/90 transition-all active:scale-[0.97]"
+                    >
+                      {t('clear_all_filters')}
+                    </button>
+                  </motion.div>
 
-                  <button 
-                    onClick={() => {
-                      setSearchQuery("");
-                      setCategory("All");
-                      setDesigner("All");
-                      setShowSaleOnly(false);
-                    }}
-                    className="px-10 py-3.5 bg-black text-white text-[15px] font-medium rounded-full hover:bg-black/90 transition-colors"
+                  {/* Apple-style divider with label */}
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.5, delay: 0.3 }}
+                    className="flex items-center w-full max-w-md gap-4 mb-10"
                   >
-                    {t('clear_all_filters')}
-                  </button>
+                    <div className="flex-1 h-px bg-gradient-to-r from-transparent via-border to-transparent"></div>
+                    <span className="text-[#aaa] text-[12px] tracking-widest uppercase font-medium">{t('cant_find')}</span>
+                    <div className="flex-1 h-px bg-gradient-to-r from-transparent via-border to-transparent"></div>
+                  </motion.div>
+
+                  {/* Suggestion Cards — Apple-style glass cards */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.35 }}
+                    className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-lg"
+                  >
+                    {/* Request a Product Card */}
+                    <button
+                      onClick={() => setSuggestionCard('product')}
+                      className={`group relative text-left p-5 rounded-2xl border transition-all duration-300 ${
+                        suggestionCard === 'product'
+                          ? 'border-black bg-black text-white shadow-lg scale-[1.02]'
+                          : 'border-border/80 bg-white/80 backdrop-blur-sm hover:border-black/30 hover:shadow-md hover:scale-[1.01]'
+                      }`}
+                    >
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 transition-colors ${
+                        suggestionCard === 'product' ? 'bg-white/15' : 'bg-[#f5f5f5] group-hover:bg-[#eee]'
+                      }`}>
+                        <Package className="w-5 h-5" strokeWidth={1.5} />
+                      </div>
+                      <h4 className="text-[14px] font-semibold mb-1 tracking-tight">{t('suggest_product')}</h4>
+                      <p className={`text-[12px] leading-relaxed ${
+                        suggestionCard === 'product' ? 'text-white/70' : 'text-[#888]'
+                      }`}>
+                        {t('suggest_product_desc')}
+                      </p>
+                    </button>
+
+                    {/* Send Feedback Card */}
+                    <button
+                      onClick={() => setSuggestionCard('feedback')}
+                      className={`group relative text-left p-5 rounded-2xl border transition-all duration-300 ${
+                        suggestionCard === 'feedback'
+                          ? 'border-black bg-black text-white shadow-lg scale-[1.02]'
+                          : 'border-border/80 bg-white/80 backdrop-blur-sm hover:border-black/30 hover:shadow-md hover:scale-[1.01]'
+                      }`}
+                    >
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 transition-colors ${
+                        suggestionCard === 'feedback' ? 'bg-white/15' : 'bg-[#f5f5f5] group-hover:bg-[#eee]'
+                      }`}>
+                        <MessageSquare className="w-5 h-5" strokeWidth={1.5} />
+                      </div>
+                      <h4 className="text-[14px] font-semibold mb-1 tracking-tight">{t('suggest_site')}</h4>
+                      <p className={`text-[12px] leading-relaxed ${
+                        suggestionCard === 'feedback' ? 'text-white/70' : 'text-[#888]'
+                      }`}>
+                        {t('suggest_site_desc')}
+                      </p>
+                    </button>
+                  </motion.div>
+
+                  {/* Inline form — slides in smoothly */}
+                  <AnimatePresence mode="wait">
+                    {suggestionCard && !suggestionSent && (
+                      <motion.form
+                        key={suggestionCard}
+                        initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                        animate={{ opacity: 1, height: 'auto', marginTop: 16 }}
+                        exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                        transition={{ duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] }}
+                        className="w-full max-w-lg overflow-hidden"
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          const form = e.currentTarget;
+                          const formData = new FormData(form);
+                          
+                          saveCustomerSuggestion({
+                            id: `SUG-${Date.now()}`,
+                            type: suggestionCard === 'product' ? 'product_request' : 'feedback',
+                            productName: formData.get('productName') as string || undefined,
+                            productBrand: formData.get('productBrand') as string || undefined,
+                            message: formData.get('message') as string || undefined,
+                            email: formData.get('email') as string || undefined,
+                            searchQuery: searchQuery || undefined,
+                            createdAt: Date.now(),
+                          });
+                          
+                          setSuggestionSent(true);
+                          setTimeout(() => {
+                            setSuggestionSent(false);
+                            setSuggestionCard(null);
+                          }, 3000);
+                        }}
+                      >
+                        <div className="rounded-2xl border border-border/80 bg-white p-5 space-y-3 shadow-sm">
+                          {suggestionCard === 'product' ? (
+                            <>
+                              <div className="grid grid-cols-2 gap-3">
+                                <input
+                                  name="productName"
+                                  type="text"
+                                  required
+                                  placeholder={t('product_name_placeholder')}
+                                  className="w-full px-4 py-3 bg-[#f8f8f8] border-none rounded-xl text-sm placeholder:text-[#bbb] focus:outline-none focus:ring-2 focus:ring-black/10 transition-shadow"
+                                />
+                                <input
+                                  name="productBrand"
+                                  type="text"
+                                  placeholder={t('product_brand_placeholder')}
+                                  className="w-full px-4 py-3 bg-[#f8f8f8] border-none rounded-xl text-sm placeholder:text-[#bbb] focus:outline-none focus:ring-2 focus:ring-black/10 transition-shadow"
+                                />
+                              </div>
+                              <input
+                                name="email"
+                                type="email"
+                                placeholder={t('your_email_placeholder')}
+                                className="w-full px-4 py-3 bg-[#f8f8f8] border-none rounded-xl text-sm placeholder:text-[#bbb] focus:outline-none focus:ring-2 focus:ring-black/10 transition-shadow"
+                              />
+                            </>
+                          ) : (
+                            <>
+                              <textarea
+                                name="message"
+                                required
+                                rows={3}
+                                placeholder={t('your_suggestion_placeholder')}
+                                className="w-full px-4 py-3 bg-[#f8f8f8] border-none rounded-xl text-sm placeholder:text-[#bbb] focus:outline-none focus:ring-2 focus:ring-black/10 transition-shadow resize-none"
+                              />
+                              <input
+                                name="email"
+                                type="email"
+                                placeholder={t('your_email_placeholder')}
+                                className="w-full px-4 py-3 bg-[#f8f8f8] border-none rounded-xl text-sm placeholder:text-[#bbb] focus:outline-none focus:ring-2 focus:ring-black/10 transition-shadow"
+                              />
+                            </>
+                          )}
+                          <button
+                            type="submit"
+                            className="w-full py-3 bg-black text-white text-sm font-semibold rounded-xl hover:bg-black/90 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+                          >
+                            <Send className="w-4 h-4" />
+                            {t('send_suggestion')}
+                          </button>
+                        </div>
+                      </motion.form>
+                    )}
+
+                    {suggestionSent && (
+                      <motion.div
+                        key="sent"
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.9 }}
+                        transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+                        className="mt-4 w-full max-w-lg"
+                      >
+                        <div className="rounded-2xl bg-[#f0fdf4] border border-[#bbf7d0] p-6 flex flex-col items-center gap-2">
+                          <CheckCircle className="w-8 h-8 text-[#16a34a]" strokeWidth={1.5} />
+                          <p className="text-sm font-medium text-[#15803d]">
+                            {suggestionCard === 'product' ? t('suggestion_sent_product') : t('suggestion_sent')}
+                          </p>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div> :
 
                 <motion.div
