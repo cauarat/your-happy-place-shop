@@ -4,6 +4,7 @@ import { Lock, ArrowLeft, Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
 import { designers } from '../data/products';
+import { supabase } from '../lib/supabase';
 
 const Onboarding = () => {
   const [step, setStep] = useState(1);
@@ -12,43 +13,82 @@ const Onboarding = () => {
   const [category, setCategory] = useState('');
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loadingText, setLoadingText] = useState('Analyzing profile...');
+  const [authError, setAuthError] = useState('');
   const { language, setLanguage, t } = useLanguage();
   const navigate = useNavigate();
 
-  // Handle Step 8 transitions
+  // Handle Step 8 transitions & Real Supabase Auth
   useEffect(() => {
     if (step === 8) {
-      setLoadingText('Analyzing profile...');
-      const t1 = setTimeout(() => setLoadingText('Checking membership criteria...'), 1000);
-      const t2 = setTimeout(() => setLoadingText('Curating exclusive catalog...'), 2000);
-      const t3 = setTimeout(() => setStep(9), 3000);
+      const performSignUp = async () => {
+        setLoadingText('Analyzing profile...');
+        
+        try {
+          // 1. Simulate the luxury curation delay (1s)
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          setLoadingText('Curating exclusive catalog...');
+          
+          // 2. Perform real Supabase Auth Sign Up
+          const { data, error } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+              data: {
+                first_name: firstName,
+                gender,
+                category,
+                selected_brands: selectedBrands
+              }
+            }
+          });
 
-      return () => {
-        clearTimeout(t1);
-        clearTimeout(t2);
-        clearTimeout(t3);
+          if (error) throw error;
+          
+          if (!data.session) {
+            // Email confirmation is required
+            setAuthError('Account created! Please check your email to verify your account before logging in.');
+            setStep(10); // Special step for email confirmation
+          } else {
+            // 3. Move to success screen
+            setStep(9);
+          }
+        } catch (error: any) {
+          console.error('Signup error:', error);
+          setAuthError(error.message || 'Failed to create account');
+          setStep(7); // Go back to email/password step to show error
+        }
       };
-    }
-  }, [step]);
 
-  // Handle Step 9 redirect
+      performSignUp();
+    }
+  }, [step, email, password, firstName, gender, category, selectedBrands]);
+
+  // Handle Step 9 redirect (Success)
   useEffect(() => {
     if (step === 9) {
       const t = setTimeout(() => {
+        // We no longer use localStorage for this, Supabase handles session
         localStorage.setItem('villaoro_onboarding_done', 'true');
-        localStorage.setItem('villaoro_user_name', firstName);
-        localStorage.setItem('villaoro_user_email', email);
-        localStorage.setItem('villaoro_user_gender', gender);
-        localStorage.setItem('villaoro_user_category', category);
-        localStorage.setItem('villaoro_user_brands', JSON.stringify(selectedBrands));
-        
         navigate('/');
       }, 2500);
 
       return () => clearTimeout(t);
     }
-  }, [step, navigate, firstName, email, gender, category, selectedBrands]);
+  }, [step, navigate]);
+
+  // Handle Step 10 redirect (Email verification required)
+  useEffect(() => {
+    if (step === 10) {
+      const t = setTimeout(() => {
+        navigate('/login');
+      }, 4000);
+
+      return () => clearTimeout(t);
+    }
+  }, [step, navigate]);
+
 
   // Screen 1: The Invitation
   const renderStep1 = () => (
@@ -93,6 +133,13 @@ const Onboarding = () => {
             className="group relative w-full flex items-center justify-center gap-3 bg-white hover:bg-zinc-200 text-black py-4 px-6 rounded-full transition-all duration-300 overflow-hidden"
           >
             <span className="font-medium tracking-wide text-sm">Request Access</span>
+          </button>
+          
+          <button 
+            onClick={() => navigate('/login')}
+            className="group relative w-full flex items-center justify-center gap-3 bg-transparent text-white/60 hover:text-white py-4 px-6 rounded-full transition-all duration-300 mt-2"
+          >
+            <span className="font-medium tracking-wide text-sm border-b border-white/20 pb-0.5">Already a member? Sign In</span>
           </button>
         </motion.div>
       </div>
@@ -542,10 +589,22 @@ const Onboarding = () => {
                 type="email"
                 autoFocus
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => { setEmail(e.target.value); setAuthError(''); }}
                 placeholder="Email address"
-                className="w-full text-center text-3xl md:text-4xl font-serif text-black placeholder:text-zinc-200 outline-none bg-transparent caret-amber-500"
+                className="w-full text-center text-2xl md:text-3xl font-serif text-black placeholder:text-zinc-200 outline-none bg-transparent caret-amber-500 pb-2 border-b border-transparent focus:border-zinc-200 transition-colors"
               />
+              
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => { setPassword(e.target.value); setAuthError(''); }}
+                placeholder="Password"
+                className="w-full text-center text-2xl md:text-3xl font-serif text-black placeholder:text-zinc-200 outline-none bg-transparent caret-amber-500 pb-2 border-b border-transparent focus:border-zinc-200 transition-colors mt-6"
+              />
+              
+              {authError && (
+                <p className="text-red-500 text-sm mt-4">{authError}</p>
+              )}
             </motion.div>
           </div>
 
@@ -557,13 +616,13 @@ const Onboarding = () => {
           >
             <button 
               onClick={() => {
-                if (isValidEmail(email)) {
+                if (isValidEmail(email) && password.length >= 6) {
                   setStep(8);
                 }
               }}
-              disabled={!isValidEmail(email)}
+              disabled={!isValidEmail(email) || password.length < 6}
               className={`group relative w-full flex items-center justify-center gap-3 py-4 px-6 rounded-full transition-all duration-300 overflow-hidden ${
-                isValidEmail(email)
+                isValidEmail(email) && password.length >= 6
                   ? 'bg-black text-white hover:bg-zinc-800 shadow-lg shadow-black/10' 
                   : 'bg-zinc-100 text-zinc-400 cursor-not-allowed'
               }`}
@@ -661,6 +720,44 @@ const Onboarding = () => {
     );
   };
 
+  // Screen 10: Email Verification Required
+  const renderStep10 = () => {
+    return (
+      <motion.div
+        key="step10"
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 1.05 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="relative flex flex-col items-center justify-center w-full h-full min-h-screen bg-white overflow-hidden text-black"
+      >
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.6 }}
+          className="flex flex-col items-center text-center p-8 max-w-md mx-auto"
+        >
+          <div className="w-16 h-16 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center mb-6">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+          </div>
+          
+          <h2 className="text-2xl font-serif text-zinc-900 mb-4">
+            Verify Your Email
+          </h2>
+          <p className="text-[14px] text-zinc-500 font-light leading-relaxed">
+            We've sent a verification link to <strong className="text-zinc-800">{email}</strong>. 
+            <br/><br/>
+            Please check your inbox (and spam folder) to verify your account before logging in.
+          </p>
+          <div className="mt-8">
+            <div className="w-6 h-6 border-2 border-zinc-200 border-t-zinc-800 rounded-full animate-spin mx-auto"></div>
+            <p className="text-xs text-zinc-400 mt-4">Redirecting to login...</p>
+          </div>
+        </motion.div>
+      </motion.div>
+    );
+  };
+
   return (
     <AnimatePresence mode="wait">
       {step === 1 && renderStep1()}
@@ -672,6 +769,7 @@ const Onboarding = () => {
       {step === 7 && renderStep7()}
       {step === 8 && renderStep8()}
       {step === 9 && renderStep9()}
+      {step === 10 && renderStep10()}
     </AnimatePresence>
   );
 };

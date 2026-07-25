@@ -10,12 +10,14 @@ import NotFound from "./pages/NotFound.tsx";
 import News from "./pages/News.tsx";
 import CommunityLooks from "./pages/CommunityLooks.tsx";
 import Onboarding from "./pages/Onboarding.tsx";
+import Login from "./pages/Login.tsx";
 import AdminLayout from "./layouts/AdminLayout.tsx";
 import BackgroundMusic, { BackgroundMusicHandle } from "./components/BackgroundMusic.tsx";
 import { MusicProvider } from "./contexts/MusicContext";
 import { LanguageProvider } from "./contexts/LanguageContext";
 import { SearchProvider } from "./contexts/SearchContext";
 import { CartProvider } from "./contexts/CartContext";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
 
 
 import AdminDashboard from "./pages/admin/Dashboard.tsx";
@@ -34,13 +36,28 @@ import Success from "./pages/Success.tsx";
 
 const queryClient = new QueryClient();
 
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { session, loading } = useAuth();
+  
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center bg-black text-white">Loading...</div>;
+  }
+  
+  if (!session) {
+    return <Navigate to="/onboarding" replace />;
+  }
+  
+  return <>{children}</>;
+};
+
 const App = () => {
   const musicRef = useRef<BackgroundMusicHandle>(null);
 
   return (
     <QueryClientProvider client={queryClient}>
-      <CartProvider>
-        <LanguageProvider>
+      <AuthProvider>
+        <CartProvider>
+          <LanguageProvider>
           <SearchProvider>
             <MusicProvider>
               <TooltipProvider>
@@ -49,14 +66,15 @@ const App = () => {
                 <div className="min-h-screen bg-background">
                   <BrowserRouter>
                     <Routes>
-                      <Route path="/" element={<Index />} />
+                      <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
                       <Route path="/onboarding" element={<Onboarding />} />
-                      <Route path="/news" element={<News />} />
-                      <Route path="/community" element={<CommunityLooks />} />
-                      <Route path="/cart" element={<Cart />} />
-                      <Route path="/checkout" element={<Checkout />} />
-                      <Route path="/success" element={<Success />} />
-                      <Route path="/product/:id" element={<ProductDetail />} />
+                      <Route path="/login" element={<Login />} />
+                      <Route path="/news" element={<ProtectedRoute><News /></ProtectedRoute>} />
+                      <Route path="/community" element={<ProtectedRoute><CommunityLooks /></ProtectedRoute>} />
+                      <Route path="/cart" element={<ProtectedRoute><Cart /></ProtectedRoute>} />
+                      <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
+                      <Route path="/success" element={<ProtectedRoute><Success /></ProtectedRoute>} />
+                      <Route path="/product/:id" element={<ProtectedRoute><ProductDetail /></ProtectedRoute>} />
                       <Route path="/admin/login" element={<Navigate to="/admin/dashboard" replace />} />
                       <Route path="/admin" element={<AdminLayout />}>
                         <Route index element={<Navigate to="/admin/dashboard" replace />} />
@@ -81,6 +99,7 @@ const App = () => {
           </SearchProvider>
         </LanguageProvider>
       </CartProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 };

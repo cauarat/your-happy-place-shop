@@ -161,7 +161,7 @@ const Index = () => {
   const [sort, setSort] = useState<SortKey>("latest");
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { searchQuery, setSearchQuery } = useSearch();
+  const { searchQuery, setSearchQuery, selectedColor, setSelectedColor, selectedDesigner, setSelectedDesigner } = useSearch();
   const [isDesignersOpen, setIsDesignersOpen] = useState(false);
   const [isSortOpen, setIsSortOpen] = useState(false);
   const [showSaleOnly, setShowSaleOnly] = useState(false);
@@ -250,6 +250,16 @@ const Index = () => {
 
   // Removed useEffect that resets sidebar filters on searchQuery change so category and designer filters persist while searching.
 
+  // Sync selectedDesigner from SearchContext (Header brand filter) with local designer state
+  useEffect(() => {
+    if (selectedDesigner) {
+      setDesigner(selectedDesigner);
+    } else {
+      // Only reset if it was previously set via context
+      setDesigner(prev => prev !== "All" ? "All" : prev);
+    }
+  }, [selectedDesigner]);
+
   const availableProducts = useMemo(() => {
     let list = products;
 
@@ -290,6 +300,16 @@ const Index = () => {
     // Always apply designer filter
     list = list.filter((p) => designer === "All" || p.designer === designer || (p.designers && p.designers.includes(designer)));
 
+    // Apply color filter
+    if (selectedColor) {
+      const colorQuery = selectedColor.toLowerCase();
+      const colorVariants = getTranslatedQueries(colorQuery);
+      list = list.filter(p => {
+        const textToSearch = (p.name + " " + (p.description || "")).toLowerCase();
+        return colorVariants.some(variant => textToSearch.includes(variant));
+      });
+    }
+
     switch (sort) {
       case "price-asc":
         list = [...list].sort((a, b) => a.price - b.price);
@@ -304,7 +324,7 @@ const Index = () => {
         list = [...list].sort((a, b) => b.createdAt - a.createdAt);
     }
     return list;
-  }, [availableProducts, designer, sort, searchQuery]);
+  }, [availableProducts, designer, sort, searchQuery, selectedColor]);
 
   // Group filtered products by designer for News-style layout
   const filteredByDesigner = useMemo(() => {
@@ -348,10 +368,11 @@ const Index = () => {
     { key: "rated", label: t('rated') },
   ];
 
-  const activeFilters = [];
+  const activeFilters: string[] = [];
   if (category !== "All") activeFilters.push(t(category.toLowerCase()));
   if (designer !== "All") activeFilters.push(designer);
   if (showSaleOnly) activeFilters.push(t('sale_items') || 'Sale Items');
+  if (selectedColor) activeFilters.push(t(selectedColor.toLowerCase()) || selectedColor);
   if (searchQuery.trim()) activeFilters.push(`"${searchQuery}"`);
 
   const topBarLabel = activeFilters.length > 0
@@ -374,106 +395,49 @@ const Index = () => {
     <div className="min-h-screen flex flex-col bg-white">
       <Header />
 
-      <main className="flex-1 w-full max-w-[1800px] mx-auto px-0 md:px-0 pb-[96px] xl:pb-0">
+      <main className="flex-1 w-full px-0 md:px-0 pb-[96px] xl:pb-0">
 
-        {/* 3. BRANDS / SORT Split Bar with Inline Dropdowns */}
-        <div className="sticky top-[calc(3.5rem+env(safe-area-inset-top))] sm:top-[calc(4rem+env(safe-area-inset-top))] z-40 bg-white">
-          {/* Toggle Row */}
-          <div className="border-b border-border flex w-full h-[46px]">
-            <button
-              onClick={toggleDesigners}
-              className="flex-1 h-full text-[11px] font-bold uppercase tracking-[0.25em] border-r border-border text-center hover:bg-neutral-50 transition-colors flex items-center justify-center gap-1.5"
-            >
-              {t('brands') || "BRANDS"}
-              <span className="text-muted-foreground ml-1 font-light normal-case tracking-normal">({dynamicDesigners.length})</span>
-              <ChevronDown className={`w-3 h-3 transition-transform duration-300 ${isDesignersOpen ? "rotate-180" : ""}`} />
-            </button>
-            <button
-              onClick={toggleSort}
-              className="flex-1 h-full text-[11px] font-bold uppercase tracking-[0.25em] text-center hover:bg-neutral-50 transition-colors flex items-center justify-center gap-1.5"
-            >
-              {t('sort')}
-              <ChevronDown className={`w-3 h-3 transition-transform duration-300 ${isSortOpen ? "rotate-180" : ""}`} />
-            </button>
-          </div>
-
-          {/* Inline Dropdown Panels — push content below */}
-          <AnimatePresence>
-            {(isDesignersOpen || isSortOpen) && (
-              <motion.div
-                key={isDesignersOpen ? "designers-panel" : "sort-panel"}
-                variants={dropdownVariants}
-                initial="initial"
-                animate="animate"
-                exit="exit"
-                transition={dropdownTransition}
-                className="overflow-hidden border-b border-border bg-white"
+        {/* Active Filter Label & Count */}
+        <div
+          className="sticky top-[100px] sm:top-[112px] z-40 w-full pt-2 pb-6 -mb-6 pointer-events-none"
+          style={{
+            background: 'linear-gradient(to bottom, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0) 100%)',
+            backdropFilter: 'blur(40px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(40px) saturate(180%)',
+            maskImage: 'linear-gradient(to bottom, black 0%, black 22px, transparent 100%)',
+            WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 22px, transparent 100%)',
+          }}
+        >
+          <div className="relative flex items-center justify-center px-3 sm:px-6 lg:px-10 py-1 w-full pointer-events-auto">
+            <div className="flex items-center gap-2 overflow-hidden max-w-[75%] sm:max-w-[85%]">
+              <span className="text-[11px] sm:text-xs font-semibold tracking-widest uppercase truncate text-black">
+                {topBarLabel}
+              </span>
+              <span className="text-[11px] sm:text-xs text-[#888] shrink-0">
+                ({filtered.length})
+              </span>
+            </div>
+            {/* Clear Filters Button (only if filters are active) */}
+            {(category !== "All" || designer !== "All" || showSaleOnly || searchQuery.trim() || selectedColor || selectedDesigner) && (
+              <button
+                onClick={() => {
+                  setCategory("All");
+                  setDesigner("All");
+                  setShowSaleOnly(false);
+                  setSearchQuery("");
+                  setSelectedColor(null);
+                  setSelectedDesigner(null);
+                }}
+                className="absolute right-3 sm:right-6 lg:right-10 text-[10px] sm:text-[11px] uppercase tracking-widest font-semibold text-[#666] hover:text-black transition-colors shrink-0 flex items-center gap-1"
               >
-                <div className="flex w-full">
-                  {/* Brands (Designers) Column */}
-                  <div className={`flex-1 border-r border-border px-5 sm:px-8 py-4 sm:py-5 ${!isDesignersOpen ? "pointer-events-none" : ""}`}>
-                    {isDesignersOpen && (
-                      <ul className="space-y-2">
-                        <li>
-                          <button
-                            onClick={() => { setDesigner("All"); setIsDesignersOpen(false); }}
-                            className={`text-[11px] tracking-wide transition-colors text-left whitespace-nowrap pb-0.5 border-b ${
-                              designer === "All" ? "text-black font-medium border-black" : "text-[#888] hover:text-black border-transparent"
-                            }`}
-                          >
-                            All
-                          </button>
-                        </li>
-                        {dynamicDesigners.map((d) => (
-                          <li key={d}>
-                            <button
-                              onClick={() => { setDesigner(designer === d ? "All" : d); setIsDesignersOpen(false); }}
-                              className={`text-[11px] tracking-wide transition-colors text-left whitespace-nowrap pb-0.5 border-b ${
-                                designer === d ? "text-black font-medium border-black" : "text-[#888] hover:text-black border-transparent"
-                              }`}
-                            >
-                              {d}
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-
-                  {/* Sort Column */}
-                  <div className={`flex-1 px-5 sm:px-8 py-4 sm:py-5 ${!isSortOpen ? "pointer-events-none" : ""}`}>
-                    {isSortOpen && (
-                      <ul className="space-y-2">
-                        {sortOptions.map((o) => (
-                          <li key={o.key}>
-                            <button
-                              onClick={() => { setSort(o.key); setIsSortOpen(false); }}
-                              className={`text-[11px] tracking-wide transition-colors text-left whitespace-nowrap pb-0.5 border-b ${
-                                sort === o.key ? "text-black font-medium border-black" : "text-[#888] hover:text-black border-transparent"
-                              }`}
-                            >
-                              {o.label}
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                </div>
-              </motion.div>
+                <span className="hidden sm:inline">Clear</span>
+                <X size={12} />
+              </button>
             )}
-          </AnimatePresence>
-
-          {/* 2. Label / Count Bar — directly connected to brand selector above */}
-          <div className="border-b border-border h-[46px] flex items-center justify-center bg-[#fafafa]">
-            <h2 className="text-xs md:text-[13px] lowercase tracking-[0.22em] font-bold text-black">
-              {topBarLabel}
-              <span className="text-muted-foreground ml-2.5 font-normal">({filtered.length})</span>
-            </h2>
           </div>
         </div>
 
-        <div className="border-b border-border min-h-[calc(100vh-200px)] flex">
+        <div className="min-h-[calc(100vh-200px)] flex">
           {/* Product Grid (Full Width) */}
           <div className="flex-1 px-2.5 sm:px-4 py-3 lg:py-6 w-full">
             {isLoading ?
@@ -504,67 +468,30 @@ const Index = () => {
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4, delay: 0.1 }}
-                    className="text-[1.7rem] sm:text-3xl font-semibold mb-3 tracking-tight text-foreground"
+                    className="text-[1.5rem] sm:text-[1.8rem] md:text-3xl font-semibold mb-6 tracking-tight text-foreground"
                   >
-                    {t('no_products')}
+                    {t('we_dont_have_yet')} "{activeFilters.length > 0 ? activeFilters.join(" ") : t("products").toLowerCase()}"
                   </motion.h3>
 
-                  <motion.div
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4, delay: 0.15 }}
-                    className="flex flex-col items-center text-[#666] text-[15px] mb-8 leading-relaxed"
-                  >
-                    <p className="mb-1">
-                      {searchQuery.trim() ? `${t('no_results_for')} "${searchQuery}"` : t('no_results_for').replace(' for', '').replace(' para', '')}{(category !== "All" || designer !== "All" || showSaleOnly) ? ` ${t('in_category')} ` + [category !== "All" ? (t(category.toLowerCase()) === category.toLowerCase() ? category : t(category.toLowerCase())) : null, designer !== "All" ? designer : null, showSaleOnly ? t('sale_items') : null].filter(Boolean).join(", ") : ""}.
-                    </p>
-                    <p>{t('try_searching')}</p>
-                  </motion.div>
-                  
                   {/* Action buttons row */}
                   <motion.div
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4, delay: 0.2 }}
-                    className="flex flex-col sm:flex-row items-center gap-3 mb-10"
+                    className="flex justify-center mb-10"
                   >
-                    <button 
-                      onClick={() => {
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                        const searchInput = document.querySelector('input[type="text"]') as HTMLInputElement;
-                        if (searchInput) {
-                          setTimeout(() => searchInput.focus(), 500);
-                        }
-                      }}
-                      className="flex items-center gap-2 px-6 py-2.5 rounded-full border border-border bg-white text-sm font-medium hover:bg-neutral-50 transition-all shadow-sm active:scale-[0.97]"
-                    >
-                      <Search className="w-4 h-4 text-foreground" />
-                      {t('search_again')}
-                    </button>
-                    
                     <button 
                       onClick={() => {
                         setSearchQuery("");
                         setCategory("All");
                         setDesigner("All");
                         setShowSaleOnly(false);
+                        setSelectedColor(null);
                       }}
-                      className="px-8 py-2.5 bg-black text-white text-sm font-medium rounded-full hover:bg-black/90 transition-all active:scale-[0.97]"
+                      className="px-8 py-2.5 bg-black text-white text-sm font-bold rounded-full hover:bg-black/90 transition-all active:scale-[0.97]"
                     >
                       {t('clear_all_filters')}
                     </button>
-                  </motion.div>
-
-                  {/* Apple-style divider with label */}
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.5, delay: 0.3 }}
-                    className="flex items-center w-full max-w-md gap-4 mb-10"
-                  >
-                    <div className="flex-1 h-px bg-gradient-to-r from-transparent via-border to-transparent"></div>
-                    <span className="text-[#aaa] text-[12px] tracking-widest uppercase font-medium">{t('cant_find')}</span>
-                    <div className="flex-1 h-px bg-gradient-to-r from-transparent via-border to-transparent"></div>
                   </motion.div>
 
                   {/* Suggestion Cards — Apple-style glass cards */}
