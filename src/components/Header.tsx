@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Sparkles, X, ShoppingBag, UserPlus, Palette, Check, SlidersHorizontal } from "lucide-react";
+import { Sparkles, X, Heart, UserPlus, Palette, Check, SlidersHorizontal } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSearch } from "@/contexts/SearchContext";
@@ -167,9 +167,9 @@ const Header = () => {
             </svg>
           </Link>
           <Link to="/cart" className="relative hover:opacity-70 transition-opacity flex items-center p-0.5">
-            <ShoppingBag size={20} strokeWidth={1.5} className="sm:w-[22px] sm:h-[22px]" />
+            <Heart size={20} strokeWidth={1.5} className="sm:w-[22px] sm:h-[22px]" />
             {itemCount > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 bg-[#34C759] text-white text-[10px] font-bold w-[18px] h-[18px] rounded-full flex items-center justify-center shadow-sm border border-white/20">
+              <span className="absolute -top-1.5 -right-1.5 bg-[#FF3B30] text-white text-[10px] font-bold w-[18px] h-[18px] rounded-full flex items-center justify-center shadow-sm border border-white/20">
                 {itemCount}
               </span>
             )}
