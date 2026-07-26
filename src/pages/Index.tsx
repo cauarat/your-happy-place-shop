@@ -471,7 +471,7 @@ const Index = () => {
                     transition={{ duration: 0.4, delay: 0.1 }}
                     className="text-lg sm:text-xl md:text-2xl font-semibold mb-4 leading-snug tracking-tight text-[#111]"
                   >
-                    {user?.user_metadata?.first_name || 'Usuário'}, {t('we_dont_have_yet')} "{activeFilters.length > 0 ? activeFilters.join(" ") : t("products").toLowerCase()}"
+                    {(user?.user_metadata?.first_name?.split(' ')[0] || 'Usuário').replace(/,/g, '')}, {t('we_dont_have_yet')} "{activeFilters.length > 0 ? activeFilters.join(" ") : t("products").toLowerCase()}"
                   </motion.h3>
 
                   {/* Action buttons row */}
