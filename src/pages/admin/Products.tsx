@@ -162,6 +162,7 @@ const AdminProducts = () => {
           <thead>
             <tr className="border-b border-border bg-secondary/50">
               <th className="p-4 text-xs uppercase tracking-wide text-muted-foreground font-medium">Product</th>
+              <th className="p-4 text-xs uppercase tracking-wide text-muted-foreground font-medium text-center">Allow Qty</th>
               <th className="p-4 text-xs uppercase tracking-wide text-muted-foreground font-medium">Category</th>
               <th className="p-4 text-xs uppercase tracking-wide text-muted-foreground font-medium">Price</th>
               <th className="p-4 text-xs uppercase tracking-wide text-muted-foreground font-medium text-right">Actions</th>
@@ -199,6 +200,20 @@ const AdminProducts = () => {
                       <p className="text-xs text-muted-foreground">{product.designer}</p>
                     </div>
                   </div>
+                </td>
+                <td className="p-4 text-center">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const updated = { ...product, allowQuantity: product.allowQuantity === false ? true : false };
+                      saveProduct(updated);
+                      loadProducts();
+                    }}
+                    className={`w-10 h-5 rounded-full transition-all relative inline-flex items-center ${product.allowQuantity !== false ? 'bg-primary shadow-[0_0_10px_rgba(var(--primary),0.3)]' : 'bg-border'}`}
+                    title={product.allowQuantity !== false ? "Quantity Selection Enabled" : "Quantity Selection Disabled"}
+                  >
+                    <span className={`inline-block w-4 h-4 rounded-full bg-white shadow-sm transition-transform duration-200 ease-in-out ${product.allowQuantity !== false ? 'translate-x-5' : 'translate-x-1'}`} />
+                  </button>
                 </td>
                 <td className="p-4 text-sm">
                   <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-[#e5e5e5] rounded-full hover:border-[#d0d0d0] transition-colors shadow-sm">
@@ -251,7 +266,7 @@ const AdminProducts = () => {
             ))}
             {filteredProducts.length === 0 && (
               <tr>
-                <td colSpan={4} className="p-8 text-center text-muted-foreground text-sm">
+                <td colSpan={5} className="p-8 text-center text-muted-foreground text-sm">
                   No products found.
                 </td>
               </tr>
