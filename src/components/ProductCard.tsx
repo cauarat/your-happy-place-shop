@@ -33,7 +33,7 @@ const ProductCard = ({ product, index, isFeatured }: { product: Product, index?:
 
   return (
     <Link to={`/product/${product.id}`} className="group block w-full select-none">
-      <div className={`relative bg-white overflow-hidden rounded-2xl flex items-center justify-center ${isFeatured ? 'w-full h-auto aspect-auto' : 'aspect-[4/5]'}`}>
+      <div className={`relative bg-white overflow-hidden rounded-[28px] flex items-center justify-center ${isFeatured ? 'w-full h-auto aspect-auto' : 'aspect-[4/5]'}`}>
         <img 
           src={product.image} 
           alt={product.name} 
