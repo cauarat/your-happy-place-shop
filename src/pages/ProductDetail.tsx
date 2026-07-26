@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { getProducts, getDesignSettings } from "@/lib/store";
 import type { Product } from "@/data/products";
-import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Minus, Plus } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -39,7 +38,6 @@ const ProductDetail = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <Header />
       
       <main className="flex-1 max-w-screen-2xl mx-auto w-full px-5 lg:px-12 py-6 md:py-12 pb-[96px] xl:pb-12 relative">
         <div className="w-full mb-4 md:absolute md:top-12 md:left-12 md:w-auto">
