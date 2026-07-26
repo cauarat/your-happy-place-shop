@@ -430,7 +430,7 @@ const Index = () => {
                 }}
                 className="absolute right-3 sm:right-6 lg:right-10 text-[10px] sm:text-[11px] uppercase tracking-widest font-semibold text-[#666] hover:text-black transition-colors shrink-0 flex items-center gap-1"
               >
-                <span className="hidden sm:inline">Clear</span>
+                <span className="hidden sm:inline">{t('clear') || 'Clear'}</span>
                 <X size={12} />
               </button>
             )}

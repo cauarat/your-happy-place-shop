@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import Header from "@/components/Header";
 import { useCart } from "@/contexts/CartContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getProducts } from "@/lib/store";
 import type { Product } from "@/data/products";
-import { Lock } from "lucide-react";
+import { Lock, ArrowLeft } from "lucide-react";
 import MobileBottomDock from "@/components/MobileBottomDock";
 
 const Cart = () => {
@@ -25,7 +24,13 @@ const Cart = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-white text-black font-sans selection:bg-black selection:text-white">
-      <Header />
+      {/* Minimal top bar with back button */}
+      <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-black/5 px-4 sm:px-6 lg:px-10 py-4 flex items-center">
+        <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-black hover:opacity-60 transition-opacity">
+          <ArrowLeft size={20} strokeWidth={1.5} />
+          <span className="text-sm font-medium tracking-wide">Continue Shopping</span>
+        </button>
+      </div>
       
       <main className="flex-1 w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 pt-16 pb-[112px] xl:pb-24">
         

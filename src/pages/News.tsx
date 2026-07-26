@@ -123,106 +123,33 @@ const News = () => {
       <Header />
 
       <main className="flex-1 w-full max-w-[1800px] mx-auto px-0 md:px-0 pb-[96px] xl:pb-0">
-        {/* Apple-style Segmented Control Filter Bar */}
+
+
+        {/* Active Filter Label & Count — same style as catalog */}
         <div
-          className="hidden xl:block border-b border-[#f0f0f0] bg-white"
-          style={{ WebkitBackdropFilter: 'blur(20px)' }}
+          className="sticky top-[100px] sm:top-[112px] z-40 w-full pt-2 pb-6 -mb-6 pointer-events-none"
+          style={{
+            background: 'linear-gradient(to bottom, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0) 100%)',
+            backdropFilter: 'blur(40px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(40px) saturate(180%)',
+            maskImage: 'linear-gradient(to bottom, black 0%, black 22px, transparent 100%)',
+            WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 22px, transparent 100%)',
+          }}
         >
-          <div
-            ref={scrollRef}
-            onMouseDown={onMouseDown}
-            onMouseLeave={onMouseLeave}
-            onMouseUp={onMouseUp}
-            onMouseMove={onMouseMove}
-            onDoubleClick={onDoubleClick}
-            className="overflow-x-auto no-scrollbar flex items-center px-3 py-2 gap-1 select-none whitespace-nowrap cursor-grab active:cursor-grabbing"
-          >
-            {/* Filter icon chip — navigates to catalog (all products) */}
-            <motion.button
-              layout
-              key="filter-all"
-              onClick={() => { if (hasDragged.current) return; navigate('/'); }}
-              className="relative shrink-0 flex items-center justify-center w-8 h-8 rounded-full transition-colors duration-200 mr-0.5 text-[#555] hover:bg-[#f2f2f2]"
-              whileHover={{ backgroundColor: '#f2f2f2' }}
-            >
-              <span className="relative z-10 flex items-center justify-center">
-                <SlidersHorizontal size={15} strokeWidth={1.8} />
+          <div className="relative flex items-center justify-center px-3 sm:px-6 lg:px-10 py-1 w-full pointer-events-auto">
+            <div className="flex items-center gap-2 overflow-hidden max-w-[75%] sm:max-w-[85%]">
+              <span className="text-[11px] sm:text-xs font-semibold tracking-widest uppercase truncate text-black">
+                {t('news') || 'news'}
               </span>
-            </motion.button>
-
-            <AnimatePresence mode="popLayout">
-              {/* News Chip — active on this page */}
-              {getDesignSettings().enableNewsPage !== false && (
-                <motion.button
-                  layout
-                  key="news"
-                  initial={{ opacity: 0, scale: 0.85 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.85 }}
-                  transition={{ type: 'spring', stiffness: 120, damping: 20, mass: 1.1 }}
-                  className="relative flex items-center gap-1.5 px-3.5 h-8 rounded-full text-[11px] font-semibold tracking-wide text-white shrink-0"
-                >
-                  <motion.div className="absolute inset-0 rounded-full bg-black" />
-                  <span className="relative z-10 flex items-center gap-1.5">
-                    <Newspaper size={12} strokeWidth={2} className="shrink-0" />
-                    {t('news') || 'News'}
-                  </span>
-                </motion.button>
-              )}
-
-              {/* Sale Chip — navigates to catalog with sale filter */}
-              {getDesignSettings().enableSalePage !== false && (
-                <motion.button
-                  layout
-                  key="sale"
-                  initial={{ opacity: 0, scale: 0.85 }}
-                  animate={{ opacity: 0.6, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.85 }}
-                  transition={{ type: 'spring', stiffness: 120, damping: 20, mass: 1.1 }}
-                  onClick={() => { if (hasDragged.current) return; navigate('/'); }}
-                  className="relative flex items-center gap-1.5 px-3.5 h-8 rounded-full text-[11px] font-medium tracking-wide text-[#333] shrink-0 transition-colors duration-200 hover:bg-[#f2f2f2]"
-                >
-                  {t('sale')}
-                </motion.button>
-              )}
-
-              {/* All Categories — navigate to catalog with that category */}
-              {getCategories().map((c) => {
-                const Icon = getCategoryIcon(c);
-                return (
-                  <motion.button
-                    layout
-                    key={`cat-${c}`}
-                    initial={{ opacity: 0, scale: 0.85 }}
-                    animate={{ opacity: 0.6, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.85 }}
-                    transition={{ type: 'spring', stiffness: 120, damping: 20, mass: 1.1 }}
-                    onClick={() => { if (hasDragged.current) return; goToCategory(c); }}
-                    whileHover={{ backgroundColor: '#f2f2f2' }}
-                    className="relative flex items-center gap-1.5 px-3.5 h-8 rounded-full text-[11px] font-medium tracking-wide text-[#333] shrink-0 transition-colors duration-150"
-                  >
-                    <span className="relative z-10 flex items-center gap-1.5">
-                      {Icon && <Icon size={12} strokeWidth={1.8} className="shrink-0 opacity-60" />}
-                      {t(c.toLowerCase()) === c.toLowerCase() ? c : t(c.toLowerCase())}
-                    </span>
-                  </motion.button>
-                );
-              })}
-            </AnimatePresence>
+              <span className="text-[11px] sm:text-xs text-[#888] shrink-0">
+                ({totalCount})
+              </span>
+            </div>
           </div>
         </div>
 
-        {/* Label / Count Bar */}
-        <div className="border-b border-border py-3 flex items-center justify-center bg-[#fafafa]">
-          <h2 className="text-xs md:text-[13px] lowercase tracking-[0.22em] font-bold text-black">
-            {t('news') || 'news'}
-            <span className="text-[#aaa] ml-2 font-light">({totalCount})</span>
-          </h2>
-        </div>
-
-
         {/* News Content */}
-        <div className="border-b border-border min-h-[calc(100vh-200px)]">
+        <div className="min-h-[calc(100vh-200px)]">
           <div className="flex-1 px-2.5 sm:px-4 py-3 lg:py-6 w-full">
             {isLoading ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-1 sm:gap-x-2 lg:gap-x-4 gap-y-4 sm:gap-y-5 lg:gap-y-8">
