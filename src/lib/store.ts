@@ -111,6 +111,31 @@ const initStore = () => {
   if (!localStorage.getItem(DESIGNERS_KEY)) {
     localStorage.setItem(DESIGNERS_KEY, JSON.stringify(defaultDesigners));
   }
+  
+  // Migration: only Bags, Caps, and Accessories should have allowQuantity = true
+  if (!localStorage.getItem('villaoro_qty_migrated_v2')) {
+    const data = localStorage.getItem(PRODUCTS_KEY);
+    if (data) {
+      try {
+        const products = JSON.parse(data);
+        let changed = false;
+        const allowedCats = ['bags', 'caps', 'accessories'];
+        const updated = products.map((p: Product) => {
+          const cat = p.category ? p.category.toLowerCase() : '';
+          const shouldAllow = allowedCats.includes(cat);
+          if (p.allowQuantity !== shouldAllow) {
+            changed = true;
+            return { ...p, allowQuantity: shouldAllow };
+          }
+          return p;
+        });
+        if (changed) {
+          localStorage.setItem(PRODUCTS_KEY, JSON.stringify(updated));
+        }
+      } catch (e) {}
+    }
+    localStorage.setItem('villaoro_qty_migrated_v2', 'true');
+  }
 };
 
 // Product CRUD
