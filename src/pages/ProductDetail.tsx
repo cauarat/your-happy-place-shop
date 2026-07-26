@@ -3,7 +3,8 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { getProducts, getDesignSettings } from "@/lib/store";
 import type { Product } from "@/data/products";
 import Footer from "@/components/Footer";
-import { Minus, Plus } from "lucide-react";
+import { Minus, Plus, Heart } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useCart } from "@/contexts/CartContext";
 import MobileBottomDock from "@/components/MobileBottomDock";
@@ -13,7 +14,7 @@ const ProductDetail = () => {
   const [product, setProduct] = useState<Product | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
-  const [isAddedToBag, setIsAddedToBag] = useState(false);
+  const [isFavorited, setIsFavorited] = useState(false);
   const { t, language } = useLanguage();
   const { addToCart } = useCart();
   const navigate = useNavigate();
@@ -146,16 +147,46 @@ const ProductDetail = () => {
 
             <button 
               onClick={() => {
-                if (isAddedToBag) {
+                if (isFavorited) {
                   navigate("/cart");
                 } else {
                   addToCart(product, quantity, selectedSize);
-                  setIsAddedToBag(true);
+                  setIsFavorited(true);
                 }
               }}
-              className="w-full bg-primary text-primary-foreground h-14 rounded-full uppercase text-[11px] font-bold tracking-[0.2em] flex items-center justify-center hover:opacity-90 transition-all duration-300"
+              className={`w-full h-14 rounded-full uppercase text-[11px] font-bold tracking-[0.2em] flex items-center justify-center transition-all duration-500 relative overflow-hidden ${
+                isFavorited 
+                  ? 'bg-red-500 text-white shadow-[0_0_15px_rgba(239,68,68,0.3)]' 
+                  : 'bg-primary text-primary-foreground hover:opacity-90'
+              }`}
             >
-              {isAddedToBag ? t('proceed_to_checkout') : t('add_to_bag')}
+              <AnimatePresence mode="wait">
+                {isFavorited ? (
+                  <motion.div
+                    key="favorited"
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: -20, opacity: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="flex items-center gap-2"
+                  >
+                    <Heart className="w-4 h-4 fill-current" />
+                    {t('added_to_favorites')}
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="add-to-favorites"
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: -20, opacity: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="flex items-center gap-2"
+                  >
+                    <Heart className="w-4 h-4" />
+                    {t('add_to_favorites')}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </button>
           </div>
         </div>
