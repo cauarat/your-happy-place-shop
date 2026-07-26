@@ -126,24 +126,26 @@ const ProductDetail = () => {
               </div>
             )}
 
-            <div>
-              <p className="text-[10px] uppercase font-bold tracking-widest mb-4">{t('quantity')}</p>
-              <div className="flex items-center w-32 border border-border rounded-full overflow-hidden">
-                <button 
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="w-10 h-10 flex items-center justify-center hover:bg-secondary transition-colors"
-                >
-                  <Minus className="w-3 h-3" />
-                </button>
-                <span className="flex-1 text-center text-xs">{quantity}</span>
-                <button 
-                  onClick={() => setQuantity(quantity + 1)}
-                  className="w-10 h-10 flex items-center justify-center hover:bg-secondary transition-colors"
-                >
-                  <Plus className="w-3 h-3" />
-                </button>
+            {product.allowQuantity !== false && (
+              <div>
+                <p className="text-[10px] uppercase font-bold tracking-widest mb-4">{t('quantity')}</p>
+                <div className="flex items-center w-32 border border-border rounded-full overflow-hidden">
+                  <button 
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    className="w-10 h-10 flex items-center justify-center hover:bg-secondary transition-colors"
+                  >
+                    <Minus className="w-3 h-3" />
+                  </button>
+                  <span className="flex-1 text-center text-xs">{quantity}</span>
+                  <button 
+                    onClick={() => setQuantity(quantity + 1)}
+                    className="w-10 h-10 flex items-center justify-center hover:bg-secondary transition-colors"
+                  >
+                    <Plus className="w-3 h-3" />
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
 
             <button 
               onClick={() => {

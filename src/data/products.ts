@@ -27,6 +27,7 @@ export interface Product {
   images?: string[];
   productLinks?: string[];
   video?: string;
+  allowQuantity?: boolean;
 }
 
 export const products: Product[] = [

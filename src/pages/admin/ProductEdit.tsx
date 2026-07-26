@@ -22,6 +22,7 @@ const defaultProduct: Product = {
   removeBackground: false,
   images: [],
   productLinks: [""],
+  allowQuantity: true,
 };
 
 /** Sample the four corner pixels of the original image to detect its background colour.
@@ -619,6 +620,20 @@ const AdminProductEdit = () => {
                       />
                     </div>
                   </div>
+                </div>
+                
+                <div className="flex items-center justify-between p-5 border border-border rounded-xl bg-secondary/10">
+                  <div>
+                    <h4 className="text-[10px] uppercase tracking-[0.2em] font-bold text-foreground">Purchase by Quantity</h4>
+                    <p className="text-xs text-muted-foreground mt-1">Allow customers to buy more than one unit at a time.</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setProduct(prev => ({ ...prev, allowQuantity: prev.allowQuantity === false ? true : false }))}
+                    className={`w-14 h-7 rounded-full transition-all relative ${product.allowQuantity !== false ? 'bg-primary shadow-[0_0_15px_rgba(var(--primary),0.3)]' : 'bg-border'}`}
+                  >
+                    <div className={`absolute top-1 w-5 h-5 rounded-full bg-white shadow-sm transition-all ${product.allowQuantity !== false ? 'left-8' : 'left-1'}`} />
+                  </button>
                 </div>
               </div>
 
