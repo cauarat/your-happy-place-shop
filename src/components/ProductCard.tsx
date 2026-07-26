@@ -20,7 +20,7 @@ const ProductCard = ({ product, index, isFeatured }: { product: Product, index?:
     if (!isFavorite) {
       setIsFavorite(true);
       // Add product with quantity 1 and default size null (or auto-select first size if we want, but null is fine)
-      addToCart(product, 1, product.sizes?.[0] || null);
+      addToCart(product, 1, (product as any).sizes?.[0] || null);
       toast.success(`${product.name} adicionado à sacola / favoritos`);
     } else {
       setIsFavorite(false);
