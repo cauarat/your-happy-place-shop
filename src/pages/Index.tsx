@@ -8,6 +8,7 @@ import Sidebar from "@/components/Sidebar";
 import SortBar, { SortKey } from "@/components/SortBar";
 import ProductCard from "@/components/ProductCard";
 import { getProducts, getDesigners, getCategories, getDesignSettings, saveCustomerSuggestion } from "@/lib/store";
+import { useAuth } from "@/contexts/AuthContext";
 import type { Product } from "@/data/products";
 import ImmersiveAi from "@/components/ImmersiveAi";
 import TryTheLook from "@/components/TryTheLook";
@@ -142,6 +143,8 @@ const getCategoryIcon = (cat: string) => {
 
 const Index = () => {
   const [searchParams] = useSearchParams();
+  const { t } = useLanguage();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [category, setCategory] = useState<string>(() => {
     const paramCategory = searchParams.get("category");
@@ -318,7 +321,7 @@ const Index = () => {
         list = [...list].sort((a, b) => b.price - a.price);
         break;
       case "rated":
-        list = [...list].sort((a, b) => b.rating - a.rating);
+        list = [...list].sort((a, b) => a.rating - b.rating);
         break;
       default:
         list = [...list].sort((a, b) => b.createdAt - a.createdAt);
@@ -339,8 +342,6 @@ const Index = () => {
       products: prods,
     }));
   }, [filtered]);
-
-  const { t } = useLanguage();
 
   // Dynamic designer list for the brands dropdown based on available products
   const dynamicDesigners = useMemo(() => {
@@ -468,9 +469,9 @@ const Index = () => {
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4, delay: 0.1 }}
-                    className="text-[1.5rem] sm:text-[1.8rem] md:text-3xl font-semibold mb-6 tracking-tight text-foreground"
+                    className="text-lg sm:text-xl md:text-2xl font-semibold mb-4 leading-snug tracking-tight text-[#111]"
                   >
-                    {t('we_dont_have_yet')} "{activeFilters.length > 0 ? activeFilters.join(" ") : t("products").toLowerCase()}"
+                    {user?.user_metadata?.first_name || 'Usuário'}, {t('we_dont_have_yet')} "{activeFilters.length > 0 ? activeFilters.join(" ") : t("products").toLowerCase()}"
                   </motion.h3>
 
                   {/* Action buttons row */}
