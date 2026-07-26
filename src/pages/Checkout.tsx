@@ -32,7 +32,7 @@ const Checkout = () => {
       total: cartTotal,
       items: items.map(item => ({
         id: item.id,
-        productId: item.productId,
+        productId: item.product?.id || item.id,
         name: item.product?.name || 'Unknown Item',
         price: item.product?.price || 0,
         quantity: item.quantity,
