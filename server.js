@@ -22,7 +22,7 @@ const stripe = stripeKey ? new Stripe(stripeKey, {
 // The public URL of your site (for Stripe redirects)
 // In development: use your ngrok or deployed URL
 // In production: set this to your real domain
-const SITE_URL = process.env.SITE_URL || 'http://localhost:8081';
+const SITE_URL = process.env.SITE_URL || 'http://localhost:8080';
 
 app.post('/api/create-checkout-session', async (req, res) => {
   try {
