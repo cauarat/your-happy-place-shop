@@ -35,6 +35,7 @@ const Onboarding = () => {
             email,
             password,
             options: {
+              emailRedirectTo: `${window.location.origin}/`,
               data: {
                 first_name: firstName,
                 gender,
