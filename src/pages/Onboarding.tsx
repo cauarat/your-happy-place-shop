@@ -128,7 +128,7 @@ const Onboarding = () => {
     if (step !== 1) return;
     const interval = setInterval(() => {
       setGreetingIndex(prev => (prev + 1) % 3);
-    }, 3500);
+    }, 2500);
     return () => clearInterval(interval);
   }, [step]);
 
