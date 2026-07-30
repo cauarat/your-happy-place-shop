@@ -105,26 +105,8 @@ const ProductDetail = () => {
               </div>
             )}
 
-            {(isShoe || isClothing) && (
-              <div>
-                <p className="text-[10px] uppercase font-bold tracking-widest mb-4">{t('select_size')}</p>
-                <div className="flex flex-wrap gap-2">
-                  {sizes.map((size) => (
-                    <button
-                      key={size}
-                      onClick={() => setSelectedSize(size)}
-                      className={`w-12 h-12 border rounded-full text-xs flex items-center justify-center transition-all ${
-                        selectedSize === size 
-                          ? "border-primary bg-primary text-primary-foreground" 
-                          : "border-border hover:border-primary"
-                      }`}
-                    >
-                      {size}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
+
+
 
             {product.allowQuantity !== false && (
               <div>

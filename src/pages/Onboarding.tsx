@@ -7,28 +7,34 @@ import { designers } from '../data/products';
 import { supabase } from '../lib/supabase';
 
 const Onboarding = () => {
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(() => {
+    return localStorage.getItem("villaoro_lang") ? 2 : 1;
+  });
   const [firstName, setFirstName] = useState('');
   const [gender, setGender] = useState('');
   const [category, setCategory] = useState('');
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loadingText, setLoadingText] = useState('Analyzing profile...');
+  const [loadingText, setLoadingText] = useState('');
   const [authError, setAuthError] = useState('');
   const { language, setLanguage, t } = useLanguage();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (step === 8) setLoadingText(t('onboarding_analyzing'));
+  }, [step, t]);
 
   // Handle Step 8 transitions & Real Supabase Auth
   useEffect(() => {
     if (step === 8) {
       const performSignUp = async () => {
-        setLoadingText('Analyzing profile...');
+        setLoadingText(t('onboarding_analyzing'));
         
         try {
           // 1. Simulate the luxury curation delay (1s)
           await new Promise(resolve => setTimeout(resolve, 1000));
-          setLoadingText('Curating exclusive catalog...');
+          setLoadingText(t('onboarding_curating'));
           
           // 2. Perform real Supabase Auth Sign Up
           const { data, error } = await supabase.auth.signUp({
@@ -64,37 +70,107 @@ const Onboarding = () => {
 
       performSignUp();
     }
-  }, [step, email, password, firstName, gender, category, selectedBrands]);
+  }, [step, email, password, firstName, gender, category, selectedBrands, t]);
 
   // Handle Step 9 redirect (Success)
   useEffect(() => {
     if (step === 9) {
-      const t = setTimeout(() => {
+      const tId = setTimeout(() => {
         // We no longer use localStorage for this, Supabase handles session
         localStorage.setItem('villaoro_onboarding_done', 'true');
         navigate('/');
       }, 2500);
 
-      return () => clearTimeout(t);
+      return () => clearTimeout(tId);
     }
   }, [step, navigate]);
 
   // Handle Step 10 redirect (Email verification required)
   useEffect(() => {
     if (step === 10) {
-      const t = setTimeout(() => {
+      const tId = setTimeout(() => {
         navigate('/login');
       }, 4000);
 
-      return () => clearTimeout(t);
+      return () => clearTimeout(tId);
     }
   }, [step, navigate]);
 
+  // Screen 1: Language (Zero Click Advance)
+  const renderStep1 = () => {
+    const languages = [
+      { code: 'EN', name: 'English', flag: '🇺🇸' },
+      { code: 'PT', name: 'Português', flag: '🇧🇷' },
+      { code: 'ES', name: 'Español', flag: '🇪🇸' }
+    ];
 
-  // Screen 1: The Invitation
-  const renderStep1 = () => (
+    return (
+      <motion.div
+        key="step1"
+        initial={{ opacity: 0, scale: 0.98 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, x: -20 }}
+        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+        className="relative flex flex-col w-full h-full min-h-screen bg-white overflow-hidden text-black"
+      >
+        <div className="relative z-10 flex flex-col items-center flex-1 w-full max-w-md p-8 pb-10 mx-auto justify-center">
+          
+          <div className="flex-1 w-full flex flex-col items-center justify-center mt-[-5vh]">
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1, duration: 0.6 }}
+              className="w-full text-center mb-12"
+            >
+              <h2 className="text-xl font-serif text-zinc-900 mb-2">
+                {t('onboarding_lang_title')}
+              </h2>
+              <p className="text-[14px] text-zinc-400 font-light">
+                {t('onboarding_lang_desc')}
+              </p>
+            </motion.div>
+
+            <div className="flex flex-col gap-4 w-full max-w-[300px]">
+              {languages.map((lang, index) => (
+                <motion.button
+                  key={lang.code}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 + (index * 0.1), duration: 0.5 }}
+                  onClick={() => {
+                    setLanguage(lang.code as any);
+                    setTimeout(() => setStep(2), 400); 
+                  }}
+                  className={`group relative flex items-center justify-between w-full p-5 rounded-3xl border transition-all duration-500 overflow-hidden ${
+                    language === lang.code 
+                      ? 'border-black bg-black text-white shadow-xl shadow-black/10 scale-[1.02]' 
+                      : 'border-zinc-100 bg-white text-zinc-800 hover:border-zinc-300 hover:shadow-md hover:bg-zinc-50'
+                  }`}
+                >
+                  <div className="flex items-center gap-4 relative z-10">
+                    <span className="text-2xl filter drop-shadow-sm">{lang.flag}</span>
+                    <span className="font-serif text-lg tracking-wide">{lang.name}</span>
+                  </div>
+                  <div className={`relative z-10 w-6 h-6 rounded-full border flex items-center justify-center transition-colors duration-300 ${
+                    language === lang.code 
+                      ? 'border-white bg-white/20' 
+                      : 'border-zinc-200 group-hover:border-zinc-400'
+                  }`}>
+                    {language === lang.code && <motion.div initial={{scale:0}} animate={{scale:1}} className="w-2.5 h-2.5 bg-white rounded-full" />}
+                  </div>
+                </motion.button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    );
+  };
+
+  // Screen 2: The Invitation
+  const renderStep2 = () => (
     <motion.div
-      key="step1"
+      key="step2"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0, filter: "blur(10px)", scale: 1.05 }}
@@ -117,9 +193,7 @@ const Onboarding = () => {
             <h1 className="text-3xl md:text-4xl font-normal tracking-[0.1em] text-white/90 mb-4 font-serif">
               Villa Oro
             </h1>
-            <p className="text-sm md:text-base text-zinc-500 font-light tracking-wide max-w-[280px] mx-auto leading-relaxed">
-              Curadoria de luxo.<br />Acesso restrito.
-            </p>
+            <p className="text-sm md:text-base text-zinc-500 font-light tracking-wide max-w-[280px] mx-auto leading-relaxed" dangerouslySetInnerHTML={{ __html: t('onboarding_luxury').replace('. ', '.<br />') }} />
           </motion.div>
         </div>
 
@@ -130,27 +204,27 @@ const Onboarding = () => {
           transition={{ delay: 0.6, duration: 0.8, ease: "easeOut" }}
         >
           <button 
-            onClick={() => setStep(2)}
+            onClick={() => setStep(3)}
             className="group relative w-full flex items-center justify-center gap-3 bg-white hover:bg-zinc-200 text-black py-4 px-6 rounded-full transition-all duration-300 overflow-hidden"
           >
-            <span className="font-medium tracking-wide text-sm">Request Access</span>
+            <span className="font-medium tracking-wide text-sm">{t('onboarding_request_access')}</span>
           </button>
           
           <button 
             onClick={() => navigate('/login')}
             className="group relative w-full flex items-center justify-center gap-3 bg-transparent text-white/60 hover:text-white py-4 px-6 rounded-full transition-all duration-300 mt-2"
           >
-            <span className="font-medium tracking-wide text-sm border-b border-white/20 pb-0.5">Already a member? Sign In</span>
+            <span className="font-medium tracking-wide text-sm border-b border-white/20 pb-0.5">{t('onboarding_already_member')}</span>
           </button>
         </motion.div>
       </div>
     </motion.div>
   );
 
-  // Screen 2: First Name Input (Cosmos Style)
-  const renderStep2 = () => (
+  // Screen 3: First Name Input (Cosmos Style)
+  const renderStep3 = () => (
     <motion.div
-      key="step2"
+      key="step3"
       initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, x: -20 }}
@@ -166,10 +240,10 @@ const Onboarding = () => {
             className="w-full text-center"
           >
             <h2 className="text-[15px] font-medium text-zinc-900 mb-1">
-              Enter your first name
+              {t('onboarding_first_name_title')}
             </h2>
             <p className="text-[13px] text-zinc-400 font-light mb-12">
-              This will be used to personalize your curation.
+              {t('onboarding_first_name_desc')}
             </p>
 
             <input
@@ -177,7 +251,7 @@ const Onboarding = () => {
               autoFocus
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
-              placeholder="First name"
+              placeholder={t('onboarding_first_name_placeholder')}
               className="w-full text-center text-4xl md:text-5xl font-serif text-black placeholder:text-zinc-200 outline-none bg-transparent caret-amber-500"
             />
           </motion.div>
@@ -193,7 +267,7 @@ const Onboarding = () => {
           <button 
             onClick={() => {
               if (firstName.trim().length > 1) {
-                setStep(3);
+                setStep(4);
               }
             }}
             disabled={firstName.trim().length < 2}
@@ -203,12 +277,12 @@ const Onboarding = () => {
                 : 'bg-zinc-100 text-zinc-400 cursor-not-allowed'
             }`}
           >
-            <span className="font-medium tracking-wide text-sm">Continue</span>
+            <span className="font-medium tracking-wide text-sm">{t('onboarding_continue')}</span>
           </button>
           
           <div className="flex justify-center">
             <button 
-              onClick={() => setStep(1)}
+              onClick={() => setStep(2)}
               className="p-3 rounded-full hover:bg-zinc-50 text-zinc-400 transition-colors"
               aria-label="Back"
             >
@@ -220,91 +294,12 @@ const Onboarding = () => {
     </motion.div>
   );
 
-  // Screen 3: Language (Cosmos Style - Zero Click Advance)
-  const renderStep3 = () => {
-    const languages = [
-      { code: 'EN', name: 'English', native: 'English' },
-      { code: 'PT', name: 'Portuguese', native: 'Português' },
-      { code: 'ES', name: 'Spanish', native: 'Español' }
-    ];
-
-    return (
-      <motion.div
-        key="step3"
-        initial={{ opacity: 0, scale: 0.98 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, x: -20 }}
-        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-        className="relative flex flex-col w-full h-full min-h-screen bg-white overflow-hidden text-black"
-      >
-        <div className="relative z-10 flex flex-col items-center flex-1 w-full max-w-md p-8 pb-10 mx-auto">
-          
-          <div className="flex-1 w-full flex flex-col items-center justify-center mt-[-5vh]">
-            <motion.div
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1, duration: 0.6 }}
-              className="w-full text-center mb-10"
-            >
-              <h2 className="text-[15px] font-medium text-zinc-900 mb-1">
-                Preferred language
-              </h2>
-              <p className="text-[13px] text-zinc-400 font-light">
-                How should we communicate with you, {firstName}?
-              </p>
-            </motion.div>
-
-            <div className="flex flex-col gap-3 w-full max-w-[280px]">
-              {languages.map((lang, index) => (
-                <motion.button
-                  key={lang.code}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 + (index * 0.1), duration: 0.5 }}
-                  onClick={() => {
-                    setLanguage(lang.code as any);
-                    setTimeout(() => setStep(4), 200); 
-                  }}
-                  className={`flex items-center justify-between w-full p-4 rounded-2xl border transition-all duration-300 ${
-                    language === lang.code 
-                      ? 'border-black bg-black text-white shadow-md' 
-                      : 'border-zinc-200 bg-white text-zinc-700 hover:border-zinc-400 hover:shadow-sm'
-                  }`}
-                >
-                  <span className="font-serif text-lg">{lang.native}</span>
-                  {language === lang.code && <Check className="w-4 h-4" />}
-                </motion.button>
-              ))}
-            </div>
-          </div>
-
-          {/* Bottom Back Button */}
-          <motion.div 
-            className="w-full mt-auto flex justify-center"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.6 }}
-          >
-            <button 
-              onClick={() => setStep(2)}
-              className="p-3 rounded-full hover:bg-zinc-50 text-zinc-400 transition-colors"
-              aria-label="Back"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </button>
-          </motion.div>
-
-        </div>
-      </motion.div>
-    );
-  };
-
   // Screen 4: Style Profile / Gender (Cosmos Style - Zero Click Advance)
   const renderStep4 = () => {
     const options = [
-      { id: 'masculino', label: 'Masculino' },
-      { id: 'feminino', label: 'Feminino' },
-      { id: 'ambos', label: 'Ambos' }
+      { id: 'masculino', label: t('onboarding_male') },
+      { id: 'feminino', label: t('onboarding_female') },
+      { id: 'ambos', label: t('onboarding_both') }
     ];
 
     return (
@@ -326,10 +321,10 @@ const Onboarding = () => {
               className="w-full text-center mb-10"
             >
               <h2 className="text-[15px] font-medium text-zinc-900 mb-1">
-                Style Profile
+                {t('onboarding_style_title')}
               </h2>
               <p className="text-[13px] text-zinc-400 font-light">
-                How do you prefer your fit?
+                {t('onboarding_style_desc')}
               </p>
             </motion.div>
 
@@ -357,7 +352,6 @@ const Onboarding = () => {
             </div>
           </div>
 
-          {/* Bottom Back Button */}
           <motion.div 
             className="w-full mt-auto flex justify-center"
             initial={{ opacity: 0 }}
@@ -372,7 +366,6 @@ const Onboarding = () => {
               <ArrowLeft className="w-5 h-5" />
             </button>
           </motion.div>
-
         </div>
       </motion.div>
     );
@@ -407,10 +400,10 @@ const Onboarding = () => {
               className="w-full text-center mb-10"
             >
               <h2 className="text-[15px] font-medium text-zinc-900 mb-1">
-                The Hunt
+                {t('onboarding_hunt_title')}
               </h2>
               <p className="text-[13px] text-zinc-400 font-light">
-                What are you looking for today? Select one.
+                {t('onboarding_hunt_desc')}
               </p>
             </motion.div>
 
@@ -490,10 +483,10 @@ const Onboarding = () => {
             className="w-full text-center mb-6 mt-[2vh]"
           >
             <h2 className="text-[15px] font-medium text-zinc-900 mb-1">
-              Brand Affinity
+              {t('onboarding_brand_title')}
             </h2>
             <p className="text-[13px] text-zinc-400 font-light">
-              Which houses align with your taste? (Choose up to 3)
+              {t('onboarding_brand_desc')}
             </p>
           </motion.div>
 
@@ -536,7 +529,7 @@ const Onboarding = () => {
                   : 'bg-zinc-100 text-zinc-400 cursor-not-allowed'
               }`}
             >
-              <span className="font-medium tracking-wide text-sm">Continue</span>
+              <span className="font-medium tracking-wide text-sm">{t('onboarding_continue')}</span>
               <span className="text-xs font-mono opacity-60">{selectedBrands.length} / 3</span>
             </button>
             
@@ -580,10 +573,10 @@ const Onboarding = () => {
               className="w-full text-center"
             >
               <h2 className="text-[15px] font-medium text-zinc-900 mb-1">
-                Enter your email address
+                {t('onboarding_email_title')}
               </h2>
               <p className="text-[13px] text-zinc-400 font-light mb-12">
-                To secure your profile and request access.
+                {t('onboarding_email_desc')}
               </p>
 
               <input
@@ -591,7 +584,7 @@ const Onboarding = () => {
                 autoFocus
                 value={email}
                 onChange={(e) => { setEmail(e.target.value); setAuthError(''); }}
-                placeholder="Email address"
+                placeholder={t('onboarding_email_placeholder')}
                 className="w-full text-center text-2xl md:text-3xl font-serif text-black placeholder:text-zinc-200 outline-none bg-transparent caret-amber-500 pb-2 border-b border-transparent focus:border-zinc-200 transition-colors"
               />
               
@@ -599,7 +592,7 @@ const Onboarding = () => {
                 type="password"
                 value={password}
                 onChange={(e) => { setPassword(e.target.value); setAuthError(''); }}
-                placeholder="Password"
+                placeholder={t('onboarding_password_placeholder')}
                 className="w-full text-center text-2xl md:text-3xl font-serif text-black placeholder:text-zinc-200 outline-none bg-transparent caret-amber-500 pb-2 border-b border-transparent focus:border-zinc-200 transition-colors mt-6"
               />
               
@@ -628,7 +621,7 @@ const Onboarding = () => {
                   : 'bg-zinc-100 text-zinc-400 cursor-not-allowed'
               }`}
             >
-              <span className="font-medium tracking-wide text-sm">Request Access</span>
+              <span className="font-medium tracking-wide text-sm">{t('onboarding_request_access')}</span>
             </button>
             
             <div className="flex justify-center">
@@ -711,10 +704,10 @@ const Onboarding = () => {
           </motion.div>
           
           <h2 className="text-2xl font-serif text-zinc-900 mb-2">
-            Access Approved
+            {t('onboarding_approved')}
           </h2>
           <p className="text-[14px] text-zinc-500 font-light">
-            Welcome to the club, {firstName}.
+            {t('onboarding_welcome_club')} {firstName}.
           </p>
         </motion.div>
       </motion.div>
@@ -743,16 +736,16 @@ const Onboarding = () => {
           </div>
           
           <h2 className="text-2xl font-serif text-zinc-900 mb-4">
-            Verify Your Email
+            {t('onboarding_verify_title')}
           </h2>
           <p className="text-[14px] text-zinc-500 font-light leading-relaxed">
-            We've sent a verification link to <strong className="text-zinc-800">{email}</strong>. 
+            {t('onboarding_verify_desc1')} <strong className="text-zinc-800">{email}</strong>. 
             <br/><br/>
-            Please check your inbox (and spam folder) to verify your account before logging in.
+            {t('onboarding_verify_desc2')}
           </p>
           <div className="mt-8">
             <div className="w-6 h-6 border-2 border-zinc-200 border-t-zinc-800 rounded-full animate-spin mx-auto"></div>
-            <p className="text-xs text-zinc-400 mt-4">Redirecting to login...</p>
+            <p className="text-xs text-zinc-400 mt-4">{t('onboarding_redirecting')}</p>
           </div>
         </motion.div>
       </motion.div>

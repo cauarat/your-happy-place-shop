@@ -6,6 +6,7 @@ import { Lock } from "lucide-react";
 import { toast } from "sonner";
 import MobileBottomDock from "@/components/MobileBottomDock";
 import { saveOrder, Order } from "@/lib/store";
+import { supabase } from "@/integrations/supabase/client";
 
 const Checkout = () => {
   const { t } = useLanguage();
@@ -59,26 +60,24 @@ const Checkout = () => {
       // Save order as pending in localStorage
       saveOrder(newOrder);
 
-      const response = await fetch('/api/create-checkout-session', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items, orderId }),
+      const { data, error } = await supabase.functions.invoke('create-checkout-session', {
+        body: { items, orderId }
       });
 
-      // Check if response is JSON (Vite might return index.html if the proxy target is down)
-      const contentType = response.headers.get("content-type");
-      if (!contentType || !contentType.includes("application/json")) {
-        throw new Error("The payment server is not running. Please ensure you have added STRIPE_SECRET_KEY to your .env file and restarted the server.");
+      if (error) {
+        throw new Error(error.message || 'Failed to connect to checkout service');
       }
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to create checkout session');
+      if (data?.error) {
+        throw new Error(data.error);
       }
 
       // Redirect securely to Stripe Checkout
-      window.location.href = data.url;
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error('No checkout URL returned from server');
+      }
 
     } catch (error: any) {
       console.error("Checkout error:", error);

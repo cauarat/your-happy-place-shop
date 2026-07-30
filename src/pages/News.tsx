@@ -152,7 +152,7 @@ const News = () => {
         <div className="min-h-[calc(100vh-200px)]">
           <div className="flex-1 px-2.5 sm:px-4 py-3 lg:py-6 w-full">
             {isLoading ? (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-1.5 sm:gap-2 lg:gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-1 sm:gap-x-2 lg:gap-x-4 gap-y-4 sm:gap-y-5 lg:gap-y-8">
                 {Array(12).fill(0).map((_, i) => (
                   <div key={i} className="animate-pulse">
                     <div className="aspect-[4/5] bg-[#f0efed]" />
@@ -193,7 +193,7 @@ const News = () => {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ duration: 0.4, delay: sectionIndex * 0.1 + 0.15 }}
-                        className="grid grid-cols-2 md:grid-cols-4 gap-1.5 sm:gap-2 lg:gap-3 mb-0"
+                        className="grid grid-cols-2 md:grid-cols-4 gap-x-1 sm:gap-x-2 lg:gap-x-4 gap-y-4 sm:gap-y-5 lg:gap-y-8 mb-0"
                       >
                         {items.map((product, i) => {
                           const isBig = i < 2;
