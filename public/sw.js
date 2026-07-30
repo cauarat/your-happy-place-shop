@@ -1,7 +1,5 @@
-const CACHE_NAME = 'villaoro-cache-v1';
+const CACHE_NAME = 'villaoro-cache-v2';
 const urlsToCache = [
-  '/',
-  '/index.html',
   '/manifest.json',
   '/icon-192x192.png',
   '/icon-512x512.png'
