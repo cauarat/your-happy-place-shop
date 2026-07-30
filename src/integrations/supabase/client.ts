@@ -2,12 +2,18 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
-const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
+// These are PUBLIC values (project URL + publishable/anon key) and are safe to ship
+// in the browser bundle — Row Level Security protects the data.
+// They are inlined as fallbacks because `.env` is git-ignored and therefore absent
+// from production builds; without them the module threw at import time and the
+// entire app rendered a white screen.
+const FALLBACK_SUPABASE_URL = 'https://tndnzqulawcuohrolkve.supabase.co';
+const FALLBACK_SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_hvOqDwQFK4B0qKo7aP551A_33NQvhqn';
 
-if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
-  throw new Error("Missing Supabase environment variables VITE_SUPABASE_URL / VITE_SUPABASE_PUBLISHABLE_KEY");
-}
+const SUPABASE_URL =
+  (import.meta.env.VITE_SUPABASE_URL as string) || FALLBACK_SUPABASE_URL;
+const SUPABASE_PUBLISHABLE_KEY =
+  (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string) || FALLBACK_SUPABASE_PUBLISHABLE_KEY;
 
 
 function isNewSupabaseApiKey(value: string): boolean {
