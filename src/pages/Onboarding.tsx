@@ -96,72 +96,112 @@ const Onboarding = () => {
     }
   }, [step, navigate]);
 
+  // Time-of-day greetings for the roulette
+  const getGreetings = () => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) {
+      return [
+        { text: 'Good morning!', code: 'EN' },
+        { text: 'Bom dia!', code: 'PT' },
+        { text: '¡Buenos días!', code: 'ES' },
+      ];
+    } else if (hour >= 12 && hour < 18) {
+      return [
+        { text: 'Good afternoon!', code: 'EN' },
+        { text: 'Boa tarde!', code: 'PT' },
+        { text: '¡Buenas tardes!', code: 'ES' },
+      ];
+    } else {
+      return [
+        { text: 'Good evening!', code: 'EN' },
+        { text: 'Boa noite!', code: 'PT' },
+        { text: '¡Buenas noches!', code: 'ES' },
+      ];
+    }
+  };
+
+  // Roulette index state for Step 1
+  const [greetingIndex, setGreetingIndex] = useState(0);
+  const [selectedFlag, setSelectedFlag] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (step !== 1) return;
+    const interval = setInterval(() => {
+      setGreetingIndex(prev => (prev + 1) % 3);
+    }, 2200);
+    return () => clearInterval(interval);
+  }, [step]);
+
   // Screen 1: Language (Zero Click Advance)
   const renderStep1 = () => {
-    const languages = [
-      { code: 'EN', name: 'English', flag: '🇺🇸' },
-      { code: 'PT', name: 'Português', flag: '🇧🇷' },
-      { code: 'ES', name: 'Español', flag: '🇪🇸' }
+    const greetings = getGreetings();
+    const flags = [
+      { code: 'EN', emoji: '🇺🇸' },
+      { code: 'PT', emoji: '🇧🇷' },
+      { code: 'ES', emoji: '🇪🇸' },
     ];
 
     return (
       <motion.div
         key="step1"
-        initial={{ opacity: 0, scale: 0.98 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, x: -20 }}
-        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-        className="relative flex flex-col w-full h-full min-h-screen bg-white overflow-hidden text-black"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0, scale: 1.02 }}
+        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        className="relative flex flex-col w-full h-full min-h-screen bg-white overflow-hidden text-black select-none"
       >
-        <div className="relative z-10 flex flex-col items-center flex-1 w-full max-w-md p-8 pb-10 mx-auto justify-center">
-          
-          <div className="flex-1 w-full flex flex-col items-center justify-center mt-[-5vh]">
-            <motion.div
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1, duration: 0.6 }}
-              className="w-full text-center mb-12"
-            >
-              <h2 className="text-xl font-serif text-zinc-900 mb-2">
-                {t('onboarding_lang_title')}
-              </h2>
-              <p className="text-[14px] text-zinc-400 font-light">
-                {t('onboarding_lang_desc')}
-              </p>
-            </motion.div>
+        <div className="flex flex-col items-center justify-center flex-1 w-full max-w-md mx-auto px-8">
 
-            <div className="flex flex-col gap-4 w-full max-w-[300px]">
-              {languages.map((lang, index) => (
-                <motion.button
-                  key={lang.code}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 + (index * 0.1), duration: 0.5 }}
-                  onClick={() => {
-                    setLanguage(lang.code as any);
-                    setTimeout(() => setStep(2), 400); 
-                  }}
-                  className={`group relative flex items-center justify-between w-full p-5 rounded-3xl border transition-all duration-500 overflow-hidden ${
-                    language === lang.code 
-                      ? 'border-black bg-black text-white shadow-xl shadow-black/10 scale-[1.02]' 
-                      : 'border-zinc-100 bg-white text-zinc-800 hover:border-zinc-300 hover:shadow-md hover:bg-zinc-50'
-                  }`}
-                >
-                  <div className="flex items-center gap-4 relative z-10">
-                    <span className="text-2xl filter drop-shadow-sm">{lang.flag}</span>
-                    <span className="font-serif text-lg tracking-wide">{lang.name}</span>
-                  </div>
-                  <div className={`relative z-10 w-6 h-6 rounded-full border flex items-center justify-center transition-colors duration-300 ${
-                    language === lang.code 
-                      ? 'border-white bg-white/20' 
-                      : 'border-zinc-200 group-hover:border-zinc-400'
-                  }`}>
-                    {language === lang.code && <motion.div initial={{scale:0}} animate={{scale:1}} className="w-2.5 h-2.5 bg-white rounded-full" />}
-                  </div>
-                </motion.button>
-              ))}
-            </div>
+          {/* Roulette greeting text */}
+          <div className="h-[52px] overflow-hidden relative mb-10">
+            <AnimatePresence mode="wait">
+              <motion.h1
+                key={greetingIndex}
+                initial={{ y: 30, opacity: 0, filter: 'blur(4px)' }}
+                animate={{ y: 0, opacity: 1, filter: 'blur(0px)' }}
+                exit={{ y: -30, opacity: 0, filter: 'blur(4px)' }}
+                transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+                className="text-[28px] md:text-[32px] font-semibold text-zinc-900 tracking-tight text-center whitespace-nowrap"
+              >
+                {greetings[greetingIndex].text}
+              </motion.h1>
+            </AnimatePresence>
           </div>
+
+          {/* Flag circles */}
+          <div className="flex items-center justify-center gap-5">
+            {flags.map((flag, i) => (
+              <motion.button
+                key={flag.code}
+                initial={{ opacity: 0, scale: 0.7 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.3 + i * 0.1, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                whileTap={{ scale: 0.9 }}
+                onClick={() => {
+                  setSelectedFlag(flag.code);
+                  setLanguage(flag.code as any);
+                  setTimeout(() => setStep(2), 500);
+                }}
+                className={`relative w-[72px] h-[72px] rounded-full flex items-center justify-center transition-all duration-400 ${
+                  selectedFlag === flag.code
+                    ? 'bg-zinc-900 shadow-xl shadow-black/20 scale-105'
+                    : 'bg-zinc-100 hover:bg-zinc-200 active:bg-zinc-300'
+                }`}
+              >
+                <span className="text-[30px] leading-none select-none">{flag.emoji}</span>
+
+                {/* Selection ring animation */}
+                {selectedFlag === flag.code && (
+                  <motion.div
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="absolute inset-[-3px] rounded-full border-2 border-zinc-900"
+                  />
+                )}
+              </motion.button>
+            ))}
+          </div>
+
         </div>
       </motion.div>
     );
