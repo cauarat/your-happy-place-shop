@@ -128,7 +128,7 @@ const Onboarding = () => {
     if (step !== 1) return;
     const interval = setInterval(() => {
       setGreetingIndex(prev => (prev + 1) % 3);
-    }, 2200);
+    }, 3500);
     return () => clearInterval(interval);
   }, [step]);
 
@@ -157,10 +157,10 @@ const Onboarding = () => {
             <AnimatePresence mode="wait">
               <motion.h1
                 key={greetingIndex}
-                initial={{ y: 30, opacity: 0, filter: 'blur(4px)' }}
+                initial={{ y: 36, opacity: 0, filter: 'blur(6px)' }}
                 animate={{ y: 0, opacity: 1, filter: 'blur(0px)' }}
-                exit={{ y: -30, opacity: 0, filter: 'blur(4px)' }}
-                transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+                exit={{ y: -36, opacity: 0, filter: 'blur(6px)' }}
+                transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
                 className="text-[28px] md:text-[32px] font-semibold text-zinc-900 tracking-tight text-center whitespace-nowrap"
               >
                 {greetings[greetingIndex].text}
