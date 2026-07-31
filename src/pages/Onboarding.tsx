@@ -157,9 +157,9 @@ const Onboarding = () => {
             <AnimatePresence mode="wait">
               <motion.h1
                 key={greetingIndex}
-                initial={{ y: 36, opacity: 0, filter: 'blur(6px)' }}
-                animate={{ y: 0, opacity: 1, filter: 'blur(0px)' }}
-                exit={{ y: -36, opacity: 0, filter: 'blur(6px)' }}
+                initial={{ y: 36, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: -36, opacity: 0 }}
                 transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
                 className="text-[28px] md:text-[32px] font-semibold text-zinc-900 tracking-tight text-center whitespace-nowrap"
               >
