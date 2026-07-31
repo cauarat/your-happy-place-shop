@@ -340,7 +340,7 @@ const Onboarding = () => {
   // Screen 4: Style Profile / Gender (Cosmos Style - Zero Click Advance)
   const renderStep4 = () => {
     const options = [
-      { id: 'masculino', label: t('onboarding_male'), icon: '👨' },
+      { id: 'masculino', label: t('onboarding_male'), icon: '👱‍♂️' },
       { id: 'feminino', label: t('onboarding_female'), icon: '👩' }
     ];
 
