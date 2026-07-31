@@ -178,7 +178,7 @@ const Onboarding = () => {
                 onClick={() => {
                   setSelectedFlag(flag.code);
                   setLanguage(flag.code as any);
-                  setTimeout(() => setStep(2), 500);
+                  setTimeout(() => setStep(3), 500);
                 }}
                 className={`relative w-[72px] h-[72px] rounded-full flex items-center justify-center transition-all duration-500 ${
                   selectedFlag === flag.code
@@ -325,7 +325,7 @@ const Onboarding = () => {
           
           <div className="flex justify-center">
             <button 
-              onClick={() => setStep(2)}
+              onClick={() => setStep(1)}
               className="p-3 rounded-full hover:bg-zinc-50 text-zinc-400 transition-colors"
               aria-label="Back"
             >
