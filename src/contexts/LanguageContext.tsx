@@ -388,7 +388,7 @@ const translations: Record<Language, Record<string, string>> = {
     onboarding_hunt_desc: "O que mais te chama atenção?",
     onboarding_brand_title: "Afinidade de Marca",
     onboarding_brand_desc: "Quais casas se alinham ao seu gosto? (Escolha até 3)",
-    onboarding_email_title: "Insira seu e-mail",
+    onboarding_email_title: "Salve seu email e senha.",
     onboarding_email_desc: "Para proteger seu perfil e solicitar acesso.",
     onboarding_email_placeholder: "Endereço de e-mail",
     onboarding_password_placeholder: "Senha",
