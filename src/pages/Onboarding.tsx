@@ -182,20 +182,25 @@ const Onboarding = () => {
                   setLanguage(flag.code as any);
                   setTimeout(() => setStep(2), 500);
                 }}
-                className={`relative w-[72px] h-[72px] rounded-full flex items-center justify-center transition-all duration-400 ${
+                className={`relative w-[72px] h-[72px] rounded-full flex items-center justify-center transition-all duration-500 ${
                   selectedFlag === flag.code
-                    ? 'bg-zinc-900 shadow-xl shadow-black/20 scale-105'
-                    : 'bg-zinc-100 hover:bg-zinc-200 active:bg-zinc-300'
+                    ? 'bg-black/80 backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.18),inset_0_1px_1px_rgba(255,255,255,0.1)] border border-white/10 scale-110'
+                    : 'bg-white/50 backdrop-blur-xl border border-white/40 shadow-[0_4px_24px_rgba(0,0,0,0.06),0_1px_4px_rgba(0,0,0,0.04),inset_0_1px_2px_rgba(255,255,255,0.9)] hover:shadow-[0_6px_28px_rgba(0,0,0,0.1),inset_0_1px_2px_rgba(255,255,255,0.9)] hover:scale-105 active:scale-95'
                 }`}
+                style={{
+                  WebkitBackdropFilter: selectedFlag === flag.code ? 'blur(40px) saturate(180%)' : 'blur(24px) saturate(150%)',
+                  backdropFilter: selectedFlag === flag.code ? 'blur(40px) saturate(180%)' : 'blur(24px) saturate(150%)',
+                }}
               >
-                <span className="text-[30px] leading-none select-none">{flag.emoji}</span>
+                <span className="text-[30px] leading-none select-none drop-shadow-sm">{flag.emoji}</span>
 
                 {/* Selection ring animation */}
                 {selectedFlag === flag.code && (
                   <motion.div
                     initial={{ scale: 0.8, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
-                    className="absolute inset-[-3px] rounded-full border-2 border-zinc-900"
+                    transition={{ duration: 0.3, ease: 'easeOut' }}
+                    className="absolute inset-[-4px] rounded-full border-[1.5px] border-black/30"
                   />
                 )}
               </motion.button>
