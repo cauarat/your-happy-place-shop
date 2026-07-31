@@ -7,9 +7,7 @@ import { designers } from '../data/products';
 import { supabase } from '../lib/supabase';
 
 const Onboarding = () => {
-  const [step, setStep] = useState(() => {
-    return localStorage.getItem("villaoro_lang") ? 2 : 1;
-  });
+  const [step, setStep] = useState(1);
   const [firstName, setFirstName] = useState('');
   const [gender, setGender] = useState('');
   const [category, setCategory] = useState('');
