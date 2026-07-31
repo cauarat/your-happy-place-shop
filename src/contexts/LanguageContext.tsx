@@ -385,7 +385,7 @@ const translations: Record<Language, Record<string, string>> = {
     onboarding_female: "Feminino",
     onboarding_both: "Ambos",
     onboarding_hunt_title: "A Busca",
-    onboarding_hunt_desc: "O que você está procurando hoje? Selecione um.",
+    onboarding_hunt_desc: "O que mais te chama atenção? Selecione um.",
     onboarding_brand_title: "Afinidade de Marca",
     onboarding_brand_desc: "Quais casas se alinham ao seu gosto? (Escolha até 3)",
     onboarding_email_title: "Insira seu e-mail",
