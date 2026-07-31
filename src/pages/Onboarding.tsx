@@ -447,7 +447,7 @@ const Onboarding = () => {
               <h2 className="text-[15px] font-medium text-zinc-900 mb-1">
                 {t('onboarding_hunt_title')}
               </h2>
-              <p className="text-[13px] text-zinc-600 font-semibold">
+              <p className="text-[13px] text-zinc-400 font-light">
                 {t('onboarding_hunt_desc')}
               </p>
             </motion.div>
