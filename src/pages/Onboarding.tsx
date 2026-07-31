@@ -3,8 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Lock, ArrowLeft, Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
-import { designers } from '../data/products';
+import { designers as staticDesigners } from '../data/products';
 import { supabase } from '../lib/supabase';
+import { getDesigners } from '../lib/store';
 
 const Onboarding = () => {
   const [step, setStep] = useState(1);
@@ -500,6 +501,8 @@ const Onboarding = () => {
 
   // Screen 6: Brand Affinity (Cosmos Style - Multi Select)
   const renderStep6 = () => {
+    const allBrands = Array.from(new Set([...staticDesigners, ...getDesigners()])).sort();
+
     const toggleBrand = (brand: string) => {
       if (selectedBrands.includes(brand)) {
         setSelectedBrands(selectedBrands.filter(b => b !== brand));
@@ -537,7 +540,7 @@ const Onboarding = () => {
 
           <div className="flex-1 w-full overflow-y-auto pb-24 scrollbar-hide">
             <div className="flex flex-wrap justify-center gap-2 w-full px-2">
-              {designers.map((brand, index) => {
+              {allBrands.map((brand, index) => {
                 const isSelected = selectedBrands.includes(brand);
                 return (
                   <motion.button
