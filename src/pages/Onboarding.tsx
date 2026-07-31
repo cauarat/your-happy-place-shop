@@ -340,9 +340,8 @@ const Onboarding = () => {
   // Screen 4: Style Profile / Gender (Cosmos Style - Zero Click Advance)
   const renderStep4 = () => {
     const options = [
-      { id: 'masculino', label: t('onboarding_male') },
-      { id: 'feminino', label: t('onboarding_female') },
-      { id: 'ambos', label: t('onboarding_both') }
+      { id: 'masculino', label: t('onboarding_male'), icon: '👨' },
+      { id: 'feminino', label: t('onboarding_female'), icon: '👩' }
     ];
 
     return (
@@ -388,7 +387,10 @@ const Onboarding = () => {
                       : 'border-zinc-200 bg-white text-zinc-700 hover:border-zinc-400 hover:shadow-sm'
                   }`}
                 >
-                  <span className="font-serif text-lg">{opt.label}</span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xl">{opt.icon}</span>
+                    <span className="font-serif text-lg">{opt.label}</span>
+                  </div>
                   {gender === opt.id && <Check className="w-4 h-4" />}
                 </motion.button>
               ))}
