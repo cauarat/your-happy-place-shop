@@ -18,6 +18,7 @@ import { LanguageProvider } from "./contexts/LanguageContext";
 import { SearchProvider } from "./contexts/SearchContext";
 import { CartProvider } from "./contexts/CartContext";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { OnboardingProvider } from "./contexts/OnboardingContext";
 
 
 import AdminDashboard from "./pages/admin/Dashboard.tsx";
@@ -56,6 +57,7 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
+        <OnboardingProvider>
         <CartProvider>
           <LanguageProvider>
           <SearchProvider>
@@ -99,6 +101,7 @@ const App = () => {
           </SearchProvider>
         </LanguageProvider>
       </CartProvider>
+      </OnboardingProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

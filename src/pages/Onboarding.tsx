@@ -3,13 +3,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Lock, ArrowLeft, Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useOnboarding } from '../contexts/OnboardingContext';
 import { designers as staticDesigners } from '../data/products';
 import { supabase } from '../lib/supabase';
 import { getDesigners } from '../lib/store';
 
 const Onboarding = () => {
   const [step, setStep] = useState(1);
-  const [firstName, setFirstName] = useState('');
+  const { firstName, setFirstName } = useOnboarding();
   const [gender, setGender] = useState('');
   const [category, setCategory] = useState('');
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
@@ -338,7 +339,6 @@ const Onboarding = () => {
     </motion.div>
   );
 
-  // Screen 4: Style Profile / Gender (Cosmos Style - Zero Click Advance)
   const renderStep4 = () => {
     const options = [
       { id: 'masculino', label: t('onboarding_male'), icon: '👱‍♂️' },
@@ -367,7 +367,7 @@ const Onboarding = () => {
                 {t('onboarding_style_title')}
               </h2>
               <p className="text-[13px] text-zinc-400 font-light">
-                {t('onboarding_style_desc')}
+                {t('onboarding_style_desc').replace('{name}', firstName.trim())}
               </p>
             </motion.div>
 
@@ -449,7 +449,7 @@ const Onboarding = () => {
                 {t('onboarding_hunt_title')}
               </h2>
               <p className="text-[13px] text-zinc-400 font-light">
-                {t('onboarding_hunt_desc')}
+                {t('onboarding_hunt_desc').replace('{name}', firstName.trim())}
               </p>
             </motion.div>
 
