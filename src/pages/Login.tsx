@@ -50,8 +50,8 @@ const Login = () => {
             transition={{ delay: 0.1, duration: 0.6 }}
             className="w-full text-center"
           >
-            <h1 className="text-3xl md:text-4xl font-normal tracking-[0.1em] text-black mb-8 font-serif">
-              Villa Oro
+            <h1 className="text-[2.5rem] md:text-[3rem] font-black leading-none tracking-tighter text-black mb-8">
+              Villaoro
             </h1>
             <h2 className="text-[15px] font-medium text-zinc-900 mb-1">
               Sign In
@@ -99,7 +99,7 @@ const Login = () => {
             </form>
             
             <div className="mt-8 text-sm text-zinc-500">
-              Don't have an account? <Link to="/onboarding" className="text-black font-medium hover:underline">Request Access</Link>
+              Don't have an account? <Link to="/onboarding" state={{ step: 3 }} className="text-black font-medium hover:underline">Request Access</Link>
             </div>
           </motion.div>
         </div>

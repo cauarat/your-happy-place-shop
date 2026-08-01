@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Lock, ArrowLeft, Check } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useOnboarding } from '../contexts/OnboardingContext';
 import { designers as staticDesigners } from '../data/products';
@@ -9,7 +9,8 @@ import { supabase } from '../lib/supabase';
 import { getDesigners } from '../lib/store';
 
 const Onboarding = () => {
-  const [step, setStep] = useState(1);
+  const location = useLocation();
+  const [step, setStep] = useState(location.state?.step || 1);
   const { firstName, setFirstName } = useOnboarding();
   const [gender, setGender] = useState('');
   const [category, setCategory] = useState('');
@@ -229,8 +230,8 @@ const Onboarding = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.8, ease: "easeOut" }}
           >
-            <h1 className="text-4xl md:text-5xl font-normal tracking-[0.15em] text-black mb-4 font-serif uppercase">
-              VILLA ORO
+            <h1 className="text-[2.5rem] md:text-[3rem] font-black leading-none tracking-tighter text-black mb-4">
+              Villaoro
             </h1>
           </motion.div>
         </div>
