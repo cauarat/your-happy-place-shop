@@ -180,7 +180,7 @@ const Onboarding = () => {
                 onClick={() => {
                   setSelectedFlag(flag.code);
                   setLanguage(flag.code as any);
-                  setTimeout(() => setStep(3), 500);
+                  setTimeout(() => setStep(2), 500);
                 }}
                 className={`relative w-[72px] h-[72px] rounded-full flex items-center justify-center transition-all duration-500 ${
                   selectedFlag === flag.code
@@ -212,7 +212,7 @@ const Onboarding = () => {
     );
   };
 
-  // Screen 2: The Invitation
+  // Screen 2: The Invitation (Quick Tour / Login)
   const renderStep2 = () => (
     <motion.div
       key="step2"
@@ -220,14 +220,8 @@ const Onboarding = () => {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0, filter: "blur(10px)", scale: 1.05 }}
       transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-      className="relative flex flex-col items-center justify-center w-full h-full min-h-screen bg-black overflow-hidden"
+      className="relative flex flex-col items-center justify-center w-full h-full min-h-screen bg-white overflow-hidden"
     >
-      {/* Background Headspace style */}
-      <div className="absolute inset-0 z-0 bg-[#121212]">
-        <div className="absolute top-[-10%] left-[50%] translate-x-[-50%] w-[80vw] h-[80vw] rounded-full bg-white/5 blur-[120px] mix-blend-screen animate-pulse" style={{ animationDuration: '8s' }} />
-        <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E")' }}></div>
-      </div>
-
       <div className="relative z-10 flex flex-col items-center justify-between h-full w-full max-w-md p-8 pb-12 pt-20">
         <div className="flex-1 flex flex-col items-center justify-center text-center">
           <motion.div
@@ -235,31 +229,30 @@ const Onboarding = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.8, ease: "easeOut" }}
           >
-            <h1 className="text-3xl md:text-4xl font-normal tracking-[0.1em] text-white/90 mb-4 font-serif">
-              Villa Oro
+            <h1 className="text-4xl md:text-5xl font-normal tracking-[0.15em] text-black mb-4 font-serif uppercase">
+              VILLA ORO
             </h1>
-            <p className="text-sm md:text-base text-zinc-500 font-light tracking-wide max-w-[280px] mx-auto leading-relaxed" dangerouslySetInnerHTML={{ __html: t('onboarding_luxury').replace('. ', '.<br />') }} />
           </motion.div>
         </div>
 
         <motion.div 
-          className="w-full mt-auto"
+          className="w-full mt-auto flex flex-col gap-4"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6, duration: 0.8, ease: "easeOut" }}
         >
           <button 
             onClick={() => setStep(3)}
-            className="group relative w-full flex items-center justify-center gap-3 bg-white hover:bg-zinc-200 text-black py-4 px-6 rounded-full transition-all duration-300 overflow-hidden"
+            className="group relative w-full flex items-center justify-center gap-3 bg-white hover:bg-zinc-50 text-black py-4 px-6 rounded-full transition-all duration-300 overflow-hidden border border-zinc-200 shadow-sm"
           >
-            <span className="font-medium tracking-wide text-sm">{t('onboarding_request_access')}</span>
+            <span className="font-medium tracking-wide text-base">{t('onboarding_take_quick_tour')}</span>
           </button>
           
           <button 
             onClick={() => navigate('/login')}
-            className="group relative w-full flex items-center justify-center gap-3 bg-transparent text-white/60 hover:text-white py-4 px-6 rounded-full transition-all duration-300 mt-2"
+            className="group relative w-full flex items-center justify-center gap-3 bg-black hover:bg-zinc-900 text-white py-4 px-6 rounded-full transition-all duration-300 shadow-sm"
           >
-            <span className="font-medium tracking-wide text-sm border-b border-white/20 pb-0.5">{t('onboarding_already_member')}</span>
+            <span className="font-medium tracking-wide text-base">{t('onboarding_already_member')}</span>
           </button>
         </motion.div>
       </div>
