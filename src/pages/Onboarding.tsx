@@ -627,22 +627,24 @@ const Onboarding = () => {
                 {t('onboarding_email_desc')}
               </p>
 
-              <input
-                type="email"
-                autoFocus
-                value={email}
-                onChange={(e) => { setEmail(e.target.value); setAuthError(''); }}
-                placeholder={t('onboarding_email_placeholder')}
-                className="w-full text-center text-2xl md:text-3xl font-serif text-black placeholder:text-zinc-200 outline-none bg-transparent caret-amber-500 pb-2 border-b border-transparent focus:border-zinc-200 transition-colors"
-              />
-              
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => { setPassword(e.target.value); setAuthError(''); }}
-                placeholder={t('onboarding_password_placeholder')}
-                className="w-full text-center text-2xl md:text-3xl font-serif text-black placeholder:text-zinc-200 outline-none bg-transparent caret-amber-500 pb-2 border-b border-transparent focus:border-zinc-200 transition-colors mt-6"
-              />
+              <div className="w-full flex flex-col gap-4 mt-6 mb-2">
+                <input
+                  type="email"
+                  autoFocus
+                  value={email}
+                  onChange={(e) => { setEmail(e.target.value); setAuthError(''); }}
+                  placeholder={t('onboarding_email_placeholder')}
+                  className="w-full text-center text-lg font-medium text-black placeholder:text-zinc-300 outline-none bg-zinc-50 focus:bg-white border border-zinc-200 focus:border-black rounded-2xl py-5 px-6 transition-all duration-300 shadow-sm focus:shadow-md caret-black [&:-webkit-autofill]:[WebkitBoxShadow:0_0_0_30px_#fafafa_inset] [&:-webkit-autofill]:focus:[WebkitBoxShadow:0_0_0_30px_white_inset] [&:-webkit-autofill]:[WebkitTextFillColor:black]"
+                />
+                
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => { setPassword(e.target.value); setAuthError(''); }}
+                  placeholder={t('onboarding_password_placeholder')}
+                  className="w-full text-center text-lg font-medium text-black placeholder:text-zinc-300 outline-none bg-zinc-50 focus:bg-white border border-zinc-200 focus:border-black rounded-2xl py-5 px-6 transition-all duration-300 shadow-sm focus:shadow-md caret-black [&:-webkit-autofill]:[WebkitBoxShadow:0_0_0_30px_#fafafa_inset] [&:-webkit-autofill]:focus:[WebkitBoxShadow:0_0_0_30px_white_inset] [&:-webkit-autofill]:[WebkitTextFillColor:black]"
+                />
+              </div>
               
               {authError && (
                 <p className="text-red-500 text-sm mt-4">{authError}</p>
