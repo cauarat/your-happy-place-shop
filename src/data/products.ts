@@ -27,6 +27,8 @@ export interface Product {
   images?: string[];
   productLinks?: string[];
   video?: string;
+  colors?: string[];
+  sizes?: string[];
   allowQuantity?: boolean;
 }
 
