@@ -27,6 +27,8 @@ export interface Product {
   images?: string[];
   productLinks?: string[];
   video?: string;
+  colors?: string[];
+  sizes?: string[];
   allowQuantity?: boolean;
 }
 
@@ -283,6 +285,9 @@ export const products: Product[] = [
   },
   {
     "id": "1800000000001",
+    "image": "",
+    "createdAt": 1800000000001,
+    "rating": 5,
     "name": "White Swimshorts",
     "designer": "Villebrequin",
     "category": "Shorts",
@@ -302,6 +307,9 @@ export const products: Product[] = [
   },
   {
     "id": "1800000000002",
+    "image": "",
+    "createdAt": 1800000000002,
+    "rating": 5,
     "name": "White Pants",
     "designer": "Moncler",
     "category": "Pants",
@@ -321,6 +329,9 @@ export const products: Product[] = [
   },
   {
     "id": "1800000000003",
+    "image": "",
+    "createdAt": 1800000000003,
+    "rating": 5,
     "name": "Black Slip-ons",
     "designer": "Moncler",
     "category": "Footwear",
