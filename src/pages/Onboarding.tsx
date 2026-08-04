@@ -23,12 +23,12 @@ const Onboarding = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (step === 8) setLoadingText(t('onboarding_analyzing'));
+    if (step === 9) setLoadingText(t('onboarding_analyzing'));
   }, [step, t]);
 
   // Handle Step 8 transitions & Real Supabase Auth
   useEffect(() => {
-    if (step === 8) {
+    if (step === 9) {
       const performSignUp = async () => {
         setLoadingText(t('onboarding_analyzing'));
         
@@ -57,15 +57,15 @@ const Onboarding = () => {
           if (!data.session) {
             // Email confirmation is required
             setAuthError('Account created! Please check your email to verify your account before logging in.');
-            setStep(10); // Special step for email confirmation
+            setStep(11); // Special step for email confirmation
           } else {
             // 3. Move to success screen
-            setStep(9);
+            setStep(10);
           }
         } catch (error: any) {
           console.error('Signup error:', error);
           setAuthError(error.message || 'Failed to create account');
-          setStep(7); // Go back to email/password step to show error
+          setStep(8); // Go back to email/password step to show error
         }
       };
 
@@ -75,7 +75,7 @@ const Onboarding = () => {
 
   // Handle Step 9 redirect (Success)
   useEffect(() => {
-    if (step === 9) {
+    if (step === 10) {
       const tId = setTimeout(() => {
         // We no longer use localStorage for this, Supabase handles session
         localStorage.setItem('villaoro_onboarding_done', 'true');
@@ -88,7 +88,7 @@ const Onboarding = () => {
 
   // Handle Step 10 redirect (Email verification required)
   useEffect(() => {
-    if (step === 10) {
+    if (step === 11) {
       const tId = setTimeout(() => {
         navigate('/login');
       }, 4000);
@@ -181,7 +181,7 @@ const Onboarding = () => {
                 onClick={() => {
                   setSelectedFlag(flag.code);
                   setLanguage(flag.code as any);
-                  setTimeout(() => setStep(2), 500);
+                  setTimeout(() => setStep(2), 500);  // Go to Add to Home Screen
                 }}
                 className={`relative w-[72px] h-[72px] rounded-full flex items-center justify-center transition-all duration-500 ${
                   selectedFlag === flag.code
@@ -213,10 +213,151 @@ const Onboarding = () => {
     );
   };
 
-  // Screen 2: The Invitation (Quick Tour / Login)
+  // Screen 2: Add to Home Screen Tutorial
   const renderStep2 = () => (
     <motion.div
       key="step2"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0, scale: 1.02 }}
+      transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+      className="relative flex flex-col w-full h-full min-h-screen bg-[#FDFDFD] overflow-hidden text-black select-none"
+    >
+      <div className="flex flex-col items-center justify-center flex-1 w-full max-w-md mx-auto px-6">
+
+        {/* Icon */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.2, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          className="mb-6 mt-4"
+        >
+          <div
+            className="relative w-[80px] h-[80px] rounded-[22px] flex items-center justify-center bg-white"
+            style={{
+              boxShadow: '0 8px 32px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04), inset 0 1px 2px rgba(255,255,255,0.9)',
+              border: '1px solid rgba(0,0,0,0.04)',
+            }}
+          >
+            <div className="absolute inset-0 rounded-[22px] bg-gradient-to-tr from-zinc-50 to-white opacity-80" />
+            <span className="relative text-[38px] leading-none drop-shadow-sm">📲</span>
+          </div>
+        </motion.div>
+
+        {/* Title */}
+        <motion.h2
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          className="text-[24px] font-semibold text-zinc-900 tracking-tight text-center mb-2.5"
+        >
+          {t('install_app_title')}
+        </motion.h2>
+
+        {/* Subtitle */}
+        <motion.p
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.45, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          className="text-[15px] text-zinc-500 font-light text-center leading-relaxed mb-8 max-w-[300px]"
+        >
+          {t('install_app_subtitle')}
+        </motion.p>
+
+        {/* Steps Card (iOS 27 style) */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.55, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+          className="w-full bg-white rounded-3xl p-5 shadow-[0_2px_20px_rgba(0,0,0,0.04)] border border-zinc-100 flex flex-col gap-0 relative"
+        >
+          {/* Step 1 */}
+          <div className="flex items-start gap-4 py-3 group">
+            <div className="flex-1">
+              <p className="text-[14.5px] font-semibold text-zinc-800 mb-1 tracking-tight">{t('install_step1_title')}</p>
+              <p className="text-[13px] text-zinc-500 leading-relaxed pr-2">{t('install_step1_desc')}</p>
+            </div>
+            <div className="shrink-0 flex items-center gap-2 mt-1 bg-zinc-50/80 px-2.5 py-1.5 rounded-xl border border-zinc-100">
+              {/* Apple Share */}
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/>
+              </svg>
+              <div className="w-px h-4 bg-zinc-200" />
+              {/* Chrome Menu */}
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/>
+              </svg>
+            </div>
+          </div>
+
+          <div className="h-px bg-gradient-to-r from-transparent via-zinc-100 to-transparent my-1" />
+
+          {/* Step 2 */}
+          <div className="flex items-start gap-4 py-3 group">
+            <div className="flex-1">
+              <p className="text-[14.5px] font-semibold text-zinc-800 mb-1 tracking-tight">{t('install_step2_title')}</p>
+              <p className="text-[13px] text-zinc-500 leading-relaxed pr-2">{t('install_step2_desc')}</p>
+            </div>
+            <div className="shrink-0 mt-1 bg-zinc-50/80 p-2 rounded-xl border border-zinc-100">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="4" />
+                <path d="M12 8v8" />
+                <path d="M8 12h8" />
+              </svg>
+            </div>
+          </div>
+
+          <div className="h-px bg-gradient-to-r from-transparent via-zinc-100 to-transparent my-1" />
+
+          {/* Step 3 */}
+          <div className="flex items-start gap-4 py-3 group">
+            <div className="flex-1">
+              <p className="text-[14.5px] font-semibold text-zinc-800 mb-1 tracking-tight">{t('install_step3_title')}</p>
+              <p className="text-[13px] text-zinc-500 leading-relaxed pr-2">{t('install_step3_desc')}</p>
+            </div>
+            <div className="shrink-0 mt-1 bg-green-50 p-2 rounded-xl border border-green-100/50 text-green-500">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Tip Box */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.65, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+          className="w-full mt-6 bg-amber-50/40 rounded-2xl p-4 border border-amber-100/60"
+        >
+          <p className="text-[12.5px] leading-relaxed text-amber-900/70 font-medium">
+            {t('install_app_tip')}
+          </p>
+        </motion.div>
+
+      </div>
+
+      {/* Bottom button */}
+      <motion.div
+        className="w-full px-6 pb-10 pt-4 max-w-md mx-auto relative z-10"
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.75, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+      >
+        <button
+          onClick={() => setStep(3)}
+          className="w-full py-4 px-6 rounded-[20px] bg-zinc-900 text-white font-medium tracking-wide text-[16px] transition-all duration-300 hover:bg-black hover:shadow-xl hover:shadow-black/20 active:scale-[0.98]"
+        >
+          {t('install_app_continue')}
+        </button>
+      </motion.div>
+    </motion.div>
+  );
+
+  // Screen 3: The Invitation (Quick Tour / Login)
+  const renderStep3 = () => (
+    <motion.div
+      key="step3"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0, filter: "blur(10px)", scale: 1.05 }}
@@ -243,7 +384,7 @@ const Onboarding = () => {
           transition={{ delay: 0.6, duration: 0.8, ease: "easeOut" }}
         >
           <button 
-            onClick={() => setStep(3)}
+            onClick={() => setStep(4)}
             className="group relative w-full flex items-center justify-center gap-3 bg-white hover:bg-zinc-50 text-black py-4 px-6 rounded-full transition-all duration-300 overflow-hidden border border-zinc-200 shadow-sm"
           >
             <span className="font-medium tracking-wide text-base">{t('onboarding_take_quick_tour')}</span>
@@ -260,10 +401,10 @@ const Onboarding = () => {
     </motion.div>
   );
 
-  // Screen 3: First Name Input (Cosmos Style)
-  const renderStep3 = () => (
+  // Screen 4: First Name Input (Cosmos Style)
+  const renderStep4 = () => (
     <motion.div
-      key="step3"
+      key="step4"
       initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, x: -20 }}
@@ -306,7 +447,7 @@ const Onboarding = () => {
           <button 
             onClick={() => {
               if (firstName.trim().length > 1) {
-                setStep(4);
+                setStep(5);
               }
             }}
             disabled={firstName.trim().length < 2}
@@ -321,7 +462,7 @@ const Onboarding = () => {
           
           <div className="flex justify-center">
             <button 
-              onClick={() => setStep(1)}
+              onClick={() => setStep(3)}
               className="p-3 rounded-full hover:bg-zinc-50 text-zinc-400 transition-colors"
               aria-label="Back"
             >
@@ -333,7 +474,7 @@ const Onboarding = () => {
     </motion.div>
   );
 
-  const renderStep4 = () => {
+  const renderStep5 = () => {
     const options = [
       { id: 'masculino', label: t('onboarding_male'), icon: '👱‍♂️' },
       { id: 'feminino', label: t('onboarding_female'), icon: '👩' }
@@ -341,7 +482,7 @@ const Onboarding = () => {
 
     return (
       <motion.div
-        key="step4"
+        key="step5"
         initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, x: -20 }}
@@ -374,7 +515,7 @@ const Onboarding = () => {
                   transition={{ delay: 0.2 + (index * 0.1), duration: 0.5 }}
                   onClick={() => {
                     setGender(opt.id);
-                    setTimeout(() => setStep(5), 200); 
+                    setTimeout(() => setStep(6), 200); 
                   }}
                   className={`flex items-center justify-between w-full p-4 rounded-2xl border transition-all duration-300 ${
                     gender === opt.id 
@@ -399,7 +540,7 @@ const Onboarding = () => {
             transition={{ delay: 0.6 }}
           >
             <button 
-              onClick={() => setStep(3)}
+              onClick={() => setStep(4)}
               className="p-3 rounded-full hover:bg-zinc-50 text-zinc-400 transition-colors"
               aria-label="Back"
             >
@@ -411,8 +552,8 @@ const Onboarding = () => {
     );
   };
 
-  // Screen 5: Category Intent (Cosmos Style - Zero Click Advance)
-  const renderStep5 = () => {
+  // Screen 6: Category Intent (Cosmos Style - Zero Click Advance)
+  const renderStep6 = () => {
     const categories = [
       { id: 'Footwear', icon: '👟' },
       { id: 'Clothing', icon: '👕' },
@@ -423,7 +564,7 @@ const Onboarding = () => {
 
     return (
       <motion.div
-        key="step5"
+        key="step6"
         initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, x: -20 }}
@@ -456,7 +597,7 @@ const Onboarding = () => {
                   transition={{ delay: 0.2 + (index * 0.1), duration: 0.5 }}
                   onClick={() => {
                     setCategory(cat.id);
-                    setTimeout(() => setStep(6), 200); 
+                    setTimeout(() => setStep(7), 200); 
                   }}
                   className={`flex items-center justify-between w-full p-4 rounded-2xl border transition-all duration-300 ${
                     category === cat.id 
@@ -481,7 +622,7 @@ const Onboarding = () => {
             transition={{ delay: 0.6 }}
           >
             <button 
-              onClick={() => setStep(4)}
+              onClick={() => setStep(5)}
               className="p-3 rounded-full hover:bg-zinc-50 text-zinc-400 transition-colors"
               aria-label="Back"
             >
@@ -493,8 +634,8 @@ const Onboarding = () => {
     );
   };
 
-  // Screen 6: Brand Affinity (Cosmos Style - Multi Select)
-  const renderStep6 = () => {
+  // Screen 7: Brand Affinity (Cosmos Style - Multi Select)
+  const renderStep7 = () => {
     const allBrands = Array.from(new Set([...staticDesigners, ...getDesigners()])).sort();
 
     const toggleBrand = (brand: string) => {
@@ -509,7 +650,7 @@ const Onboarding = () => {
 
     return (
       <motion.div
-        key="step6"
+        key="step7"
         initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, x: -20 }}
@@ -563,7 +704,7 @@ const Onboarding = () => {
             transition={{ delay: 0.6 }}
           >
             <button 
-              onClick={() => setStep(7)}
+              onClick={() => setStep(8)}
               disabled={selectedBrands.length === 0}
               className={`group relative w-full flex items-center justify-between gap-3 py-4 px-6 rounded-full transition-all duration-300 overflow-hidden ${
                 selectedBrands.length > 0 
@@ -577,7 +718,7 @@ const Onboarding = () => {
             
             <div className="flex justify-center">
               <button 
-                onClick={() => setStep(5)}
+                onClick={() => setStep(6)}
                 className="p-3 rounded-full hover:bg-zinc-50 text-zinc-400 transition-colors"
                 aria-label="Back"
               >
@@ -590,15 +731,15 @@ const Onboarding = () => {
     );
   };
 
-  // Screen 7: Contact / Email (Cosmos Style)
-  const renderStep7 = () => {
+  // Screen 8: Contact / Email (Cosmos Style)
+  const renderStep8 = () => {
     const isValidEmail = (email: string) => {
       return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
     };
 
     return (
       <motion.div
-        key="step7"
+        key="step8"
         initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, filter: "blur(10px)" }}
@@ -655,7 +796,7 @@ const Onboarding = () => {
             <button 
               onClick={() => {
                 if (isValidEmail(email) && password.length >= 6) {
-                  setStep(8);
+                  setStep(9);
                 }
               }}
               disabled={!isValidEmail(email) || password.length < 6}
@@ -670,7 +811,7 @@ const Onboarding = () => {
             
             <div className="flex justify-center">
               <button 
-                onClick={() => setStep(6)}
+                onClick={() => setStep(7)}
                 className="p-3 rounded-full hover:bg-zinc-50 text-zinc-400 transition-colors"
                 aria-label="Back"
               >
@@ -684,12 +825,12 @@ const Onboarding = () => {
     );
   };
 
-  // Screen 8: The Analysis / Waiting List Simulation (Headspace Style)
-  const renderStep8 = () => {
+  // Screen 9: The Analysis / Waiting List Simulation (Headspace Style)
+  const renderStep9 = () => {
 
     return (
       <motion.div
-        key="step8"
+        key="step9"
         initial={{ backgroundColor: "#000000", opacity: 0 }}
         animate={{ backgroundColor: "#ffffff", opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -720,12 +861,12 @@ const Onboarding = () => {
     );
   };
 
-  // Screen 9: Access Approved (Zero-Click redirect to Catalog)
-  const renderStep9 = () => {
+  // Screen 10: Access Approved (Zero-Click redirect to Catalog)
+  const renderStep10 = () => {
 
     return (
       <motion.div
-        key="step9"
+        key="step10"
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 1.05 }}
@@ -758,11 +899,11 @@ const Onboarding = () => {
     );
   };
 
-  // Screen 10: Email Verification Required
-  const renderStep10 = () => {
+  // Screen 11: Email Verification Required
+  const renderStep11 = () => {
     return (
       <motion.div
-        key="step10"
+        key="step11"
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 1.05 }}
@@ -808,6 +949,7 @@ const Onboarding = () => {
       {step === 8 && renderStep8()}
       {step === 9 && renderStep9()}
       {step === 10 && renderStep10()}
+      {step === 11 && renderStep11()}
     </AnimatePresence>
   );
 };
