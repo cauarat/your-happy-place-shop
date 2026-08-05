@@ -272,10 +272,10 @@ const Onboarding = () => {
           className="w-full bg-white rounded-3xl p-5 shadow-[0_2px_20px_rgba(0,0,0,0.04)] border border-zinc-100 flex flex-col gap-0 relative"
         >
           {/* Step 1 */}
-          <div className="flex items-start gap-4 py-3 group">
+          <div className="flex items-center gap-4 py-3 group">
             <div className="flex-1">
-              <p className="text-[14.5px] font-semibold text-zinc-800 mb-1 tracking-tight">{t('install_step1_title')}</p>
-              <p className="text-[13px] text-zinc-500 leading-relaxed pr-2">{t('install_step1_desc')}</p>
+              <p className="text-[13px] md:text-[14.5px] font-semibold text-zinc-800 mb-0.5 tracking-tight">{t('install_step1_title')}</p>
+              <p className="text-[11.5px] md:text-[13px] text-zinc-500 leading-relaxed pr-2">{t('install_step1_desc')}</p>
             </div>
             <div className="shrink-0 flex items-center gap-2 mt-1 bg-zinc-50/80 px-2.5 py-1.5 rounded-xl border border-zinc-100">
               {/* Apple Share */}
@@ -293,10 +293,10 @@ const Onboarding = () => {
           <div className="h-px bg-gradient-to-r from-transparent via-zinc-100 to-transparent my-1" />
 
           {/* Step 2 */}
-          <div className="flex items-start gap-4 py-3 group">
+          <div className="flex items-center gap-4 py-3 group">
             <div className="flex-1">
-              <p className="text-[14.5px] font-semibold text-zinc-800 mb-1 tracking-tight">{t('install_step2_title')}</p>
-              <p className="text-[13px] text-zinc-500 leading-relaxed pr-2">{t('install_step2_desc')}</p>
+              <p className="text-[13px] md:text-[14.5px] font-semibold text-zinc-800 mb-0.5 tracking-tight">{t('install_step2_title')}</p>
+              <p className="text-[11.5px] md:text-[13px] text-zinc-500 leading-relaxed pr-2">{t('install_step2_desc')}</p>
             </div>
             <div className="shrink-0 mt-1 bg-zinc-50/80 p-2 rounded-xl border border-zinc-100">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -310,10 +310,10 @@ const Onboarding = () => {
           <div className="h-px bg-gradient-to-r from-transparent via-zinc-100 to-transparent my-1" />
 
           {/* Step 3 */}
-          <div className="flex items-start gap-4 py-3 group">
+          <div className="flex items-center gap-3 md:gap-4 py-3 group">
             <div className="flex-1">
-              <p className="text-[14.5px] font-semibold text-zinc-800 mb-1 tracking-tight">{t('install_step3_title')}</p>
-              <p className="text-[13px] text-zinc-500 leading-relaxed pr-2">{t('install_step3_desc')}</p>
+              <p className="text-[13px] md:text-[14.5px] font-semibold text-zinc-800 mb-0.5 tracking-tight">{t('install_step3_title')}</p>
+              <p className="text-[11.5px] md:text-[13px] text-zinc-500 leading-relaxed pr-2">{t('install_step3_desc')}</p>
             </div>
             <div className="shrink-0 flex items-center gap-3 mt-1">
               <div className="flex flex-col items-center">
