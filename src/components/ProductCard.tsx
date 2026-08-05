@@ -4,26 +4,27 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { getDesignSettings } from "@/lib/store";
 import { useCart } from "@/contexts/CartContext";
 import { Heart } from "lucide-react";
-import { motion } from "framer-motion";
-import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 
 const ProductCard = ({ product, index, isFeatured }: { product: Product, index?: number, isFeatured?: boolean }) => {
   const { t } = useLanguage();
-  const { addToCart } = useCart();
-  const [isFavorite, setIsFavorite] = useState(false);
+  const { items, addToCart, removeFromCart } = useCart();
   
+  const cartItems = items.filter(item => item.product.id === product.id);
+  const totalQuantity = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+  const isFavorite = totalQuantity > 0;
+
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
     if (!isFavorite) {
-      setIsFavorite(true);
-      // Add product with quantity 1 and default size null (or auto-select first size if we want, but null is fine)
+      // Add product with quantity 1 and default size null
       addToCart(product, 1, (product as any).sizes?.[0] || null);
       toast.success(`${product.name} adicionado à sacola / favoritos`);
     } else {
-      setIsFavorite(false);
+      cartItems.forEach(item => removeFromCart(item.id));
     }
   };
   
@@ -53,21 +54,37 @@ const ProductCard = ({ product, index, isFeatured }: { product: Product, index?:
           className="absolute top-2.5 right-2.5 z-10 p-2 hover:bg-black/5 rounded-full transition-colors focus:outline-none flex items-center justify-center"
           aria-label="Add to favorites"
         >
-          <motion.div
-            animate={
-              isFavorite 
-                ? { scale: [1, 1.3, 0.9, 1.1, 1] } 
-                : { scale: 1 }
-            }
-            transition={{ duration: 0.4 }}
-          >
-            <Heart 
-              size={22} 
-              strokeWidth={isFavorite ? 0 : 1.2} 
-              fill={isFavorite ? "#FF3B30" : "transparent"}
-              className={isFavorite ? "text-[#FF3B30]" : "text-black drop-shadow-sm"} 
-            />
-          </motion.div>
+          <div className="relative">
+            <motion.div
+              key={isFavorite ? 'favorited' : 'unfavorited'}
+              animate={
+                isFavorite 
+                  ? { scale: [1, 1.3, 0.9, 1.1, 1] } 
+                  : { scale: 1 }
+              }
+              transition={{ duration: 0.4 }}
+            >
+              <Heart 
+                size={22} 
+                strokeWidth={isFavorite ? 0 : 1.2} 
+                fill={isFavorite ? "#FF3B30" : "transparent"}
+                className={isFavorite ? "text-[#FF3B30]" : "text-black drop-shadow-sm"} 
+              />
+            </motion.div>
+            
+            <AnimatePresence>
+              {totalQuantity > 1 && (
+                <motion.div 
+                  initial={{ scale: 0, opacity: 0 }} 
+                  animate={{ scale: 1, opacity: 1 }} 
+                  exit={{ scale: 0, opacity: 0 }}
+                  className="absolute -top-1.5 -right-1.5 bg-[#FF3B30] text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-white shadow-sm"
+                >
+                  {totalQuantity}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </button>
       </div>
       <div className="flex flex-col mt-2.5 space-y-0.5 px-0.5">
