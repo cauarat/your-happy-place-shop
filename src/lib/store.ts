@@ -24,6 +24,7 @@ export interface DesignSettings {
   enableSalePage?: boolean;
   defaultCategory?: string;
   showPrices?: boolean;
+  alwaysShowTourEmail?: string;
 }
 
 export interface AiConfig {
@@ -183,6 +184,7 @@ export function getDesignSettings(): DesignSettings {
     enableSalePage: false,
     defaultCategory: "Footwear",
     showPrices: false,
+    alwaysShowTourEmail: "",
     ...parsed,
   };
 }

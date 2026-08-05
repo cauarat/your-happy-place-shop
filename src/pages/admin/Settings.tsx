@@ -99,6 +99,27 @@ const AdminSettings = () => {
             />
           </button>
         </div>
+
+        {/* Always Show Tour Email */}
+        <div className="flex flex-col gap-3 border border-border px-6 py-5 bg-white rounded-none mt-6">
+          <div>
+            <p className="text-sm font-semibold tracking-tight">Always Show App Tour (Email)</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Enter an email (e.g. cauarati@gmail.com) to always show the onboarding pop-ups for that user.
+            </p>
+          </div>
+          <input
+            type="email"
+            placeholder="cauarati@gmail.com"
+            value={settings.alwaysShowTourEmail || ""}
+            onChange={(e) => {
+              const updated = { ...settings, alwaysShowTourEmail: e.target.value };
+              setSettings(updated);
+              saveDesignSettings(updated);
+            }}
+            className="w-full h-11 px-3 text-sm bg-zinc-50 border border-border focus:border-black outline-none transition-colors"
+          />
+        </div>
       </div>
     </div>
   );

@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { getDesignSettings } from "@/lib/store";
 
 type TourStep = {
   target: string;
@@ -19,15 +21,27 @@ export const AppTour = () => {
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
   const [isVisible, setIsVisible] = useState(false);
   const { t } = useLanguage();
+  const { user, loading } = useAuth();
 
   useEffect(() => {
+    if (loading) return;
+
     const hasSeenTour = localStorage.getItem("tour_completed");
-    if (!hasSeenTour) {
+    
+    // Check if the current user is designated to always see the tour
+    const settings = getDesignSettings();
+    const alwaysShowEmail = settings.alwaysShowTourEmail?.trim().toLowerCase();
+    const userEmail = user?.email?.trim().toLowerCase();
+    const isAlwaysShow = alwaysShowEmail && userEmail && alwaysShowEmail === userEmail;
+
+    // Reset current step when making it visible again
+    if (isAlwaysShow || !hasSeenTour) {
+      setCurrentStep(0);
       // Delay to ensure the DOM is painted and elements are mounted
       const timer = setTimeout(() => setIsVisible(true), 1500);
       return () => clearTimeout(timer);
     }
-  }, []);
+  }, [loading, user]);
 
   const updateRect = useCallback(() => {
     if (!isVisible) return;
