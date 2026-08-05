@@ -223,7 +223,7 @@ export const AppTour = () => {
   }
 
   return (
-    <div className="fixed inset-0 z-[9999] pointer-events-auto">
+    <div className="fixed inset-0 z-[9999] pointer-events-none">
       {/* Overlay Background */}
       <motion.div 
         initial={{ opacity: 0 }}
@@ -231,7 +231,7 @@ export const AppTour = () => {
         exit={{ opacity: 0 }}
         className="absolute inset-0 pointer-events-none"
       >
-        <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" className="pointer-events-auto">
+        <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" className="pointer-events-none">
           <defs>
             <mask id="tour-mask">
               <rect width="100%" height="100%" fill="white" />
@@ -260,6 +260,32 @@ export const AppTour = () => {
         </svg>
       </motion.div>
 
+      {/* Invisible click blockers around the cutout */}
+      {targetRect && (
+        <>
+          <motion.div 
+            className="absolute top-0 left-0 right-0 pointer-events-auto" 
+            animate={{ height: cutoutStyle.top }} 
+            transition={{ type: "spring", stiffness: 100, damping: 20 }}
+          />
+          <motion.div 
+            className="absolute bottom-0 left-0 right-0 pointer-events-auto" 
+            animate={{ top: cutoutStyle.top + cutoutStyle.height }} 
+            transition={{ type: "spring", stiffness: 100, damping: 20 }}
+          />
+          <motion.div 
+            className="absolute left-0 pointer-events-auto" 
+            animate={{ top: cutoutStyle.top, height: cutoutStyle.height, width: cutoutStyle.left }} 
+            transition={{ type: "spring", stiffness: 100, damping: 20 }}
+          />
+          <motion.div 
+            className="absolute right-0 pointer-events-auto" 
+            animate={{ top: cutoutStyle.top, height: cutoutStyle.height, left: cutoutStyle.left + cutoutStyle.width }} 
+            transition={{ type: "spring", stiffness: 100, damping: 20 }}
+          />
+        </>
+      )}
+
       {/* Pop-up Dialog */}
       <AnimatePresence mode="wait">
         <motion.div
@@ -268,7 +294,7 @@ export const AppTour = () => {
           animate={animateAnim}
           exit={exitAnim}
           transition={{ type: "spring", stiffness: 200, damping: 20 }}
-          className="absolute w-[92%] max-w-[300px] sm:max-w-[340px] bg-white rounded-[28px] sm:rounded-[32px] p-5 sm:p-6 shadow-2xl border border-black/5 flex flex-col items-center text-center z-10"
+          className="absolute w-[92%] max-w-[300px] sm:max-w-[340px] bg-white rounded-[28px] sm:rounded-[32px] p-5 sm:p-6 shadow-2xl border border-black/5 flex flex-col items-center text-center z-10 pointer-events-auto"
           style={tooltipStyle}
         >
           <div className="flex gap-1.5 mb-6">
