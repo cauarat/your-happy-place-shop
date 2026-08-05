@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import ProductTour from "@/components/ProductTour";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { getProducts, getDesignSettings } from "@/lib/store";
 import type { Product } from "@/data/products";
@@ -59,7 +60,7 @@ const ProductDetail = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr_1fr] gap-10 md:gap-16 items-start">
           {/* Left Column: Description */}
-          <div className="order-3 lg:order-none space-y-8 lg:sticky lg:top-32 h-fit mt-4 lg:mt-0">
+          <div data-tour="product-description" className="order-3 lg:order-none space-y-8 lg:sticky lg:top-32 h-fit mt-4 lg:mt-0">
             <div className="space-y-6 text-sm leading-relaxed text-foreground/80">
               <p className="font-medium uppercase text-[10px] tracking-widest text-muted-foreground">{t('description')}</p>
               <div className="whitespace-pre-wrap">
@@ -88,7 +89,7 @@ const ProductDetail = () => {
           </div>
 
           {/* Right Column: Checkout */}
-          <div className="order-2 lg:order-none space-y-8 md:space-y-10 lg:sticky lg:top-1/2 lg:-translate-y-1/2 h-fit">
+          <div data-tour="product-checkout" className="order-2 lg:order-none space-y-8 md:space-y-10 lg:sticky lg:top-1/2 lg:-translate-y-1/2 h-fit">
             {getDesignSettings().showPrices !== false && (
               <div>
                 <div className="flex flex-col gap-1 mb-6">
@@ -178,6 +179,7 @@ const ProductDetail = () => {
 
       <MobileBottomDock />
       <Footer />
+      <ProductTour />
     </div>
   );
 };
