@@ -47,7 +47,7 @@ export const AppTour = () => {
           rect.right <= (window.innerWidth || document.documentElement.clientWidth)
         );
 
-        if (!isVisibleInViewport) {
+        if (!isVisibleInViewport || currentStep > 0) {
            targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
       } else {
@@ -99,15 +99,27 @@ export const AppTour = () => {
   };
 
   // Determine tooltip placement based on target position
-  const isTopHalf = targetRect ? targetRect.top < window.innerHeight / 2 : true;
+  const tooltipHeight = 260; // Approximate height
+  const spaceAbove = targetRect ? targetRect.top : 0;
   
-  const tooltipStyle = targetRect ? (isTopHalf ? {
-    top: targetRect.bottom + padding + 24,
-    left: '50%',
+  // Try to place above if there's space, else below
+  const placeBelow = targetRect ? spaceAbove < tooltipHeight + 30 : true;
+  
+  // Horizontal alignment: Center with the target, but keep within screen bounds
+  let leftPos: string | number = '50%';
+  if (targetRect) {
+    const targetCenter = targetRect.left + targetRect.width / 2;
+    const halfWidth = window.innerWidth < 640 ? 150 : 170; // Half of max-w
+    leftPos = Math.max(halfWidth + 10, Math.min(targetCenter, window.innerWidth - halfWidth - 10));
+  }
+  
+  const tooltipStyle = targetRect ? (placeBelow ? {
+    top: targetRect.bottom + padding + 16,
+    left: leftPos,
     transform: 'translateX(-50%)'
   } : {
-    bottom: (window.innerHeight - targetRect.top) + padding + 24,
-    left: '50%',
+    bottom: (window.innerHeight - targetRect.top) + padding + 16,
+    left: leftPos,
     transform: 'translateX(-50%)'
   }) : {
     top: '50%',
@@ -157,11 +169,11 @@ export const AppTour = () => {
       <AnimatePresence mode="wait">
         <motion.div
           key={currentStep}
-          initial={{ opacity: 0, y: isTopHalf ? -20 : 20, x: "-50%", scale: 0.95 }}
+          initial={{ opacity: 0, y: placeBelow ? -20 : 20, x: "-50%", scale: 0.95 }}
           animate={{ opacity: 1, y: 0, x: "-50%", scale: 1 }}
-          exit={{ opacity: 0, y: isTopHalf ? 20 : -20, x: "-50%", scale: 0.95 }}
+          exit={{ opacity: 0, y: placeBelow ? 20 : -20, x: "-50%", scale: 0.95 }}
           transition={{ type: "spring", stiffness: 200, damping: 20 }}
-          className="absolute w-[90%] max-w-[340px] bg-white rounded-[32px] p-6 shadow-2xl border border-black/5 flex flex-col items-center text-center z-10"
+          className="absolute w-[92%] max-w-[300px] sm:max-w-[340px] bg-white rounded-[28px] sm:rounded-[32px] p-5 sm:p-6 shadow-2xl border border-black/5 flex flex-col items-center text-center z-10"
           style={tooltipStyle}
         >
           <div className="flex gap-1.5 mb-6">
