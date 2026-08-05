@@ -73,7 +73,7 @@ const ProductCard = ({ product, index, isFeatured }: { product: Product, index?:
             </motion.div>
             
             <AnimatePresence>
-              {totalQuantity > 1 && (
+              {totalQuantity > 0 && (
                 <motion.div 
                   initial={{ scale: 0, opacity: 0 }} 
                   animate={{ scale: 1, opacity: 1 }} 
