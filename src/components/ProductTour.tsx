@@ -202,14 +202,20 @@ export const ProductTour = ({ onStepChange }: ProductTourProps = {}) => {
         transform: 'translateY(-50%)'
       };
     } else if (placement === 'bottom') {
+      const desiredTop = targetRect.bottom + padding + 16;
+      const maxTop = window.innerHeight - tooltipHeight - 24; // 24px bottom margin
+      
       tooltipStyle = {
-        top: targetRect.bottom + padding + 16,
+        top: !isDesktop ? Math.min(desiredTop, maxTop) : desiredTop,
         left: leftPos,
         transform: 'translateX(-50%)'
       };
     } else if (placement === 'top') {
+      const desiredBottom = (window.innerHeight - targetRect.top) + padding + 16;
+      const maxBottom = window.innerHeight - tooltipHeight - 24; // 24px top margin
+      
       tooltipStyle = {
-        bottom: (window.innerHeight - targetRect.top) + padding + 16,
+        bottom: !isDesktop ? Math.min(desiredBottom, maxBottom) : desiredBottom,
         left: leftPos,
         transform: 'translateX(-50%)'
       };
