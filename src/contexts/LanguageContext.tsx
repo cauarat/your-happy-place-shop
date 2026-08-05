@@ -85,7 +85,7 @@ const translations: Record<Language, Record<string, string>> = {
     quantity: "Quantity",
     add_to_bag: "Add to Bag",
     add_to_favorites: "Add to Favorites",
-    added_to_favorites: "Added to Favorites",
+    added_to_favorites: "Go to favorites",
     proceed_to_checkout: "Proceed to Checkout",
     free_shipping: "Free shipping on orders over $100.",
     // Search bar
@@ -308,7 +308,7 @@ const translations: Record<Language, Record<string, string>> = {
     quantity: "Quantidade",
     add_to_bag: "Adicionar à Sacola",
     add_to_favorites: "Adicionar aos Favoritos",
-    added_to_favorites: "Adicionado aos Favoritos",
+    added_to_favorites: "Ir aos favoritos",
     proceed_to_checkout: "Proceder para o Checkout",
     free_shipping: "Frete grátis em pedidos acima de $100.",
     // Search bar
@@ -531,7 +531,7 @@ const translations: Record<Language, Record<string, string>> = {
     quantity: "Cantidad",
     add_to_bag: "Añadir a la Bolsa",
     add_to_favorites: "Añadir a Favoritos",
-    added_to_favorites: "Añadido a Favoritos",
+    added_to_favorites: "Ir a favoritos",
     proceed_to_checkout: "Proceder al Checkout",
     free_shipping: "Envío gratis en pedidos superiores a $100.",
     // Search bar
