@@ -32,7 +32,11 @@ const ProductCard = ({ product, index, isFeatured }: { product: Product, index?:
   };
 
   return (
-    <Link to={`/product/${product.id}`} className="group block w-full select-none">
+    <Link 
+      to={`/product/${product.id}`} 
+      className="group block w-full select-none"
+      data-tour={index === 0 ? "product-card" : undefined}
+    >
       <div className={`relative bg-white overflow-hidden rounded-2xl flex items-center justify-center ${isFeatured ? 'w-full h-auto aspect-auto' : 'aspect-[4/5]'}`}>
         <img 
           src={product.image} 

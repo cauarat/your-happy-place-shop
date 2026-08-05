@@ -12,6 +12,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import type { Product } from "@/data/products";
 import ImmersiveAi from "@/components/ImmersiveAi";
 import TryTheLook from "@/components/TryTheLook";
+import AppTour from "@/components/AppTour";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Newspaper, ChevronDown, SlidersHorizontal, Package, MessageSquare, Send, CheckCircle } from "lucide-react";
 
@@ -711,6 +712,7 @@ const Index = () => {
         <div className="bg-[#f2f2f6]/70 backdrop-blur-[32px] saturate-[180%] rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.12),0_2px_8px_rgba(0,0,0,0.06),inset_0_1px_1px_rgba(255,255,255,0.8)] overflow-hidden pointer-events-auto border border-white/20 mx-3 max-w-[100vw]">
           <div
             ref={bottomScrollRef}
+            data-tour="category-scroll"
             className="overflow-x-auto no-scrollbar flex items-center px-1.5 py-1.5 gap-0"
           >
             {/* All / Filter */}
@@ -841,6 +843,7 @@ const Index = () => {
         </div>
       </div>
 
+      <AppTour />
       <Footer />
     </div>
   );
