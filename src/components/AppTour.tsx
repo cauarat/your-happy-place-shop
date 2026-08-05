@@ -167,6 +167,11 @@ export const AppTour = () => {
     const spaceRight = window.innerWidth - targetRect.right;
     const spaceLeft = targetRect.left;
     
+    // For Product Card (step 1) on mobile, force top placement so it doesn't overlap the shoe
+    if (!isDesktop && currentStep === 1) {
+      placement = 'top';
+    }
+    
     // For Product Card (step 1) on Desktop, try to place it to the side
     if (isDesktop && currentStep === 1) {
       if (spaceRight >= tooltipWidth + 24) {
