@@ -98,18 +98,44 @@ export const AppTour = () => {
   const currentStepData = steps[currentStep];
 
   const padding = 12;
-  const cutoutStyle = targetRect ? {
-    top: targetRect.top - padding,
-    left: targetRect.left - padding,
-    width: targetRect.width + padding * 2,
-    height: targetRect.height + padding * 2,
-    borderRadius: 24,
-  } : {
-    top: window.innerHeight / 2,
-    left: window.innerWidth / 2,
-    width: 0,
-    height: 0,
-    borderRadius: 0,
+  const margin = 12; // Minimum margin from screen edge
+
+  let cutoutTop = window.innerHeight / 2;
+  let cutoutLeft = window.innerWidth / 2;
+  let cutoutWidth = 0;
+  let cutoutHeight = 0;
+  let cutoutRadius = 0;
+
+  if (targetRect) {
+    cutoutTop = targetRect.top - padding;
+    cutoutLeft = targetRect.left - padding;
+    cutoutWidth = targetRect.width + padding * 2;
+    cutoutHeight = targetRect.height + padding * 2;
+    cutoutRadius = 24;
+
+    // Constrain to screen boundaries to avoid overflowing
+    if (cutoutLeft < margin) {
+      cutoutWidth -= (margin - cutoutLeft);
+      cutoutLeft = margin;
+    }
+    if (cutoutLeft + cutoutWidth > window.innerWidth - margin) {
+      cutoutWidth = window.innerWidth - margin - cutoutLeft;
+    }
+    if (cutoutTop < margin) {
+      cutoutHeight -= (margin - cutoutTop);
+      cutoutTop = margin;
+    }
+    if (cutoutTop + cutoutHeight > window.innerHeight - margin) {
+      cutoutHeight = window.innerHeight - margin - cutoutTop;
+    }
+  }
+
+  const cutoutStyle = {
+    top: cutoutTop,
+    left: cutoutLeft,
+    width: cutoutWidth,
+    height: cutoutHeight,
+    borderRadius: cutoutRadius,
   };
 
   // Determine tooltip placement based on target position
