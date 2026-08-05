@@ -100,6 +100,7 @@ export const AppTour = () => {
 
   // Determine tooltip placement based on target position
   const tooltipHeight = 260; // Approximate height
+  const tooltipWidth = 340;
   const spaceAbove = targetRect ? targetRect.top : 0;
   
   // Try to place above if there's space, else below
@@ -113,19 +114,69 @@ export const AppTour = () => {
     leftPos = Math.max(halfWidth + 10, Math.min(targetCenter, window.innerWidth - halfWidth - 10));
   }
   
-  const tooltipStyle = targetRect ? (placeBelow ? {
-    top: targetRect.bottom + padding + 16,
-    left: leftPos,
-    transform: 'translateX(-50%)'
-  } : {
-    bottom: (window.innerHeight - targetRect.top) + padding + 16,
-    left: leftPos,
-    transform: 'translateX(-50%)'
-  }) : {
+  type Placement = 'top' | 'bottom' | 'left' | 'right';
+  let placement: Placement = placeBelow ? 'bottom' : 'top';
+  let tooltipStyle: React.CSSProperties = {
     top: '50%',
     left: '50%',
     transform: 'translate(-50%, -50%)'
   };
+
+  if (targetRect) {
+    const isDesktop = window.innerWidth >= 768;
+    const spaceRight = window.innerWidth - targetRect.right;
+    const spaceLeft = targetRect.left;
+    
+    // For Product Card (step 1) on Desktop, try to place it to the side
+    if (isDesktop && currentStep === 1) {
+      if (spaceRight >= tooltipWidth + 24) {
+        placement = 'right';
+      } else if (spaceLeft >= tooltipWidth + 24) {
+        placement = 'left';
+      }
+    }
+
+    if (placement === 'right') {
+      tooltipStyle = {
+        top: targetRect.top + targetRect.height / 2,
+        left: targetRect.right + padding + 24,
+      };
+    } else if (placement === 'left') {
+      tooltipStyle = {
+        top: targetRect.top + targetRect.height / 2,
+        right: window.innerWidth - targetRect.left + padding + 24,
+      };
+    } else if (placement === 'bottom') {
+      tooltipStyle = {
+        top: targetRect.bottom + padding + 16,
+        left: leftPos,
+      };
+    } else if (placement === 'top') {
+      tooltipStyle = {
+        bottom: (window.innerHeight - targetRect.top) + padding + 16,
+        left: leftPos,
+      };
+    }
+  }
+
+  // Animation values based on placement
+  let initialAnim = { opacity: 0, scale: 0.95, x: "-50%", y: -20 };
+  let animateAnim = { opacity: 1, scale: 1, x: "-50%", y: 0 };
+  let exitAnim = { opacity: 0, scale: 0.95, x: "-50%", y: 20 };
+
+  if (placement === 'top') {
+    initialAnim = { opacity: 0, scale: 0.95, x: "-50%", y: 20 };
+    animateAnim = { opacity: 1, scale: 1, x: "-50%", y: 0 };
+    exitAnim = { opacity: 0, scale: 0.95, x: "-50%", y: -20 };
+  } else if (placement === 'right') {
+    initialAnim = { opacity: 0, scale: 0.95, x: -20, y: "-50%" };
+    animateAnim = { opacity: 1, scale: 1, x: 0, y: "-50%" };
+    exitAnim = { opacity: 0, scale: 0.95, x: -20, y: "-50%" };
+  } else if (placement === 'left') {
+    initialAnim = { opacity: 0, scale: 0.95, x: 20, y: "-50%" };
+    animateAnim = { opacity: 1, scale: 1, x: 0, y: "-50%" };
+    exitAnim = { opacity: 0, scale: 0.95, x: 20, y: "-50%" };
+  }
 
   return (
     <div className="fixed inset-0 z-[9999] pointer-events-auto">
@@ -169,9 +220,9 @@ export const AppTour = () => {
       <AnimatePresence mode="wait">
         <motion.div
           key={currentStep}
-          initial={{ opacity: 0, y: placeBelow ? -20 : 20, x: "-50%", scale: 0.95 }}
-          animate={{ opacity: 1, y: 0, x: "-50%", scale: 1 }}
-          exit={{ opacity: 0, y: placeBelow ? 20 : -20, x: "-50%", scale: 0.95 }}
+          initial={initialAnim}
+          animate={animateAnim}
+          exit={exitAnim}
           transition={{ type: "spring", stiffness: 200, damping: 20 }}
           className="absolute w-[92%] max-w-[300px] sm:max-w-[340px] bg-white rounded-[28px] sm:rounded-[32px] p-5 sm:p-6 shadow-2xl border border-black/5 flex flex-col items-center text-center z-10"
           style={tooltipStyle}
