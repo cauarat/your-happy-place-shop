@@ -114,6 +114,17 @@ export const SweaterIcon = ({ size = 24, strokeWidth = 2, ...props }) => (
   </svg>
 );
 
+export const CosmoColorIcon = ({ size = 24, className = "", ...props }: { size?: number | string, className?: string } & React.SVGProps<SVGSVGElement>) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={className} {...props}>
+    <circle cx="12" cy="6" r="2.5" fill="#EF4444" />
+    <circle cx="17.2" cy="9" r="2.5" fill="#F97316" />
+    <circle cx="17.2" cy="15" r="2.5" fill="#EAB308" />
+    <circle cx="12" cy="18" r="2.5" fill="#22C55E" />
+    <circle cx="6.8" cy="15" r="2.5" fill="#3B82F6" />
+    <circle cx="6.8" cy="9" r="2.5" fill="#A855F7" />
+  </svg>
+);
+
 export const ColorPaletteIcon = ({ size = 24, strokeWidth = 2, ...props }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" {...props}>
     {/* Dots with different colors */}
