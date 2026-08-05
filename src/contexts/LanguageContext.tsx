@@ -168,8 +168,8 @@ const translations: Record<Language, Record<string, string>> = {
     // Onboarding
     onboarding_luxury: "Luxury curation. Restricted access.",
     onboarding_request_access: "Request Access",
-    onboarding_take_quick_tour: "Take a quick tour",
-    onboarding_already_member: "I'm already a member",
+    onboarding_take_quick_tour: "Take a quick tour 💫",
+    onboarding_already_member: "I'm already a member ♟️",
     onboarding_first_name_title: "Enter your first name",
     onboarding_first_name_desc: "This will be used to personalize your curation.",
     onboarding_first_name_placeholder: "First name",
@@ -391,8 +391,8 @@ const translations: Record<Language, Record<string, string>> = {
     // Onboarding
     onboarding_luxury: "Curadoria de luxo. Acesso restrito.",
     onboarding_request_access: "Solicitar Acesso",
-    onboarding_take_quick_tour: "Fazer um tour rápido",
-    onboarding_already_member: "Já sou membro",
+    onboarding_take_quick_tour: "Fazer um tour rápido 💫",
+    onboarding_already_member: "Já sou um membro ♟️",
     onboarding_first_name_title: "Insira seu primeiro nome",
     onboarding_first_name_desc: "Isso será usado para personalizar sua curadoria.",
     onboarding_first_name_placeholder: "Primeiro nome",
@@ -614,8 +614,8 @@ const translations: Record<Language, Record<string, string>> = {
     // Onboarding
     onboarding_luxury: "Curaduría de lujo. Acceso restringido.",
     onboarding_request_access: "Solicitar Acceso",
-    onboarding_take_quick_tour: "Hacer un recorrido rápido",
-    onboarding_already_member: "Ya soy miembro",
+    onboarding_take_quick_tour: "Hacer un recorrido rápido 💫",
+    onboarding_already_member: "Ya soy un miembro ♟️",
     onboarding_first_name_title: "Ingresa tu primer nombre",
     onboarding_first_name_desc: "Esto se usará para personalizar tu curaduría.",
     onboarding_first_name_placeholder: "Primer nombre",
