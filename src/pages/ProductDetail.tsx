@@ -179,7 +179,12 @@ const ProductDetail = () => {
 
       <MobileBottomDock />
       <Footer />
-      <ProductTour />
+      <ProductTour onStepChange={(step) => {
+        if (step === 1 && !isFavorited) {
+          addToCart(product, quantity, selectedSize);
+          setIsFavorited(true);
+        }
+      }} />
     </div>
   );
 };

@@ -15,7 +15,11 @@ const steps: TourStep[] = [
   { target: '[data-tour="product-checkout"]', titleKey: 'product_tour_step2_title', descKey: 'product_tour_step2_desc' },
 ];
 
-export const ProductTour = () => {
+interface ProductTourProps {
+  onStepChange?: (step: number) => void;
+}
+
+export const ProductTour = ({ onStepChange }: ProductTourProps = {}) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
   const [isVisible, setIsVisible] = useState(false);
@@ -41,6 +45,12 @@ export const ProductTour = () => {
       return () => clearTimeout(timer);
     }
   }, [loading, user]);
+
+  useEffect(() => {
+    if (isVisible && onStepChange) {
+      onStepChange(currentStep);
+    }
+  }, [currentStep, isVisible, onStepChange]);
 
   const updateRect = useCallback(() => {
     if (!isVisible) return;
