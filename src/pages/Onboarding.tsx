@@ -328,17 +328,7 @@ const Onboarding = () => {
           </div>
         </motion.div>
 
-        {/* Tip Box */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.65, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-          className="w-full mt-6 bg-amber-50/40 rounded-2xl p-4 border border-amber-100/60"
-        >
-          <p className="text-[12.5px] leading-relaxed text-amber-900/70 font-medium">
-            {t('install_app_tip')}
-          </p>
-        </motion.div>
+
 
       </div>
 
