@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Sparkles, X, Heart, UserPlus, Palette, Check, SlidersHorizontal } from "lucide-react";
+import { Sparkles, X, Heart, UserPlus, Check, SlidersHorizontal } from "lucide-react";
+import { ColorPaletteIcon } from "./Icons";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSearch } from "@/contexts/SearchContext";
@@ -377,7 +378,7 @@ const Header = () => {
                 style={{ backgroundColor: colors.find(c => c.name === selectedColor)?.hex }}
               />
             ) : (
-              <Palette size={14} className="text-[rgba(60,60,67,0.6)]" />
+              <ColorPaletteIcon size={14} className="text-[rgba(60,60,67,0.6)]" />
             )}
           </button>
 

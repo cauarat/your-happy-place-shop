@@ -113,3 +113,15 @@ export const SweaterIcon = ({ size = 24, strokeWidth = 2, ...props }) => (
     <path d="M5 19v2h14v-2" />
   </svg>
 );
+
+export const ColorPaletteIcon = ({ size = 24, strokeWidth = 2, ...props }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" {...props}>
+    {/* Dots with different colors */}
+    <circle cx="13.5" cy="6.5" r="1.5" fill="#ef4444" stroke="none" />
+    <circle cx="17.5" cy="10.5" r="1.5" fill="#3b82f6" stroke="none" />
+    <circle cx="8.5" cy="7.5" r="1.5" fill="#eab308" stroke="none" />
+    <circle cx="6.5" cy="12.5" r="1.5" fill="#22c55e" stroke="none" />
+    {/* Palette outline */}
+    <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.836-.437-1.124-.294-.312-.507-.754-.507-1.213 0-.912.755-1.65 1.656-1.65h1.974C20.463 16.325 22 14.57 22 12c0-5.5-4.5-10-10-10z" />
+  </svg>
+);
