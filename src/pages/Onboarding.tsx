@@ -315,10 +315,15 @@ const Onboarding = () => {
               <p className="text-[14.5px] font-semibold text-zinc-800 mb-1 tracking-tight">{t('install_step3_title')}</p>
               <p className="text-[13px] text-zinc-500 leading-relaxed pr-2">{t('install_step3_desc')}</p>
             </div>
-            <div className="shrink-0 mt-1 bg-green-50 p-2 rounded-xl border border-green-100/50 text-green-500">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
+            <div className="shrink-0 flex items-center gap-3 mt-1">
+              <div className="flex flex-col items-center">
+                <img src="/apple-touch-icon.png" alt="Villaoro" className="w-10 h-10 rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.08)] border border-black/5" />
+              </div>
+              <div className="bg-green-50 p-2 rounded-xl border border-green-100/50 text-green-500">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              </div>
             </div>
           </div>
         </motion.div>
