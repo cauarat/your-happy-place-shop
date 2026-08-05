@@ -139,7 +139,7 @@ const ProductDetail = () => {
                   setIsFavorited(true);
                 }
               }}
-              className={`w-full h-14 rounded-full uppercase text-[11px] font-bold tracking-[0.2em] flex items-center justify-center transition-all duration-1000 relative overflow-hidden ${
+              className={`w-full h-14 rounded-full uppercase text-[11px] font-bold tracking-[0.2em] flex items-center justify-center transition-all duration-500 relative overflow-hidden ${
                 isFavorited 
                   ? 'bg-red-500 text-white shadow-[0_0_20px_rgba(239,68,68,0.4)]' 
                   : 'bg-primary text-primary-foreground hover:opacity-90'
@@ -152,7 +152,7 @@ const ProductDetail = () => {
                     initial={{ y: 20, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     exit={{ y: -20, opacity: 0 }}
-                    transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                    transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
                     className="flex items-center gap-2"
                   >
                     <Heart className="w-4 h-4 fill-current" />
@@ -164,7 +164,7 @@ const ProductDetail = () => {
                     initial={{ y: 20, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     exit={{ y: -20, opacity: 0 }}
-                    transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                    transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
                     className="flex items-center gap-2"
                   >
                     <Heart className="w-4 h-4" />
@@ -185,7 +185,7 @@ const ProductDetail = () => {
           setTimeout(() => {
             addToCart(product, quantity, selectedSize);
             setIsFavorited(true);
-          }, 1200);
+          }, 700);
         }
       }} />
     </div>
