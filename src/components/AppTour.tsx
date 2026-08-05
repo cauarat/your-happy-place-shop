@@ -180,21 +180,25 @@ export const AppTour = () => {
       tooltipStyle = {
         top: targetRect.top + targetRect.height / 2,
         left: targetRect.right + padding + 24,
+        transform: 'translateY(-50%)'
       };
     } else if (placement === 'left') {
       tooltipStyle = {
         top: targetRect.top + targetRect.height / 2,
         right: window.innerWidth - targetRect.left + padding + 24,
+        transform: 'translateY(-50%)'
       };
     } else if (placement === 'bottom') {
       tooltipStyle = {
         top: targetRect.bottom + padding + 16,
         left: leftPos,
+        transform: 'translateX(-50%)'
       };
     } else if (placement === 'top') {
       tooltipStyle = {
         bottom: (window.innerHeight - targetRect.top) + padding + 16,
         left: leftPos,
+        transform: 'translateX(-50%)'
       };
     }
   }

@@ -166,11 +166,15 @@ export const ProductTour = () => {
     const spaceRight = window.innerWidth - targetRect.right;
     const spaceLeft = targetRect.left;
     
-    // For Product Card (step 1) on Desktop, try to place it to the side
-    if (isDesktop && currentStep === 1) {
+    // For Product Description (step 0) on Desktop, try to place it to the right
+    if (isDesktop && currentStep === 0) {
       if (spaceRight >= tooltipWidth + 24) {
         placement = 'right';
-      } else if (spaceLeft >= tooltipWidth + 24) {
+      }
+    }
+    // For Checkout (step 1) on Desktop, try to place it to the left
+    else if (isDesktop && currentStep === 1) {
+      if (spaceLeft >= tooltipWidth + 24) {
         placement = 'left';
       }
     }
@@ -179,21 +183,25 @@ export const ProductTour = () => {
       tooltipStyle = {
         top: targetRect.top + targetRect.height / 2,
         left: targetRect.right + padding + 24,
+        transform: 'translateY(-50%)'
       };
     } else if (placement === 'left') {
       tooltipStyle = {
         top: targetRect.top + targetRect.height / 2,
         right: window.innerWidth - targetRect.left + padding + 24,
+        transform: 'translateY(-50%)'
       };
     } else if (placement === 'bottom') {
       tooltipStyle = {
         top: targetRect.bottom + padding + 16,
         left: leftPos,
+        transform: 'translateX(-50%)'
       };
     } else if (placement === 'top') {
       tooltipStyle = {
         bottom: (window.innerHeight - targetRect.top) + padding + 16,
         left: leftPos,
+        transform: 'translateX(-50%)'
       };
     }
   }
