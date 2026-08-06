@@ -5,7 +5,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { getProducts } from "@/lib/store";
 import type { Product } from "@/data/products";
 import { Lock, ArrowLeft } from "lucide-react";
-import MobileBottomDock from "@/components/MobileBottomDock";
+import CartTour from "@/components/CartTour";
 
 const Cart = () => {
   const { t } = useLanguage();
@@ -34,14 +34,14 @@ const Cart = () => {
       
       <main className="flex-1 w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 pt-16 pb-[112px] xl:pb-24">
         
-        <div className="flex flex-col lg:flex-row gap-16 lg:gap-24 items-start">
+        <div className="flex flex-col lg:flex-row gap-12 lg:gap-16 items-start">
           
-          {/* Left Column: Shopping Bag */}
+          {/* Shopping Bag (Left Column) */}
           <div className="flex-[2] w-full">
-            <h1 className="text-[11px] font-bold tracking-widest uppercase mb-12">{t('shopping_bag')}</h1>
+            <h1 className="text-[11px] font-bold tracking-widest uppercase mb-8">{t('shopping_bag')}</h1>
             
             {items.length === 0 ? (
-              <div className="border-t border-[#e5e5e5] pt-8">
+              <div className="border-t border-[#e5e5e5] pt-8 text-center">
                 <p className="text-sm">{t('bag_empty')}</p>
                 <Link to="/" className="text-xs underline mt-4 inline-block hover:opacity-70">
                   {t('continue_shopping')}
@@ -56,11 +56,11 @@ const Cart = () => {
                 </div>
 
                 {/* Items List */}
-                <div className="space-y-6">
+                <div data-tour="cart-items" className="space-y-6">
                   {items.map((item) => (
-                    <div key={item.id} className="flex gap-6 border-b border-[#e5e5e5] pb-6">
+                    <div key={item.id} className="flex gap-6 border border-[#e5e5e5] p-6 rounded-[24px] bg-white shadow-sm transition-shadow hover:shadow-md">
                       {/* Image */}
-                      <Link to={item.product?.id ? `/product/${item.product.id}` : '#'} className="w-24 h-32 shrink-0 bg-[#f8f8f8] flex items-center justify-center overflow-hidden">
+                      <Link to={item.product?.id ? `/product/${item.product.id}` : '#'} className="w-24 h-32 shrink-0 bg-[#f8f8f8] rounded-xl flex items-center justify-center overflow-hidden">
                         <img 
                           src={item.product?.image} 
                           alt={item.product?.name} 
@@ -99,64 +99,52 @@ const Cart = () => {
                   ))}
                 </div>
 
-                {/* Totals Summary */}
-                <div className="flex justify-end pt-8">
-                  <div className="w-full max-w-[320px] text-xs">
-                    <div className="flex justify-between mb-3">
-                      <span className="text-[#555]">{t('total')}</span>
-                      <span>${cartTotal.toFixed(2)} USD</span>
-                    </div>
-                    <div className="flex justify-between mb-3">
-                      <span className="text-[#555]">{t('shipping_estimate')}</span>
-                      <span className="text-[#777]">{t('calculated_at_checkout')}</span>
-                    </div>
-                    <div className="flex justify-between mb-8">
-                      <span className="text-[#555]">{t('duties_and_taxes')}</span>
-                      <span className="text-[#777]">{t('included')}</span>
-                    </div>
-                    <div className="flex justify-between font-bold text-sm">
-                      <span>{t('order_total')}</span>
-                      <span>${cartTotal.toFixed(2)} USD</span>
-                    </div>
-                  </div>
-                </div>
               </div>
             )}
           </div>
 
-          {/* Right Column: Checkout */}
-          <div className="flex-1 w-full lg:max-w-[400px]">
-            <h2 className="text-[11px] font-bold tracking-widest uppercase mb-12">{t('checkout')}</h2>
-            
-            <div className="space-y-6">
-              <p className="text-[11px] text-[#333]">
-                {t('checkout_email_prompt')}
-              </p>
+          {/* Checkout Section (Right Column) */}
+          {items.length > 0 && (
+            <div data-tour="cart-checkout" className="flex-1 w-full lg:max-w-[400px] sticky top-24 border border-[#e5e5e5] bg-[#fafafa] p-8 mt-12 lg:mt-0 rounded-[32px] shadow-sm">
+              <h2 className="text-[11px] font-bold tracking-widest uppercase mb-8">{t('order_summary')}</h2>
               
-              <div className="space-y-2">
-                <label htmlFor="email" className="block text-[11px] text-[#333]">{t('email_address')}</label>
-                <input 
-                  id="email" 
-                  type="email" 
-                  className="w-full border border-[#ccc] focus:border-black outline-none px-3 py-2 text-sm transition-colors bg-[#fdfdfd]"
-                />
-              </div>
+              <div className="w-full space-y-6">
+                {/* Totals Summary */}
+                <div className="w-full text-xs">
+                  <div className="flex justify-between mb-3">
+                    <span className="text-[#555]">{t('total')}</span>
+                    <span>${cartTotal.toFixed(2)} USD</span>
+                  </div>
+                  <div className="flex justify-between mb-3">
+                    <span className="text-[#555]">{t('shipping_estimate')}</span>
+                    <span className="text-[#777]">{t('calculated_at_checkout')}</span>
+                  </div>
+                  <div className="flex justify-between mb-8">
+                    <span className="text-[#555]">{t('duties_and_taxes')}</span>
+                    <span className="text-[#777]">{t('included')}</span>
+                  </div>
+                  <div className="flex justify-between font-bold text-sm mb-8">
+                    <span>{t('order_total')}</span>
+                    <span>${cartTotal.toFixed(2)} USD</span>
+                  </div>
+                </div>
 
-              <button 
-                onClick={() => navigate('/checkout')}
-                disabled={items.length === 0}
-                className="w-full bg-black text-white h-[50px] text-[11px] font-bold tracking-widest uppercase hover:bg-[#222] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {t('proceed_to_checkout')}
-              </button>
+                <button 
+                  onClick={() => navigate('/checkout')}
+                  disabled={items.length === 0}
+                  className="proceed-to-checkout-btn w-full bg-black text-white h-[54px] rounded-full text-[11px] font-bold tracking-widest uppercase hover:bg-[#222] hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+                >
+                  {t('proceed_to_checkout')}
+                </button>
+              </div>
             </div>
-          </div>
+          )}
           
         </div>
 
         {/* Popular Items Section */}
         {popularItems.length > 0 && (
-          <div className="mt-32">
+          <div data-tour="cart-popular" className="popular-items-section mt-32">
             <h3 className="text-[11px] font-bold tracking-widest uppercase mb-8">{t('add_popular_items')}</h3>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 lg:gap-8">
               {popularItems.map((prod) => (
@@ -229,7 +217,7 @@ const Cart = () => {
           </div>
         </div>
       </footer>
-      <MobileBottomDock />
+      <CartTour />
     </div>
   );
 };

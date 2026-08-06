@@ -4,8 +4,8 @@ import { useCart } from "@/contexts/CartContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Lock } from "lucide-react";
 import { toast } from "sonner";
-import MobileBottomDock from "@/components/MobileBottomDock";
 import { saveOrder, Order } from "@/lib/store";
+import CheckoutTour from "@/components/CheckoutTour";
 import { supabase } from "@/integrations/supabase/client";
 
 const Checkout = () => {
@@ -87,8 +87,8 @@ const Checkout = () => {
     }
   };
 
-  const inputClasses = "w-full border border-[#e5e5e5] rounded-none px-4 py-3 text-sm focus:border-black focus:outline-none transition-colors bg-white";
-  const labelClasses = "block text-[10px] font-bold tracking-widest uppercase text-[#555] mb-2";
+  const inputClasses = "w-full border border-[#e5e5e5] rounded-2xl px-4 py-3 text-sm focus:border-black focus:outline-none transition-colors bg-white shadow-sm";
+  const labelClasses = "block text-[10px] font-bold tracking-widest uppercase text-[#555] mb-2 pl-1";
   const sectionTitleClasses = "text-[11px] font-bold tracking-widest uppercase mb-6 text-black";
   const dividerClasses = "border-t border-[#e5e5e5] my-10";
 
@@ -108,13 +108,17 @@ const Checkout = () => {
           
           {/* Left Column (65%) - Forms */}
           <div className="w-full lg:flex-[65%]">
-            <h1 className="text-[10px] font-bold tracking-widest uppercase mb-8">{t('checkout')}</h1>
+            <h1 className="text-[10px] font-bold tracking-widest uppercase mb-8 flex items-center gap-2">
+              {t('checkout')} <span className="text-sm">✅</span>
+            </h1>
             
             <div className={dividerClasses} />
 
             {/* Shipping Address */}
-            <section>
-              <h2 className={sectionTitleClasses}>{t('shipping_address')}</h2>
+            <section data-tour="checkout-address">
+              <h2 className={`${sectionTitleClasses} flex items-center gap-2`}>
+                {t('shipping_address')} <span className="text-sm">📫</span>
+              </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
                 <div>
                   <label className={labelClasses}>{t('first_name')}</label>
@@ -188,7 +192,7 @@ const Checkout = () => {
             <div className={dividerClasses} />
 
             {/* Payment Method */}
-            <section>
+            <section data-tour="checkout-payment">
               <h2 className={sectionTitleClasses}>{t('payment_method')}</h2>
               
               <div className="flex flex-col gap-3">
@@ -263,19 +267,19 @@ const Checkout = () => {
           </div>
 
           {/* Right Column (35%) - Order Summary */}
-          <div className="w-full lg:flex-[35%] lg:sticky lg:top-12">
+          <div data-tour="checkout-summary" className="w-full lg:flex-[35%] lg:sticky lg:top-12 bg-[#fafafa] border border-[#e5e5e5] rounded-[32px] p-8 shadow-sm">
             <h2 className="text-[11px] font-bold tracking-widest uppercase mb-8">{t('order_summary')} - ({items.length}) {t('items_label')}</h2>
             <div className="border-t border-[#e5e5e5] pt-6 mb-6">
               
               {/* Scrollable Items List */}
-              <div className="max-h-[320px] overflow-y-auto pr-2 mb-6 space-y-6 scrollbar-thin scrollbar-thumb-[#ccc] scrollbar-track-transparent">
+              <div className="max-h-[320px] overflow-y-auto pr-2 mb-6 space-y-4 scrollbar-thin scrollbar-thumb-[#ccc] scrollbar-track-transparent">
                 {items.length === 0 ? (
                   <p className="text-xs text-[#777]">{t('cart_empty')}</p>
                 ) : (
                   items.map((item) => (
-                    <div key={item.id} className="flex gap-4">
+                    <div key={item.id} className="flex gap-4 bg-white border border-[#e5e5e5] p-4 rounded-[20px] shadow-sm transition-shadow hover:shadow-md">
                       {/* Image */}
-                      <div className="w-16 h-20 shrink-0 bg-[#f8f8f8] flex items-center justify-center overflow-hidden">
+                      <div className="w-16 h-20 shrink-0 bg-[#f8f8f8] rounded-xl flex items-center justify-center overflow-hidden">
                         <img 
                           src={item.product?.image} 
                           alt={item.product?.name} 
@@ -331,7 +335,7 @@ const Checkout = () => {
             <button 
               type="submit"
               disabled={items.length === 0 || isProcessing}
-              className="w-full bg-black text-white h-[50px] mt-8 text-[11px] font-bold tracking-widest uppercase hover:bg-[#222] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-black text-white h-[54px] mt-8 rounded-full text-[11px] font-bold tracking-widest uppercase hover:bg-[#222] hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
             >
               {isProcessing ? 'PROCESSING...' : t('place_order')}
             </button>
@@ -345,8 +349,7 @@ const Checkout = () => {
       <a href="#" className="fixed bottom-6 right-8 text-[10px] font-bold tracking-widest uppercase border-b border-black pb-0.5 hover:opacity-70 transition-opacity bg-white z-50 xl:bottom-6 bottom-[100px]">
         {t('live_assistance')}
       </a>
-      
-      <MobileBottomDock />
+      <CheckoutTour />
     </div>
   );
 };

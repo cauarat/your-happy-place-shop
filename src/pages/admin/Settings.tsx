@@ -103,6 +103,27 @@ const AdminSettings = () => {
         {/* Always Show Tour Email */}
         <div className="flex flex-col gap-3 border border-border px-6 py-5 bg-white rounded-none mt-6">
           <div>
+            <p className="text-sm font-semibold tracking-tight">Background Music (YouTube URL)</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Enter a YouTube video URL to play as background music on the site.
+            </p>
+          </div>
+          <input
+            type="url"
+            placeholder="https://www.youtube.com/watch?v=..."
+            value={settings.musicUrl || ""}
+            onChange={(e) => {
+              const updated = { ...settings, musicUrl: e.target.value };
+              setSettings(updated);
+              saveDesignSettings(updated);
+            }}
+            className="w-full h-11 px-3 text-sm bg-zinc-50 border border-border focus:border-black outline-none transition-colors"
+          />
+        </div>
+
+        {/* Always Show Tour Email */}
+        <div className="flex flex-col gap-3 border border-border px-6 py-5 bg-white rounded-none mt-6">
+          <div>
             <p className="text-sm font-semibold tracking-tight">Always Show App Tour (Email)</p>
             <p className="text-xs text-muted-foreground mt-0.5">
               Enter an email (e.g. cauarati@gmail.com) to always show the onboarding pop-ups for that user.

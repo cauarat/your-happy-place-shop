@@ -8,7 +8,6 @@ import { Minus, Plus, Heart } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useCart } from "@/contexts/CartContext";
-import MobileBottomDock from "@/components/MobileBottomDock";
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -177,7 +176,6 @@ const ProductDetail = () => {
         </div>
       </main>
 
-      <MobileBottomDock />
       <Footer />
       <ProductTour onStepChange={(step) => {
         if (step === 1 && !isFavorited) {
