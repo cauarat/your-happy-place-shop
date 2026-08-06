@@ -558,12 +558,12 @@ const Index = () => {
                         exit={{ opacity: 0, height: 0, marginTop: 0 }}
                         transition={{ duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] }}
                         className="w-full max-w-lg overflow-hidden"
-                        onSubmit={(e) => {
+                        onSubmit={async (e) => {
                           e.preventDefault();
                           const form = e.currentTarget;
                           const formData = new FormData(form);
                           
-                          saveCustomerSuggestion({
+                          await saveCustomerSuggestion({
                             id: `SUG-${Date.now()}`,
                             type: suggestionCard === 'product' ? 'product_request' : 'feedback',
                             productName: formData.get('productName') as string || undefined,

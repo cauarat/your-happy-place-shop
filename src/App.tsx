@@ -31,6 +31,7 @@ import AdminCatalog from "./pages/admin/CatalogSettings.tsx";
 import AdminAiControl from "./pages/admin/AiControl.tsx";
 import AdminTryTheLook from "./pages/admin/TryTheLookControl.tsx";
 import AdminOrders from "./pages/admin/Orders.tsx";
+import AdminSuggestions from "./pages/admin/Suggestions.tsx";
 import Cart from "./pages/Cart.tsx";
 import Checkout from "./pages/Checkout.tsx";
 import Success from "./pages/Success.tsx";
@@ -91,6 +92,7 @@ const App = () => {
                         <Route path="ai" element={<AdminAiControl />} />
                         <Route path="catalog" element={<AdminCatalog />} />
                         <Route path="try-the-look" element={<AdminTryTheLook />} />
+                        <Route path="suggestions" element={<AdminSuggestions />} />
                       </Route>
                       <Route path="*" element={<NotFound />} />
                     </Routes>

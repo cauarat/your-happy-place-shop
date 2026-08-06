@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Outlet, useNavigate, useLocation, Link } from "react-router-dom";
-import { LayoutDashboard, Package, Settings, Bot, Sparkles, Home, Tag, Users, ShoppingCart } from "lucide-react";
+import { LayoutDashboard, Package, Settings, Bot, Sparkles, Home, Tag, Users, ShoppingCart, MessageSquare } from "lucide-react";
 import { useMusicPlayer } from "@/contexts/MusicContext";
 import { VinylButton } from "@/components/BackgroundMusic";
 
@@ -13,6 +13,7 @@ const NAV_ITEMS = [
   { label: "Catalog Structure", path: "/admin/catalog", icon: Tag },
   { label: "Community Looks", path: "/admin/looks", icon: Users },
   { label: "Try The Look", path: "/admin/try-the-look", icon: Sparkles },
+  { label: "Feedback & Requests", path: "/admin/suggestions", icon: MessageSquare },
 ];
 
 const AdminLayout = () => {

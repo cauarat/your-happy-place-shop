@@ -1,6 +1,7 @@
 import { products as initialProducts, Product, categories as defaultCategories, designers as defaultDesigners } from "@/data/products";
 import catalogSeed from "@/data/catalog.json";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 // Keys
 const PRODUCTS_KEY = "villaoro_products";
@@ -232,45 +233,59 @@ export interface Order {
   };
 }
 
-export const getOrders = (): Order[] => {
-  if (typeof window === 'undefined') return [];
-  const stored = localStorage.getItem('villaoro_orders');
-  if (stored) {
-    try {
-      return JSON.parse(stored);
-    } catch (e) {
-      console.error("Failed to parse orders", e);
-      return [];
-    }
+export const getOrders = async (): Promise<Order[]> => {
+  const { data, error } = await supabase
+    .from('orders')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error("Failed to fetch orders", error);
+    return [];
   }
-  return [];
+
+  return (data || []).map(row => ({
+    id: row.id,
+    createdAt: row.created_at,
+    status: row.status as OrderStatus,
+    total: row.total,
+    items: row.items as OrderItem[],
+    customerInfo: row.customer_info as Order['customerInfo']
+  }));
 };
 
-export const saveOrder = (order: Order) => {
-  if (typeof window === 'undefined') return;
-  const currentOrders = getOrders();
-  const existingIndex = currentOrders.findIndex(o => o.id === order.id);
-  
-  if (existingIndex >= 0) {
-    currentOrders[existingIndex] = order;
-  } else {
-    currentOrders.unshift(order); // Add new order to top
+export const saveOrder = async (order: Order): Promise<void> => {
+  const { error } = await supabase
+    .from('orders')
+    .upsert({
+      id: order.id,
+      created_at: order.createdAt,
+      status: order.status,
+      total: order.total,
+      items: order.items,
+      customer_info: order.customerInfo
+    });
+
+  if (error) {
+    console.error("Failed to save order", error);
+    throw error;
   }
   
-  localStorage.setItem('villaoro_orders', JSON.stringify(currentOrders));
   window.dispatchEvent(new Event('ordersUpdated'));
 };
 
-export const updateOrderStatus = (orderId: string, status: OrderStatus) => {
-  if (typeof window === 'undefined') return;
-  const currentOrders = getOrders();
-  const orderIndex = currentOrders.findIndex(o => o.id === orderId);
-  
-  if (orderIndex >= 0) {
-    currentOrders[orderIndex].status = status;
-    localStorage.setItem('villaoro_orders', JSON.stringify(currentOrders));
-    window.dispatchEvent(new Event('ordersUpdated'));
+export const updateOrderStatus = async (orderId: string, status: OrderStatus): Promise<void> => {
+  const { error } = await supabase
+    .from('orders')
+    .update({ status })
+    .eq('id', orderId);
+
+  if (error) {
+    console.error("Failed to update order status", error);
+    throw error;
   }
+  
+  window.dispatchEvent(new Event('ordersUpdated'));
 };
 
 export function saveDesignSettings(settings: DesignSettings) {
@@ -406,17 +421,48 @@ export interface CustomerSuggestion {
 
 const SUGGESTIONS_KEY = 'villaoro_customer_suggestions';
 
-export const getCustomerSuggestions = (): CustomerSuggestion[] => {
-  if (typeof window === 'undefined') return [];
-  const data = localStorage.getItem(SUGGESTIONS_KEY);
-  return data ? JSON.parse(data) : [];
+export const getCustomerSuggestions = async (): Promise<CustomerSuggestion[]> => {
+  const { data, error } = await supabase
+    .from('customer_suggestions')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error("Failed to fetch suggestions", error);
+    return [];
+  }
+
+  return (data || []).map(row => ({
+    id: row.id,
+    createdAt: row.created_at,
+    type: row.type as 'product_request' | 'feedback',
+    productName: row.product_name,
+    productBrand: row.product_brand,
+    message: row.message,
+    email: row.email,
+    searchQuery: row.search_query
+  }));
 };
 
-export const saveCustomerSuggestion = (suggestion: CustomerSuggestion) => {
-  if (typeof window === 'undefined') return;
-  const current = getCustomerSuggestions();
-  current.unshift(suggestion);
-  localStorage.setItem(SUGGESTIONS_KEY, JSON.stringify(current));
+export const saveCustomerSuggestion = async (suggestion: CustomerSuggestion): Promise<void> => {
+  const { error } = await supabase
+    .from('customer_suggestions')
+    .upsert({
+      id: suggestion.id,
+      created_at: suggestion.createdAt,
+      type: suggestion.type,
+      product_name: suggestion.productName,
+      product_brand: suggestion.productBrand,
+      message: suggestion.message,
+      email: suggestion.email,
+      search_query: suggestion.searchQuery
+    });
+
+  if (error) {
+    console.error("Failed to save suggestion", error);
+    throw error;
+  }
+  
   window.dispatchEvent(new Event('suggestionsUpdated'));
 };
 

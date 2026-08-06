@@ -57,8 +57,8 @@ const Checkout = () => {
     const loadingToast = toast.loading('Redirecting to secure checkout...');
 
     try {
-      // Save order as pending in localStorage
-      saveOrder(newOrder);
+      // Save order as pending in database
+      await saveOrder(newOrder);
 
       const { data, error } = await supabase.functions.invoke('create-checkout-session', {
         body: { items, orderId }

@@ -17,17 +17,23 @@ const AdminOrders = () => {
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
-    setOrders(getOrders());
+    const fetchOrders = async () => {
+      const data = await getOrders();
+      setOrders(data);
+    };
+    
+    fetchOrders();
     
     // Listen for cross-tab updates or local updates
-    const handleUpdate = () => setOrders(getOrders());
+    const handleUpdate = () => fetchOrders();
     window.addEventListener('ordersUpdated', handleUpdate);
     return () => window.removeEventListener('ordersUpdated', handleUpdate);
   }, []);
 
-  const handleStatusChange = (orderId: string, newStatus: OrderStatus) => {
-    updateOrderStatus(orderId, newStatus);
-    setOrders(getOrders()); // Refresh UI
+  const handleStatusChange = async (orderId: string, newStatus: OrderStatus) => {
+    await updateOrderStatus(orderId, newStatus);
+    const data = await getOrders(); // Refresh UI
+    setOrders(data);
   };
 
   const filteredOrders = orders.filter(order => 
