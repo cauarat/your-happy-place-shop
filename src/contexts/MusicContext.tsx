@@ -61,7 +61,7 @@ export const MusicProvider = ({ children }: { children: React.ReactNode }) => {
           width: "10",
           videoId: currentVideoId,
           playerVars: { 
-            autoplay: 0, 
+            autoplay: 1, 
             controls: 0, 
             showinfo: 0, 
             modestbranding: 1, 
@@ -71,9 +71,19 @@ export const MusicProvider = ({ children }: { children: React.ReactNode }) => {
             playsinline: 1
           },
           events: {
-            onReady: (event: any) => { event.target.setVolume(50); },
+            onReady: (event: any) => { 
+              event.target.setVolume(50); 
+              // Tenta dar play automaticamente
+              try {
+                event.target.playVideo();
+              } catch (e) {}
+            },
             onStateChange: (event: any) => {
-              if (event.data === 0) {
+              if (event.data === 1) { // 1 = playing
+                setIsPlaying(true);
+                setHasInteracted(true);
+              }
+              if (event.data === 0) { // 0 = ended
                 event.target.seekTo(0);
                 event.target.playVideo();
               }
