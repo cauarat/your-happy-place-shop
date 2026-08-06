@@ -87,15 +87,15 @@ const ProductCard = ({ product, index, isFeatured }: { product: Product, index?:
           </div>
         </button>
       </div>
-      <div className="flex flex-col mt-2.5 space-y-0.5 px-0.5">
-        <p className="text-[11px] md:text-[12px] text-black font-bold uppercase tracking-[0.08em] leading-snug">
+      <div className="flex flex-col mt-3 space-y-1 w-full text-left">
+        <p className="text-[11px] md:text-[12px] text-black font-semibold uppercase tracking-widest leading-none">
           {product.designer}
         </p>
-        <p className="text-[11px] md:text-[12px] text-neutral-800 font-light tracking-tight leading-snug line-clamp-2 min-h-[2.4em]">
+        <p className="text-[11px] md:text-[12px] text-[#555] font-normal leading-tight line-clamp-2 min-h-[2.2em]">
           {t(product.name)}
         </p>
         {getDesignSettings().showPrices !== false && (
-          <p className="text-[11px] md:text-[12px] text-black pt-0.5 font-normal tracking-wide flex items-center gap-1.5">
+          <p className="text-[11px] md:text-[12px] text-black pt-1 font-medium tracking-wide flex items-center gap-1.5 leading-none">
             <span>{formatPrice(product.price)}</span>
             {product.oldPrice && (
               <span className="text-[#999] line-through text-[10px] md:text-[11px]">
