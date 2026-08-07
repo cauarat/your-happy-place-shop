@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Sparkles, X, Heart, UserPlus, Check, SlidersHorizontal } from "lucide-react";
 import { motion } from "framer-motion";
+import { LiquidButton } from "@/components/ui/liquid-glass-button";
 import { CosmoColorIcon } from "./Icons";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -229,21 +230,19 @@ const Header = () => {
       >
         {/* Brand Filter Button — iOS style */}
         <div className="relative" ref={brandFilterRef}>
-          <button
+          <LiquidButton
+            size="icon"
             onClick={() => setIsBrandFilterOpen(!isBrandFilterOpen)}
             className="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-full transition-all duration-300 outline-none"
             style={selectedDesigner ? {
-              background: 'rgba(0,0,0,0.85)',
               color: 'white',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
             } : {
-              background: 'rgba(118, 118, 128, 0.12)',
               color: 'rgba(60, 60, 67, 0.6)',
             }}
             title="Filter by brand"
           >
             <SlidersHorizontal size={14} />
-          </button>
+          </LiquidButton>
 
           {/* iOS 27 Liquid Glass popup (Brand) */}
           {isBrandFilterOpen && (

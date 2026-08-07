@@ -5,7 +5,7 @@ import { getProducts, getDesignSettings } from "@/lib/store";
 import type { Product } from "@/data/products";
 import Footer from "@/components/Footer";
 import { Minus, Plus, Heart } from "lucide-react";
-import { motion, AnimatePresence, animate } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useCart } from "@/contexts/CartContext";
 
@@ -23,29 +23,7 @@ const ProductDetail = () => {
     const products = getProducts();
     const found = products.find((p) => p.id === id);
     if (found) setProduct(found);
-    
-    // Immediate scroll to top on mount
     window.scrollTo(0, 0);
-
-    // Fluid iOS 27 style scroll to product images after a brief delay
-    const timer = setTimeout(() => {
-      const el = document.getElementById("product-images");
-      if (el) {
-        // Offset by 120px to account for the fixed header
-        const y = el.getBoundingClientRect().top + window.scrollY - 120;
-        const targetY = Math.max(0, y);
-        
-        animate(0, targetY, {
-          type: "spring",
-          stiffness: 50,
-          damping: 18,
-          mass: 1.2,
-          onUpdate: (latest) => window.scrollTo(0, latest)
-        });
-      }
-    }, 600);
-
-    return () => clearTimeout(timer);
   }, [id]);
 
   if (!product) return null;
@@ -96,7 +74,7 @@ const ProductDetail = () => {
           </div>
 
           {/* Center Column: Images */}
-          <div id="product-images" className="order-1 lg:order-none space-y-6 md:space-y-12">
+          <div className="order-1 lg:order-none space-y-6 md:space-y-12">
             {(product.images && product.images.length > 0 ? product.images : [product.image]).map((img, i) => (
               <div key={i} className="aspect-[4/5] bg-transparent flex items-center justify-center overflow-hidden">
                 <img 
@@ -198,6 +176,7 @@ const ProductDetail = () => {
         </div>
       </main>
 
+      <Footer />
       <ProductTour onStepChange={(step) => {
         if (step === 1 && !isFavorited) {
           // Delay the favorite transition so the user sees the popup first
