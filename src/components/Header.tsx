@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Sparkles, X, Heart, UserPlus, Check, SlidersHorizontal } from "lucide-react";
+import { motion } from "framer-motion";
 import { CosmoColorIcon } from "./Icons";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -260,30 +261,59 @@ const Header = () => {
               </div>
 
               {/* Options List */}
-              <div className="relative py-1.5 max-h-[300px] overflow-y-auto">
+              <div className="relative py-1.5 max-h-[300px] overflow-y-auto no-scrollbar">
                 {/* All Brands */}
                 <button
                   onClick={() => { setSelectedDesigner(null); setIsBrandFilterOpen(false); if (location.pathname !== '/') navigate('/'); }}
-                  className="w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-white/40 active:bg-white/50"
+                  className="relative flex items-center gap-2.5 px-3 py-2 rounded-xl shrink-0 w-[calc(100%-16px)] mx-2 my-0.5 hover:bg-black/5"
                 >
-                  <span className="w-5 h-5 flex items-center justify-center shrink-0">
-                    {!selectedDesigner && <Check size={15} strokeWidth={2.5} className="text-blue-500" />}
-                  </span>
-                  <span className="text-[13px] font-medium text-black/80">All Brands</span>
+                  {!selectedDesigner && (
+                    <motion.div
+                      layoutId="active-filter-bg"
+                      className="absolute inset-0 rounded-xl bg-black z-0 shadow-[inset_0_1px_2px_rgba(255,255,255,0.15)]"
+                      transition={{ type: 'spring', stiffness: 120, damping: 20, mass: 1 }}
+                    />
+                  )}
+                  <motion.span 
+                    className="relative z-10 flex items-center gap-2.5 w-full"
+                    animate={{ color: !selectedDesigner ? '#ffffff' : '#4a4a4d' }}
+                    transition={{ duration: 0.15, ease: "linear" }}
+                  >
+                    <span className="w-4 h-4 flex items-center justify-center shrink-0">
+                      {!selectedDesigner && <Check size={14} strokeWidth={2.5} />}
+                    </span>
+                    <span className="text-[13px] font-medium tracking-wide">All Brands</span>
+                  </motion.span>
                 </button>
 
-                {designers.map((d) => (
-                  <button
-                    key={d}
-                    onClick={() => { setSelectedDesigner(d); setIsBrandFilterOpen(false); if (location.pathname !== '/') navigate('/'); }}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-white/40 active:bg-white/50"
-                  >
-                    <span className="w-5 h-5 flex items-center justify-center shrink-0">
-                      {selectedDesigner === d && <Check size={15} strokeWidth={2.5} className="text-blue-500" />}
-                    </span>
-                    <span className="text-[13px] text-black/75">{d}</span>
-                  </button>
-                ))}
+                {designers.map((d) => {
+                  const isActive = selectedDesigner === d;
+                  return (
+                    <button
+                      key={d}
+                      onClick={() => { setSelectedDesigner(d); setIsBrandFilterOpen(false); if (location.pathname !== '/') navigate('/'); }}
+                      className="relative flex items-center gap-2.5 px-3 py-2 rounded-xl shrink-0 w-[calc(100%-16px)] mx-2 my-0.5 hover:bg-black/5"
+                    >
+                      {isActive && (
+                        <motion.div
+                          layoutId="active-filter-bg"
+                          className="absolute inset-0 rounded-xl bg-black z-0 shadow-[inset_0_1px_2px_rgba(255,255,255,0.15)]"
+                          transition={{ type: 'spring', stiffness: 120, damping: 20, mass: 1 }}
+                        />
+                      )}
+                      <motion.span 
+                        className="relative z-10 flex items-center gap-2.5 w-full"
+                        animate={{ color: isActive ? '#ffffff' : '#4a4a4d' }}
+                        transition={{ duration: 0.15, ease: "linear" }}
+                      >
+                        <span className="w-4 h-4 flex items-center justify-center shrink-0">
+                          {isActive && <Check size={14} strokeWidth={2.5} />}
+                        </span>
+                        <span className="text-[13px] font-medium tracking-wide">{d}</span>
+                      </motion.span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}
