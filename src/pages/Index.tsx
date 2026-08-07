@@ -661,15 +661,20 @@ const Index = () => {
                   {filteredByDesigner.map(({ designer: brandName, products: brandProducts }, sectionIndex) => (
                     <section key={brandName}>
                       {/* Big brand name header */}
-                      <div className="flex items-center justify-center py-5 sm:py-7 md:py-9">
+                      <div className="flex flex-col items-center justify-center py-5 sm:py-7 md:py-9">
                         <motion.button
                           onClick={() => { setDesigner(designer === brandName ? "All" : brandName); setIsDesignersOpen(false); }}
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ duration: 0.4, delay: sectionIndex * 0.08 }}
-                          className="text-[1.6rem] sm:text-[2rem] md:text-[2.6rem] font-black uppercase leading-none tracking-tight text-black text-center hover:opacity-60 transition-opacity cursor-pointer"
+                          className="flex flex-col items-center gap-1.5 hover:opacity-60 transition-opacity cursor-pointer group"
                         >
-                          {brandName}
+                          <span className="text-[1.6rem] sm:text-[2rem] md:text-[2.6rem] font-black uppercase leading-none tracking-tight text-black text-center">
+                            {brandName}
+                          </span>
+                          <span className="text-[11px] sm:text-xs font-semibold tracking-widest text-[#888] group-hover:text-black transition-colors">
+                            ({brandProducts.length})
+                          </span>
                         </motion.button>
                       </div>
 
