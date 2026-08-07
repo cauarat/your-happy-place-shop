@@ -198,7 +198,6 @@ const ProductDetail = () => {
         </div>
       </main>
 
-      <Footer />
       <ProductTour onStepChange={(step) => {
         if (step === 1 && !isFavorited) {
           // Delay the favorite transition so the user sees the popup first
