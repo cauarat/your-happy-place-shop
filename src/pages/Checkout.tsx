@@ -246,93 +246,94 @@ const Checkout = () => {
             </section>
 
 
-
           </div>
 
-          {/* Right Column (35%) - Order Summary */}
-          <div data-tour="checkout-summary" className="w-full lg:flex-[35%] lg:sticky lg:top-12 bg-[#fafafa] border border-[#e5e5e5] rounded-[32px] p-8 shadow-sm">
-            <h2 className="text-[11px] font-bold tracking-widest uppercase mb-8">{t('order_summary')} - ({items.length}) {t('items_label')}</h2>
-            <div className="border-t border-[#e5e5e5] pt-6 mb-6">
-              
-              {/* Scrollable Items List */}
-              <div className="max-h-[320px] overflow-y-auto pr-2 mb-6 space-y-4 scrollbar-thin scrollbar-thumb-[#ccc] scrollbar-track-transparent">
-                {items.length === 0 ? (
-                  <p className="text-xs text-[#777]">{t('cart_empty')}</p>
-                ) : (
-                  items.map((item) => (
-                    <div key={item.id} className="flex gap-4 bg-white border border-[#e5e5e5] p-4 rounded-[20px] shadow-sm transition-shadow hover:shadow-md">
-                      {/* Image */}
-                      <div className="w-16 h-20 shrink-0 bg-[#f8f8f8] rounded-xl flex items-center justify-center overflow-hidden">
-                        <img 
-                          src={item.product?.image} 
-                          alt={item.product?.name} 
-                          className="w-full h-full object-contain"
-                          style={item.product?.removeBackground ? { mixBlendMode: 'multiply' } : {}}
-                        />
+          {/* Right Column (35%) - Order Summary & Stripe Banner */}
+          <div className="w-full lg:flex-[35%] lg:sticky lg:top-12 flex flex-col gap-6">
+            <div data-tour="checkout-summary" className="bg-[#fafafa] border border-[#e5e5e5] rounded-[32px] p-8 shadow-sm">
+              <h2 className="text-[11px] font-bold tracking-widest uppercase mb-8">{t('order_summary')} - ({items.length}) {t('items_label')}</h2>
+              <div className="border-t border-[#e5e5e5] pt-6 mb-6">
+                
+                {/* Scrollable Items List */}
+                <div className="max-h-[320px] overflow-y-auto pr-2 mb-6 space-y-4 scrollbar-thin scrollbar-thumb-[#ccc] scrollbar-track-transparent">
+                  {items.length === 0 ? (
+                    <p className="text-xs text-[#777]">{t('cart_empty')}</p>
+                  ) : (
+                    items.map((item) => (
+                      <div key={item.id} className="flex gap-4 bg-white border border-[#e5e5e5] p-4 rounded-[20px] shadow-sm transition-shadow hover:shadow-md">
+                        {/* Image */}
+                        <div className="w-16 h-20 shrink-0 bg-[#f8f8f8] rounded-xl flex items-center justify-center overflow-hidden">
+                          <img 
+                            src={item.product?.image} 
+                            alt={item.product?.name} 
+                            className="w-full h-full object-contain"
+                            style={item.product?.removeBackground ? { mixBlendMode: 'multiply' } : {}}
+                          />
+                        </div>
+                        
+                        {/* Info */}
+                        <div className="flex-1 flex flex-col">
+                          <p className="text-[10px] font-bold tracking-widest uppercase mb-1">{item.product?.designer}</p>
+                          <p className="text-[11px] text-[#333] leading-snug line-clamp-2">{item.product?.name ? t(item.product.name) : ''}</p>
+                          {item.size && <p className="text-[10px] text-[#777] mt-1">Size: {item.size}</p>}
+                          <p className="text-[10px] text-[#777] mt-auto pt-2">{t('only_remaining')}</p>
+                        </div>
+
+                        {/* Price */}
+                        <div className="text-[11px] font-medium text-right shrink-0">
+                          ${((item.product?.price || 0) * item.quantity).toFixed(2)}
+                        </div>
                       </div>
-                      
-                      {/* Info */}
-                      <div className="flex-1 flex flex-col">
-                        <p className="text-[10px] font-bold tracking-widest uppercase mb-1">{item.product?.designer}</p>
-                        <p className="text-[11px] text-[#333] leading-snug line-clamp-2">{item.product?.name ? t(item.product.name) : ''}</p>
-                        {item.size && <p className="text-[10px] text-[#777] mt-1">Size: {item.size}</p>}
-                        <p className="text-[10px] text-[#777] mt-auto pt-2">{t('only_remaining')}</p>
-                      </div>
-
-                      {/* Price */}
-                      <div className="text-[11px] font-medium text-right shrink-0">
-                        ${((item.product?.price || 0) * item.quantity).toFixed(2)}
-                      </div>
-                    </div>
-                  ))
-                )}
+                    ))
+                  )}
+                </div>
               </div>
+
+              {/* Currency/Location Info */}
+              <div className="text-[10px] text-[#777] uppercase tracking-widest border-t border-[#e5e5e5] py-4">
+                Country/Region: Brazil | USD
+              </div>
+
+              {/* Financial Summary */}
+              <div className="border-t border-[#e5e5e5] pt-6 space-y-3 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-[#555]">{t('subtotal')}</span>
+                  <span>${cartTotal.toFixed(2)} USD</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[#555]">{t('shipping_total')}</span>
+                  <span>$0.00 USD</span>
+                </div>
+                <div className="flex justify-between mb-2">
+                  <span className="text-[#555]">{t('duties_and_taxes')}</span>
+                  <span>{t('included')}</span>
+                </div>
+                <div className="flex justify-between border-t border-[#e5e5e5] pt-4 font-bold text-sm">
+                  <span>{t('order_total')}</span>
+                  <span>${cartTotal.toFixed(2)} USD</span>
+                </div>
+              </div>
+
+              {/* Place Order Button */}
+              <button 
+                type="submit"
+                disabled={items.length === 0 || isProcessing}
+                className="w-full bg-black text-white h-[54px] mt-8 rounded-full text-[11px] font-bold tracking-widest uppercase hover:bg-[#222] hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+              >
+                {isProcessing ? 'PROCESSING...' : t('place_order')}
+              </button>
             </div>
-
-            {/* Currency/Location Info */}
-            <div className="text-[10px] text-[#777] uppercase tracking-widest border-t border-[#e5e5e5] py-4">
-              Country/Region: Brazil | USD
-            </div>
-
-            {/* Financial Summary */}
-            <div className="border-t border-[#e5e5e5] pt-6 space-y-3 text-xs">
-              <div className="flex justify-between">
-                <span className="text-[#555]">{t('subtotal')}</span>
-                <span>${cartTotal.toFixed(2)} USD</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[#555]">{t('shipping_total')}</span>
-                <span>$0.00 USD</span>
-              </div>
-              <div className="flex justify-between mb-2">
-                <span className="text-[#555]">{t('duties_and_taxes')}</span>
-                <span>{t('included')}</span>
-              </div>
-              <div className="flex justify-between border-t border-[#e5e5e5] pt-4 font-bold text-sm">
-                <span>{t('order_total')}</span>
-                <span>${cartTotal.toFixed(2)} USD</span>
-              </div>
-            </div>
-
-            {/* Place Order Button */}
-            <button 
-              type="submit"
-              disabled={items.length === 0 || isProcessing}
-              className="w-full bg-black text-white h-[54px] mt-8 rounded-full text-[11px] font-bold tracking-widest uppercase hover:bg-[#222] hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
-            >
-              {isProcessing ? 'PROCESSING...' : t('place_order')}
-            </button>
 
             {/* Stripe Payment Notice */}
-            <div className="mt-8 bg-transparent p-0 border-t border-[#e5e5e5] pt-6">
+            <div className="bg-[#fafafa] p-6 border border-[#e5e5e5] rounded-[32px] shadow-sm">
               <div className="flex items-center gap-2 mb-3">
                 <Lock size={12} strokeWidth={2} />
-                <span className="text-[10px] font-bold tracking-widest uppercase text-black">Secure Checkout via Stripe</span>
+                <span className="text-[10px] font-bold tracking-widest uppercase">Secure Checkout via Stripe</span>
               </div>
               <p className="text-[11px] text-[#666] leading-relaxed">
-                After clicking Place Order, you'll be securely redirected to Stripe's payment page to enter your card details. Your payment information is handled entirely by Stripe and never touches our servers.
+                After clicking <strong>{t('place_order')}</strong>, you'll be securely redirected to Stripe's payment page to enter your card details. Your payment information is handled entirely by Stripe and never touches our servers.
               </p>
-              <div className="flex items-center gap-2 mt-4 pt-4 border-t border-[#e5e5e5]">
+              <div className="flex items-center gap-3 mt-4 pt-4 border-t border-[#e5e5e5]">
                 <span className="text-[9px] border border-[#ccc] px-2 py-1 rounded-sm bg-white font-medium">VISA</span>
                 <span className="text-[9px] border border-[#ccc] px-2 py-1 rounded-sm bg-white font-medium">MASTERCARD</span>
                 <span className="text-[9px] border border-[#ccc] px-2 py-1 rounded-sm bg-white font-medium">AMEX</span>
