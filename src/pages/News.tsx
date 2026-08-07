@@ -137,12 +137,9 @@ const News = () => {
           }}
         >
           <div className="relative flex items-center justify-center px-3 sm:px-6 lg:px-10 py-1 w-full pointer-events-auto">
-            <div className="flex items-center gap-2 overflow-hidden max-w-[75%] sm:max-w-[85%]">
-              <span className="text-[11px] sm:text-xs font-semibold tracking-widest uppercase truncate text-black">
+            <div className="flex items-center justify-center overflow-hidden w-full max-w-[75%] sm:max-w-[85%] mx-auto">
+              <span className="text-[11px] sm:text-xs font-semibold tracking-widest uppercase truncate text-black text-center">
                 {t('news') || 'news'}
-              </span>
-              <span className="text-[11px] sm:text-xs text-[#888] shrink-0">
-                ({totalCount})
               </span>
             </div>
           </div>
@@ -150,7 +147,7 @@ const News = () => {
 
         {/* News Content */}
         <div className="min-h-[calc(100vh-200px)]">
-          <div className="flex-1 px-2.5 sm:px-4 py-3 lg:py-6 w-full">
+          <div className="flex-1 px-2.5 sm:px-4 pb-3 lg:pb-6 pt-0 w-full">
             {isLoading ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-1 sm:gap-x-2 lg:gap-x-4 gap-y-4 sm:gap-y-5 lg:gap-y-8">
                 {Array(12).fill(0).map((_, i) => (
@@ -176,15 +173,20 @@ const News = () => {
                   return (
                     <section key={brandName}>
                       {/* Brand name — proportional, clickable, navigates to catalog */}
-                      <div className="flex items-center justify-center py-5 sm:py-7 md:py-9">
+                      <div className={`flex flex-col items-center justify-center pb-5 sm:pb-7 md:pb-9 ${sectionIndex === 0 ? "pt-1 sm:pt-2" : "pt-10 sm:pt-14 md:pt-16"}`}>
                         <motion.button
                           onClick={() => goToDesigner(brandName)}
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ duration: 0.4, delay: sectionIndex * 0.1 }}
-                          className="text-[1.6rem] sm:text-[2rem] md:text-[2.6rem] font-black uppercase leading-none tracking-tight text-black text-center hover:opacity-60 transition-opacity cursor-pointer"
+                          className="flex flex-col items-center gap-1.5 hover:opacity-60 transition-opacity cursor-pointer group"
                         >
-                          {brandName}
+                          <span className="text-[1.6rem] sm:text-[2rem] md:text-[2.6rem] font-black uppercase leading-none tracking-tight text-black text-center">
+                            {brandName}
+                          </span>
+                          <span className="text-[11px] sm:text-xs font-semibold tracking-widest text-[#888] group-hover:text-black transition-colors">
+                            ({brandProducts.length})
+                          </span>
                         </motion.button>
                       </div>
 
