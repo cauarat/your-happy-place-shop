@@ -26,6 +26,7 @@ import {
 } from "@/components/Icons";
 import { getCategories, getDesignSettings } from "@/lib/store";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { LiquidButton } from "@/components/ui/liquid-glass-button";
 
 const getCategoryIcon = (cat: string) => {
   switch (cat.toUpperCase()) {
@@ -67,28 +68,18 @@ export default function MobileBottomDock() {
       className="fixed bottom-0 left-0 right-0 flex justify-center z-50 pointer-events-none"
       style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)' }}
     >
-      <div 
-        className="rounded-full overflow-hidden pointer-events-auto mx-3 max-w-[100vw] relative"
-        style={{
-          background: 'linear-gradient(135deg, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.75) 50%, rgba(240,240,245,0.85) 100%)',
-          backdropFilter: 'blur(60px) saturate(180%)',
-          WebkitBackdropFilter: 'blur(60px) saturate(180%)',
-          boxShadow: `
-            0 8px 48px rgba(0,0,0,0.10),
-            0 2px 16px rgba(0,0,0,0.06),
-            inset 0 1px 0 rgba(255,255,255,0.7),
-            inset 0 -1px 0 rgba(255,255,255,0.15)
-          `,
-          border: '0.5px solid rgba(255,255,255,0.55)',
-        }}
+      <LiquidButton 
+        asChild
+        className="rounded-full overflow-hidden pointer-events-auto mx-3 max-w-[100vw] relative !h-auto !p-0 hover:scale-100"
       >
-        {/* Specular highlight overlay */}
-        <div
-          className="absolute inset-0 rounded-full pointer-events-none"
-          style={{
-            background: 'linear-gradient(180deg, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0) 40%, rgba(255,255,255,0.05) 100%)',
-          }}
-        />
+        <div>
+          {/* Specular highlight overlay */}
+          <div
+            className="absolute inset-0 rounded-full pointer-events-none"
+            style={{
+              background: 'linear-gradient(180deg, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0) 40%, rgba(255,255,255,0.05) 100%)',
+            }}
+          />
         
         <div
           ref={scrollRef}
@@ -193,7 +184,7 @@ export default function MobileBottomDock() {
             })}
           </AnimatePresence>
         </div>
-      </div>
+      </LiquidButton>
     </div>
   );
 }
