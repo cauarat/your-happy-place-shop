@@ -245,23 +245,6 @@ const Checkout = () => {
               </div>
             </section>
 
-            {/* Stripe Payment Notice */}
-            <div className="mt-8 bg-[#fafafa] p-6 border border-[#e5e5e5]">
-              <div className="flex items-center gap-2 mb-3">
-                <Lock size={12} strokeWidth={2} />
-                <span className="text-[10px] font-bold tracking-widest uppercase">Secure Checkout via Stripe</span>
-              </div>
-              <p className="text-[11px] text-[#666] leading-relaxed">
-                After clicking <strong>Place Order</strong>, you'll be securely redirected to Stripe's payment page to enter your card details. Your payment information is handled entirely by Stripe and never touches our servers.
-              </p>
-              <div className="flex items-center gap-3 mt-4 pt-4 border-t border-[#e5e5e5]">
-                <span className="text-[9px] border border-[#ccc] px-2 py-1 rounded-sm bg-white font-medium">VISA</span>
-                <span className="text-[9px] border border-[#ccc] px-2 py-1 rounded-sm bg-white font-medium">MASTERCARD</span>
-                <span className="text-[9px] border border-[#ccc] px-2 py-1 rounded-sm bg-white font-medium">AMEX</span>
-                <span className="text-[9px] border border-[#ccc] px-2 py-1 rounded-sm bg-white font-medium">PIX</span>
-                <span className="text-[9px] text-[#888] ml-auto">Powered by Stripe</span>
-              </div>
-            </div>
 
 
           </div>
@@ -339,6 +322,24 @@ const Checkout = () => {
             >
               {isProcessing ? 'PROCESSING...' : t('place_order')}
             </button>
+
+            {/* Stripe Payment Notice */}
+            <div className="mt-8 bg-transparent p-0 border-t border-[#e5e5e5] pt-6">
+              <div className="flex items-center gap-2 mb-3">
+                <Lock size={12} strokeWidth={2} />
+                <span className="text-[10px] font-bold tracking-widest uppercase text-black">Secure Checkout via Stripe</span>
+              </div>
+              <p className="text-[11px] text-[#666] leading-relaxed">
+                After clicking Place Order, you'll be securely redirected to Stripe's payment page to enter your card details. Your payment information is handled entirely by Stripe and never touches our servers.
+              </p>
+              <div className="flex items-center gap-2 mt-4 pt-4 border-t border-[#e5e5e5]">
+                <span className="text-[9px] border border-[#ccc] px-2 py-1 rounded-sm bg-white font-medium">VISA</span>
+                <span className="text-[9px] border border-[#ccc] px-2 py-1 rounded-sm bg-white font-medium">MASTERCARD</span>
+                <span className="text-[9px] border border-[#ccc] px-2 py-1 rounded-sm bg-white font-medium">AMEX</span>
+                <span className="text-[9px] border border-[#ccc] px-2 py-1 rounded-sm bg-white font-medium">PIX</span>
+                <span className="text-[9px] text-[#888] ml-auto">Powered by Stripe</span>
+              </div>
+            </div>
           </div>
           
         </form>
