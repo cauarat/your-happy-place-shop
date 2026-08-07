@@ -224,7 +224,7 @@ const Header = () => {
       {/* Search Bar Row — Liquid Glass */}
       <div
         data-tour="search-bar"
-        className="px-2.5 sm:px-4 lg:px-8 w-full pb-1 flex items-center gap-2.5"
+        className="px-2.5 sm:px-4 lg:px-8 w-full pb-3 flex items-center gap-2.5"
       >
         {/* Brand Filter Button — iOS style */}
         <div className="relative" ref={brandFilterRef}>
@@ -244,31 +244,11 @@ const Header = () => {
             <SlidersHorizontal size={14} />
           </button>
 
-          {/* iOS 27 Liquid Glass popup */}
+          {/* iOS 27 Matte Glass popup (matching bottom segment control) */}
           {isBrandFilterOpen && (
             <div
-              className="absolute top-full left-0 mt-2 w-60 rounded-[22px] z-[100] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200"
-              style={{
-                background: 'linear-gradient(135deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.35) 50%, rgba(240,240,245,0.45) 100%)',
-                backdropFilter: 'blur(60px) saturate(180%)',
-                WebkitBackdropFilter: 'blur(60px) saturate(180%)',
-                boxShadow: `
-                  0 8px 48px rgba(0,0,0,0.10),
-                  0 2px 16px rgba(0,0,0,0.06),
-                  inset 0 1px 0 rgba(255,255,255,0.7),
-                  inset 0 -1px 0 rgba(255,255,255,0.15)
-                `,
-                border: '0.5px solid rgba(255,255,255,0.55)',
-              }}
+              className="absolute top-full left-0 mt-2 w-60 rounded-[22px] z-[100] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 bg-[#f2f2f6]/70 backdrop-blur-[32px] saturate-[180%] shadow-[0_8px_32px_rgba(0,0,0,0.12),0_2px_8px_rgba(0,0,0,0.06),inset_0_1px_1px_rgba(255,255,255,0.8)] border border-white/20"
             >
-              {/* Specular highlight overlay */}
-              <div
-                className="absolute inset-0 rounded-[22px] pointer-events-none"
-                style={{
-                  background: 'linear-gradient(180deg, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0) 40%, rgba(255,255,255,0.05) 100%)',
-                }}
-              />
-
               {/* Header */}
               <div className="relative px-4 pt-4 pb-2.5" style={{ borderBottom: '0.5px solid rgba(0,0,0,0.06)' }}>
                 <div className="flex items-center justify-between">
