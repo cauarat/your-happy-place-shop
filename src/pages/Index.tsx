@@ -438,7 +438,7 @@ const Index = () => {
 
         <div className="min-h-[calc(100vh-200px)] flex">
           {/* Product Grid (Full Width) */}
-          <div className="flex-1 px-2.5 sm:px-4 py-3 lg:py-6 w-full">
+          <div className="flex-1 px-2.5 sm:px-4 pb-3 lg:pb-6 pt-0 w-full">
             {isLoading ?
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-1 sm:gap-x-2 lg:gap-x-4 gap-y-4 sm:gap-y-5 lg:gap-y-8">
                 {Array(12).fill(0).map((_, i) =>
@@ -661,7 +661,7 @@ const Index = () => {
                   {filteredByDesigner.map(({ designer: brandName, products: brandProducts }, sectionIndex) => (
                     <section key={brandName}>
                       {/* Big brand name header */}
-                      <div className="flex flex-col items-center justify-center py-5 sm:py-7 md:py-9">
+                      <div className={`flex flex-col items-center justify-center pb-5 sm:pb-7 md:pb-9 ${sectionIndex === 0 ? "pt-1 sm:pt-2" : "pt-10 sm:pt-14 md:pt-16"}`}>
                         <motion.button
                           onClick={() => { setDesigner(designer === brandName ? "All" : brandName); setIsDesignersOpen(false); }}
                           initial={{ opacity: 0, y: 10 }}
