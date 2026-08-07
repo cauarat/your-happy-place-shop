@@ -139,8 +139,7 @@ const Header = () => {
         WebkitBackdropFilter: 'blur(40px) saturate(180%)',
       }}
     >
-      {/* Unified Header — same layout on all screen sizes */}
-      <div className="flex items-center justify-between px-3 sm:px-6 lg:px-10 h-14 sm:h-16 w-full gap-2 sm:gap-4">
+      <div className="flex items-center justify-between px-2.5 sm:px-4 lg:px-8 h-14 sm:h-16 w-full gap-2 sm:gap-4">
         {/* Left: Logo */}
         <div className="flex items-center shrink-0">
           <Link 
@@ -225,7 +224,7 @@ const Header = () => {
       {/* Search Bar Row — Liquid Glass */}
       <div
         data-tour="search-bar"
-        className="px-3 sm:px-6 lg:px-10 w-full pb-3 flex items-center gap-2.5"
+        className="px-2.5 sm:px-4 lg:px-8 w-full pb-3 flex items-center gap-2.5"
       >
         {/* Brand Filter Button — iOS style */}
         <div className="relative" ref={brandFilterRef}>
