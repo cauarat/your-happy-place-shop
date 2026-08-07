@@ -284,12 +284,12 @@ const Header = () => {
                 {/* All Brands */}
                 <button
                   onClick={() => { setSelectedDesigner(null); setIsBrandFilterOpen(false); if (location.pathname !== '/') navigate('/'); }}
-                  className="relative flex items-center gap-2.5 px-3 py-2 rounded-xl shrink-0 w-[calc(100%-16px)] mx-2 my-0.5 hover:bg-black/5"
+                  className="relative flex items-center gap-2.5 px-3 py-2 rounded-full shrink-0 w-[calc(100%-16px)] mx-2 my-0.5 hover:bg-black/5"
                 >
                   {!selectedDesigner && (
                     <motion.div
-                      layoutId="active-filter-bg"
-                      className="absolute inset-0 rounded-xl bg-black z-0 shadow-[inset_0_1px_2px_rgba(255,255,255,0.15)]"
+                      layoutId="active-brand-bg"
+                      className="absolute inset-0 rounded-full bg-black z-0 shadow-[inset_0_1px_2px_rgba(255,255,255,0.15)]"
                       transition={{ type: 'spring', stiffness: 120, damping: 20, mass: 1 }}
                     />
                   )}
@@ -298,8 +298,8 @@ const Header = () => {
                     animate={{ color: !selectedDesigner ? '#ffffff' : '#4a4a4d' }}
                     transition={{ duration: 0.15, ease: "linear" }}
                   >
-                    <span className="w-4 h-4 flex items-center justify-center shrink-0">
-                      {!selectedDesigner && <Check size={14} strokeWidth={2.5} />}
+                    <span className="w-5 h-5 flex items-center justify-center shrink-0">
+                      {!selectedDesigner && <Check size={15} strokeWidth={2.5} />}
                     </span>
                     <span className="text-[13px] font-medium tracking-wide">All Brands</span>
                   </motion.span>
@@ -311,12 +311,12 @@ const Header = () => {
                     <button
                       key={d}
                       onClick={() => { setSelectedDesigner(d); setIsBrandFilterOpen(false); if (location.pathname !== '/') navigate('/'); }}
-                      className="relative flex items-center gap-2.5 px-3 py-2 rounded-xl shrink-0 w-[calc(100%-16px)] mx-2 my-0.5 hover:bg-black/5"
+                      className="relative flex items-center gap-2.5 px-3 py-2 rounded-full shrink-0 w-[calc(100%-16px)] mx-2 my-0.5 hover:bg-black/5"
                     >
                       {isActive && (
                         <motion.div
-                          layoutId="active-filter-bg"
-                          className="absolute inset-0 rounded-xl bg-black z-0 shadow-[inset_0_1px_2px_rgba(255,255,255,0.15)]"
+                          layoutId="active-brand-bg"
+                          className="absolute inset-0 rounded-full bg-black z-0 shadow-[inset_0_1px_2px_rgba(255,255,255,0.15)]"
                           transition={{ type: 'spring', stiffness: 120, damping: 20, mass: 1 }}
                         />
                       )}
@@ -325,8 +325,8 @@ const Header = () => {
                         animate={{ color: isActive ? '#ffffff' : '#4a4a4d' }}
                         transition={{ duration: 0.15, ease: "linear" }}
                       >
-                        <span className="w-4 h-4 flex items-center justify-center shrink-0">
-                          {isActive && <Check size={14} strokeWidth={2.5} />}
+                        <span className="w-5 h-5 flex items-center justify-center shrink-0">
+                          {isActive && <Check size={15} strokeWidth={2.5} />}
                         </span>
                         <span className="text-[13px] font-medium tracking-wide">{d}</span>
                       </motion.span>
@@ -450,31 +450,60 @@ const Header = () => {
                 {/* All Colors */}
                 <button
                   onClick={() => { setSelectedColor(null); setIsColorFilterOpen(false); }}
-                  className="w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-white/40 active:bg-white/50"
+                  className="relative flex items-center gap-2.5 px-3 py-2 rounded-full shrink-0 w-[calc(100%-16px)] mx-2 my-0.5 hover:bg-black/5"
                 >
-                  <span className="w-5 h-5 flex items-center justify-center shrink-0">
-                    {!selectedColor && <Check size={15} strokeWidth={2.5} className="text-blue-500" />}
-                  </span>
-                  <div className="w-4 h-4 rounded-full border border-dashed border-[#ccc]" />
-                  <span className="text-[13px] font-medium text-black/80">All colors</span>
-                </button>
-
-                {colors.map((color) => (
-                  <button
-                    key={color.name}
-                    onClick={() => { setSelectedColor(color.name); setIsColorFilterOpen(false); }}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-white/40 active:bg-white/50"
+                  {!selectedColor && (
+                    <motion.div
+                      layoutId="active-color-bg"
+                      className="absolute inset-0 rounded-full bg-black z-0 shadow-[inset_0_1px_2px_rgba(255,255,255,0.15)]"
+                      transition={{ type: 'spring', stiffness: 120, damping: 20, mass: 1 }}
+                    />
+                  )}
+                  <motion.span 
+                    className="relative z-10 flex items-center gap-2.5 w-full"
+                    animate={{ color: !selectedColor ? '#ffffff' : '#4a4a4d' }}
+                    transition={{ duration: 0.15, ease: "linear" }}
                   >
                     <span className="w-5 h-5 flex items-center justify-center shrink-0">
-                      {selectedColor === color.name && <Check size={15} strokeWidth={2.5} className="text-blue-500" />}
+                      {!selectedColor && <Check size={15} strokeWidth={2.5} />}
                     </span>
-                    <div 
-                      className="w-4 h-4 rounded-full border border-black/10"
-                      style={{ backgroundColor: color.hex }}
-                    />
-                    <span className="text-[13px] text-black/75">{color.name}</span>
-                  </button>
-                ))}
+                    <div className="w-4 h-4 rounded-full border border-dashed border-[#ccc] bg-white/20" />
+                    <span className="text-[13px] font-medium tracking-wide">All colors</span>
+                  </motion.span>
+                </button>
+
+                {colors.map((color) => {
+                  const isActive = selectedColor === color.name;
+                  return (
+                    <button
+                      key={color.name}
+                      onClick={() => { setSelectedColor(color.name); setIsColorFilterOpen(false); }}
+                      className="relative flex items-center gap-2.5 px-3 py-2 rounded-full shrink-0 w-[calc(100%-16px)] mx-2 my-0.5 hover:bg-black/5"
+                    >
+                      {isActive && (
+                        <motion.div
+                          layoutId="active-color-bg"
+                          className="absolute inset-0 rounded-full bg-black z-0 shadow-[inset_0_1px_2px_rgba(255,255,255,0.15)]"
+                          transition={{ type: 'spring', stiffness: 120, damping: 20, mass: 1 }}
+                        />
+                      )}
+                      <motion.span 
+                        className="relative z-10 flex items-center gap-2.5 w-full"
+                        animate={{ color: isActive ? '#ffffff' : '#4a4a4d' }}
+                        transition={{ duration: 0.15, ease: "linear" }}
+                      >
+                        <span className="w-5 h-5 flex items-center justify-center shrink-0">
+                          {isActive && <Check size={15} strokeWidth={2.5} />}
+                        </span>
+                        <div 
+                          className="w-4 h-4 rounded-full border border-black/10"
+                          style={{ backgroundColor: color.hex }}
+                        />
+                        <span className="text-[13px] font-medium tracking-wide">{color.name}</span>
+                      </motion.span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}
