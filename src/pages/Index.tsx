@@ -401,25 +401,21 @@ const Index = () => {
 
         {/* Active Filter Label & Count */}
         <div
-          className="sticky top-[100px] sm:top-[112px] z-40 w-full pt-2 pb-6 -mb-6 pointer-events-none"
-          style={{
-            background: 'linear-gradient(to bottom, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0) 100%)',
-            backdropFilter: 'blur(40px) saturate(180%)',
-            WebkitBackdropFilter: 'blur(40px) saturate(180%)',
-            maskImage: 'linear-gradient(to bottom, black 0%, black 22px, transparent 100%)',
-            WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 22px, transparent 100%)',
-          }}
+          className="sticky top-[100px] sm:top-[112px] z-40 w-full pt-4 pb-4 pointer-events-none bg-white/80 backdrop-blur-xl border-b border-black/5"
         >
-          <div className="relative flex items-center justify-center px-3 sm:px-6 lg:px-10 py-1 w-full pointer-events-auto">
-            <div className="flex items-center gap-2 overflow-hidden max-w-[75%] sm:max-w-[85%]">
-              <span className="text-[11px] sm:text-xs font-semibold tracking-widest uppercase truncate text-black">
+          <div className="relative flex items-center justify-center px-4 sm:px-6 lg:px-10 w-full pointer-events-auto">
+            <div className="flex items-center justify-center text-center">
+              <span 
+                className="text-[11px] sm:text-[12px] font-bold tracking-[0.15em] uppercase text-black"
+                style={{ paddingLeft: '0.15em' }} /* balances tracking */
+              >
                 {topBarLabel}
               </span>
-              <span className="text-[11px] sm:text-xs text-[#888] shrink-0">
+              <span className="text-[11px] sm:text-[12px] text-[#888] font-normal ml-2 tracking-normal">
                 ({filtered.length})
               </span>
             </div>
-            {/* Clear Filters Button (only if filters are active) */}
+            {/* Clear Filters Button */}
             {(category !== "All" || designer !== "All" || showSaleOnly || searchQuery.trim() || selectedColor || selectedDesigner) && (
               <button
                 onClick={() => {
@@ -430,10 +426,10 @@ const Index = () => {
                   setSelectedColor(null);
                   setSelectedDesigner(null);
                 }}
-                className="absolute right-3 sm:right-6 lg:right-10 text-[10px] sm:text-[11px] uppercase tracking-widest font-semibold text-[#666] hover:text-black transition-colors shrink-0 flex items-center gap-1"
+                className="absolute right-4 sm:right-6 lg:right-10 text-[9px] sm:text-[10px] uppercase tracking-widest font-bold text-[#777] hover:text-black transition-colors shrink-0 flex items-center gap-1.5"
               >
-                <span className="hidden sm:inline">{t('clear') || 'Clear'}</span>
-                <X size={12} />
+                <span className="hidden sm:inline">{t('clear') || 'LIMPAR'}</span>
+                <X size={12} strokeWidth={2.5} />
               </button>
             )}
           </div>
