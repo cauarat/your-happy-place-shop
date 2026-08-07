@@ -224,7 +224,7 @@ const Header = () => {
       {/* Search Bar Row — Liquid Glass */}
       <div
         data-tour="search-bar"
-        className="px-2.5 sm:px-4 lg:px-8 w-full pb-3 flex items-center gap-2.5"
+        className="px-2.5 sm:px-4 lg:px-8 w-full pb-1 flex items-center gap-2.5"
       >
         {/* Brand Filter Button — iOS style */}
         <div className="relative" ref={brandFilterRef}>
