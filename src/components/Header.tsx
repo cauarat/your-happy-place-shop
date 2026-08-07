@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Sparkles, X, Heart, UserPlus, Check, SlidersHorizontal } from "lucide-react";
 import { motion } from "framer-motion";
-import { LiquidButton } from "@/components/ui/liquid-glass-button";
+import { LiquidButton, GlassFilter } from "@/components/ui/liquid-glass-button";
 import { CosmoColorIcon } from "./Icons";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -247,26 +247,16 @@ const Header = () => {
           {/* iOS 27 Liquid Glass popup (Brand) */}
           {isBrandFilterOpen && (
             <div
-              className="absolute top-full left-0 mt-2 w-60 rounded-[22px] z-[100] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200"
-              style={{
-                background: 'linear-gradient(135deg, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.75) 50%, rgba(240,240,245,0.85) 100%)',
-                backdropFilter: 'blur(60px) saturate(180%)',
-                WebkitBackdropFilter: 'blur(60px) saturate(180%)',
-                boxShadow: `
-                  0 8px 48px rgba(0,0,0,0.10),
-                  0 2px 16px rgba(0,0,0,0.06),
-                  inset 0 1px 0 rgba(255,255,255,0.7),
-                  inset 0 -1px 0 rgba(255,255,255,0.15)
-                `,
-                border: '0.5px solid rgba(255,255,255,0.55)',
-              }}
+              className="absolute top-full left-0 mt-2 w-60 rounded-[22px] z-[100] animate-in fade-in slide-in-from-top-2 duration-200"
             >
-              {/* Specular highlight overlay */}
+              {/* Liquid Glass Background */}
+              <div className="absolute top-0 left-0 z-0 h-full w-full rounded-[22px] 
+                  shadow-[0_0_6px_rgba(0,0,0,0.03),0_2px_6px_rgba(0,0,0,0.08),inset_3px_3px_0.5px_-3px_rgba(0,0,0,0.9),inset_-3px_-3px_0.5px_-3px_rgba(0,0,0,0.85),inset_1px_1px_1px_-0.5px_rgba(0,0,0,0.6),inset_-1px_-1px_1px_-0.5px_rgba(0,0,0,0.6),inset_0_0_6px_6px_rgba(0,0,0,0.12),inset_0_0_2px_2px_rgba(0,0,0,0.06),0_0_12px_rgba(255,255,255,0.15)] 
+              transition-all 
+              dark:shadow-[0_0_8px_rgba(0,0,0,0.03),0_2px_6px_rgba(0,0,0,0.08),inset_3px_3px_0.5px_-3.5px_rgba(255,255,255,0.09),inset_-3px_-3px_0.5px_-3.5px_rgba(255,255,255,0.85),inset_1px_1px_1px_-0.5px_rgba(255,255,255,0.6),inset_-1px_-1px_1px_-0.5px_rgba(255,255,255,0.6),inset_0_0_6px_6px_rgba(255,255,255,0.12),inset_0_0_2px_2px_rgba(255,255,255,0.06),0_0_12px_rgba(0,0,0,0.15)]" />
               <div
-                className="absolute inset-0 rounded-[22px] pointer-events-none"
-                style={{
-                  background: 'linear-gradient(180deg, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0) 40%, rgba(255,255,255,0.05) 100%)',
-                }}
+                className="absolute top-0 left-0 isolate -z-10 h-full w-full overflow-hidden rounded-[22px]"
+                style={{ backdropFilter: 'url("#container-glass")' }}
               />
               {/* Header */}
               <div className="relative px-4 pt-4 pb-2.5" style={{ borderBottom: '0.5px solid rgba(0,0,0,0.06)' }}>
@@ -389,7 +379,8 @@ const Header = () => {
 
         {/* Color Filter Selector — iOS style */}
         <div className="relative" ref={colorFilterRef}>
-          <button
+          <LiquidButton
+            size="icon"
             onClick={() => setIsColorFilterOpen(!isColorFilterOpen)}
             className="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-full transition-all duration-300 outline-none"
             style={selectedColor ? {
@@ -407,31 +398,21 @@ const Header = () => {
             ) : (
               <CosmoColorIcon size={16} className="opacity-80" />
             )}
-          </button>
+          </LiquidButton>
 
           {/* iOS 27 Liquid Glass popup (Color) */}
           {isColorFilterOpen && (
             <div
-              className="absolute top-full right-0 mt-2 w-60 rounded-[22px] z-[100] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200"
-              style={{
-                background: 'linear-gradient(135deg, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.75) 50%, rgba(240,240,245,0.85) 100%)',
-                backdropFilter: 'blur(60px) saturate(180%)',
-                WebkitBackdropFilter: 'blur(60px) saturate(180%)',
-                boxShadow: `
-                  0 8px 48px rgba(0,0,0,0.10),
-                  0 2px 16px rgba(0,0,0,0.06),
-                  inset 0 1px 0 rgba(255,255,255,0.7),
-                  inset 0 -1px 0 rgba(255,255,255,0.15)
-                `,
-                border: '0.5px solid rgba(255,255,255,0.55)',
-              }}
+              className="absolute top-full right-0 mt-2 w-60 rounded-[22px] z-[100] animate-in fade-in slide-in-from-top-2 duration-200"
             >
-              {/* Specular highlight overlay */}
+              {/* Liquid Glass Background */}
+              <div className="absolute top-0 left-0 z-0 h-full w-full rounded-[22px] 
+                  shadow-[0_0_6px_rgba(0,0,0,0.03),0_2px_6px_rgba(0,0,0,0.08),inset_3px_3px_0.5px_-3px_rgba(0,0,0,0.9),inset_-3px_-3px_0.5px_-3px_rgba(0,0,0,0.85),inset_1px_1px_1px_-0.5px_rgba(0,0,0,0.6),inset_-1px_-1px_1px_-0.5px_rgba(0,0,0,0.6),inset_0_0_6px_6px_rgba(0,0,0,0.12),inset_0_0_2px_2px_rgba(0,0,0,0.06),0_0_12px_rgba(255,255,255,0.15)] 
+              transition-all 
+              dark:shadow-[0_0_8px_rgba(0,0,0,0.03),0_2px_6px_rgba(0,0,0,0.08),inset_3px_3px_0.5px_-3.5px_rgba(255,255,255,0.09),inset_-3px_-3px_0.5px_-3.5px_rgba(255,255,255,0.85),inset_1px_1px_1px_-0.5px_rgba(255,255,255,0.6),inset_-1px_-1px_1px_-0.5px_rgba(255,255,255,0.6),inset_0_0_6px_6px_rgba(255,255,255,0.12),inset_0_0_2px_2px_rgba(255,255,255,0.06),0_0_12px_rgba(0,0,0,0.15)]" />
               <div
-                className="absolute inset-0 rounded-[22px] pointer-events-none"
-                style={{
-                  background: 'linear-gradient(180deg, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0) 40%, rgba(255,255,255,0.05) 100%)',
-                }}
+                className="absolute top-0 left-0 isolate -z-10 h-full w-full overflow-hidden rounded-[22px]"
+                style={{ backdropFilter: 'url("#container-glass")' }}
               />
 
               {/* Header */}
