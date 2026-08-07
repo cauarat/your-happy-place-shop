@@ -26,7 +26,7 @@ import {
 } from "@/components/Icons";
 import { getCategories, getDesignSettings } from "@/lib/store";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { LiquidButton } from "@/components/ui/liquid-glass-button";
+import { GlassFilter } from "@/components/ui/liquid-glass-button";
 
 const getCategoryIcon = (cat: string) => {
   switch (cat.toUpperCase()) {
@@ -68,18 +68,19 @@ export default function MobileBottomDock() {
       className="fixed bottom-0 left-0 right-0 flex justify-center z-50 pointer-events-none"
       style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)' }}
     >
-      <LiquidButton 
-        asChild
-        className="rounded-full overflow-hidden pointer-events-auto mx-3 max-w-[100vw] relative !h-auto !p-0 hover:scale-100"
+      <div 
+        className="rounded-full pointer-events-auto mx-3 max-w-[100vw] relative"
       >
-        <div>
-          {/* Specular highlight overlay */}
-          <div
-            className="absolute inset-0 rounded-full pointer-events-none"
-            style={{
-              background: 'linear-gradient(180deg, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0) 40%, rgba(255,255,255,0.05) 100%)',
-            }}
-          />
+        {/* Liquid Glass Background */}
+        <div className="absolute top-0 left-0 z-0 h-full w-full rounded-full 
+            shadow-[0_0_6px_rgba(0,0,0,0.03),0_2px_6px_rgba(0,0,0,0.08),inset_3px_3px_0.5px_-3px_rgba(0,0,0,0.9),inset_-3px_-3px_0.5px_-3px_rgba(0,0,0,0.85),inset_1px_1px_1px_-0.5px_rgba(0,0,0,0.6),inset_-1px_-1px_1px_-0.5px_rgba(0,0,0,0.6),inset_0_0_6px_6px_rgba(0,0,0,0.12),inset_0_0_2px_2px_rgba(0,0,0,0.06),0_0_12px_rgba(255,255,255,0.15)] 
+        transition-all 
+        dark:shadow-[0_0_8px_rgba(0,0,0,0.03),0_2px_6px_rgba(0,0,0,0.08),inset_3px_3px_0.5px_-3.5px_rgba(255,255,255,0.09),inset_-3px_-3px_0.5px_-3.5px_rgba(255,255,255,0.85),inset_1px_1px_1px_-0.5px_rgba(255,255,255,0.6),inset_-1px_-1px_1px_-0.5px_rgba(255,255,255,0.6),inset_0_0_6px_6px_rgba(255,255,255,0.12),inset_0_0_2px_2px_rgba(255,255,255,0.06),0_0_12px_rgba(0,0,0,0.15)]" />
+        <div
+          className="absolute top-0 left-0 isolate -z-10 h-full w-full overflow-hidden rounded-full"
+          style={{ backdropFilter: 'url("#container-glass")' }}
+        />
+        <GlassFilter />
         
         <div
           ref={scrollRef}
@@ -184,8 +185,7 @@ export default function MobileBottomDock() {
             })}
           </AnimatePresence>
         </div>
-        </div>
-      </LiquidButton>
+      </div>
     </div>
   );
 }

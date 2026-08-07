@@ -118,7 +118,7 @@ function LiquidButton({
           style={{ backdropFilter: 'url("#container-glass")' }}
         />
 
-        <div className="relative z-10 w-full h-full">
+        <div className="pointer-events-none z-10 ">
           {children}
         </div>
         <GlassFilter />
@@ -128,7 +128,7 @@ function LiquidButton({
 }
 
 
-function GlassFilter() {
+export function GlassFilter() {
   return (
     <svg className="hidden">
       <defs>
