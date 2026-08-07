@@ -250,7 +250,7 @@ const Header = () => {
             <div
               className="absolute top-full left-0 mt-2 w-60 rounded-[22px] z-[100] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200"
               style={{
-                background: 'linear-gradient(135deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.35) 50%, rgba(240,240,245,0.45) 100%)',
+                background: 'linear-gradient(135deg, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.75) 50%, rgba(240,240,245,0.85) 100%)',
                 backdropFilter: 'blur(60px) saturate(180%)',
                 WebkitBackdropFilter: 'blur(60px) saturate(180%)',
                 boxShadow: `
@@ -415,7 +415,7 @@ const Header = () => {
             <div
               className="absolute top-full right-0 mt-2 w-60 rounded-[22px] z-[100] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200"
               style={{
-                background: 'linear-gradient(135deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.35) 50%, rgba(240,240,245,0.45) 100%)',
+                background: 'linear-gradient(135deg, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.75) 50%, rgba(240,240,245,0.85) 100%)',
                 backdropFilter: 'blur(60px) saturate(180%)',
                 WebkitBackdropFilter: 'blur(60px) saturate(180%)',
                 boxShadow: `

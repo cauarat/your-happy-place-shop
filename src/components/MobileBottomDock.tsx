@@ -70,7 +70,7 @@ export default function MobileBottomDock() {
       <div 
         className="rounded-full overflow-hidden pointer-events-auto mx-3 max-w-[100vw] relative"
         style={{
-          background: 'linear-gradient(135deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.35) 50%, rgba(240,240,245,0.45) 100%)',
+          background: 'linear-gradient(135deg, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.75) 50%, rgba(240,240,245,0.85) 100%)',
           backdropFilter: 'blur(60px) saturate(180%)',
           WebkitBackdropFilter: 'blur(60px) saturate(180%)',
           boxShadow: `
