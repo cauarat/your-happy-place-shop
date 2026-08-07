@@ -327,14 +327,29 @@ const Header = () => {
           )}
         </div>
         <div
-          className="flex-1 flex items-center gap-1.5 sm:gap-2.5 px-3.5 sm:px-4.5 py-2 sm:py-2.5 rounded-full transition-all duration-300 relative overflow-hidden"
-          style={{
-            background: isFocused ? 'rgba(255, 255, 255, 0.8)' : 'rgba(118, 118, 128, 0.12)',
-            border: isFocused ? '0.5px solid rgba(0,0,0,0.12)' : '0.5px solid transparent',
-            boxShadow: isFocused ? '0 4px 24px rgba(0,0,0,0.08)' : 'none',
-          }}
+          className="flex-1 flex items-center gap-1.5 sm:gap-2.5 px-3.5 sm:px-4.5 py-2 sm:py-2.5 rounded-full transition-all duration-300 relative group"
         >
-          <Sparkles size={14} className={`shrink-0 transition-colors sm:w-[15px] sm:h-[15px] ${isFocused ? "text-black" : "text-[rgba(60,60,67,0.6)]"}`} />
+          {/* Liquid Glass Background */}
+          <div className="absolute top-0 left-0 z-0 h-full w-full rounded-full 
+              shadow-[0_0_6px_rgba(0,0,0,0.03),0_2px_6px_rgba(0,0,0,0.08),inset_3px_3px_0.5px_-3px_rgba(0,0,0,0.9),inset_-3px_-3px_0.5px_-3px_rgba(0,0,0,0.85),inset_1px_1px_1px_-0.5px_rgba(0,0,0,0.6),inset_-1px_-1px_1px_-0.5px_rgba(0,0,0,0.6),inset_0_0_6px_6px_rgba(0,0,0,0.12),inset_0_0_2px_2px_rgba(0,0,0,0.06),0_0_12px_rgba(255,255,255,0.15)] 
+          transition-all 
+          dark:shadow-[0_0_8px_rgba(0,0,0,0.03),0_2px_6px_rgba(0,0,0,0.08),inset_3px_3px_0.5px_-3.5px_rgba(255,255,255,0.09),inset_-3px_-3px_0.5px_-3.5px_rgba(255,255,255,0.85),inset_1px_1px_1px_-0.5px_rgba(255,255,255,0.6),inset_-1px_-1px_1px_-0.5px_rgba(255,255,255,0.6),inset_0_0_6px_6px_rgba(255,255,255,0.12),inset_0_0_2px_2px_rgba(255,255,255,0.06),0_0_12px_rgba(0,0,0,0.15)]" />
+          <div
+            className="absolute top-0 left-0 isolate -z-10 h-full w-full overflow-hidden rounded-full"
+            style={{ backdropFilter: 'url("#container-glass")' }}
+          />
+
+          {/* Focused Highlight Overlay */}
+          <div 
+            className={`absolute top-0 left-0 z-0 h-full w-full rounded-full transition-all duration-300 pointer-events-none ${isFocused ? 'opacity-100 scale-100' : 'opacity-0 scale-[0.98]'}`}
+            style={{
+              background: 'linear-gradient(135deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.2) 100%)',
+              border: '0.5px solid rgba(0,0,0,0.15)',
+              boxShadow: '0 4px 24px rgba(0,0,0,0.12)',
+            }}
+          />
+
+          <Sparkles size={14} className={`shrink-0 transition-colors sm:w-[15px] sm:h-[15px] ${isFocused ? "text-black" : "text-[rgba(60,60,67,0.6)]"} relative z-10`} />
           <div className="relative flex-1 min-w-0 flex items-center">
             {suggestion && isFocused && searchQuery && suggestion.toLowerCase().startsWith(searchQuery.toLowerCase()) && (
               <div className="absolute inset-0 pointer-events-none flex items-center text-[11px] sm:text-[12px] text-[#bbb] whitespace-pre overflow-hidden">
