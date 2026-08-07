@@ -23,6 +23,7 @@
 3. **Autocorreção (Loop de Reparo):** Se falhar -> Analisar -> Corrigir -> Testar -> Atualizar POPs em `architecture/`.
 4. **Sem scripts prematuros:** Nada em `tools/` (ou scripts Python de automação) até que a Visão, o Schema e o Link estejam concluídos.
 5. **Integração Contínua (Lovable):** Sempre que fizer uma alteração no código do site (frontend/backend), automaticamente crie um commit e faça um push para o GitHub para que o código seja sincronizado com o Lovable. (ex: `git add . && git commit -m "..." && git push`).
+6. **Autoplay de Música:** Sempre que o usuário entrar no site (seja pela home, onboarding ou catálogo), a música de fundo deve tentar iniciar automaticamente. Se o navegador bloquear, inicie na primeira interação (scroll, clique, etc).
 
 ---
 
