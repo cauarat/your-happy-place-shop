@@ -184,6 +184,7 @@ export default function MobileBottomDock() {
             })}
           </AnimatePresence>
         </div>
+        </div>
       </LiquidButton>
     </div>
   );
