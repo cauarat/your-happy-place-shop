@@ -6,7 +6,6 @@ import { useCart } from "@/contexts/CartContext";
 import { Heart } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
-import { SpotlightCard } from "./ui/spotlight-card";
 
 const ProductCard = ({ product, index, isFeatured }: { product: Product, index?: number, isFeatured?: boolean }) => {
   const { t } = useLanguage();
@@ -39,8 +38,7 @@ const ProductCard = ({ product, index, isFeatured }: { product: Product, index?:
       className="group block w-full select-none"
       data-tour={index === 0 ? "product-card" : undefined}
     >
-      <SpotlightCard className="h-full flex flex-col p-2.5 pb-3.5 sm:p-3 sm:pb-4 bg-white/60 backdrop-blur-sm hover:bg-white transition-colors duration-500">
-        <div className={`relative bg-white overflow-hidden rounded-xl flex items-center justify-center ${isFeatured ? 'w-full h-auto aspect-auto' : 'aspect-[4/5]'}`}>
+      <div className={`relative bg-white overflow-hidden rounded-2xl flex items-center justify-center ${isFeatured ? 'w-full h-auto aspect-auto' : 'aspect-[4/5]'}`}>
         <img 
           src={product.image} 
           alt={product.name} 
@@ -107,7 +105,6 @@ const ProductCard = ({ product, index, isFeatured }: { product: Product, index?:
           </p>
         )}
       </div>
-      </SpotlightCard>
     </Link>
   );
 };

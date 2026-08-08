@@ -149,7 +149,7 @@ const Header = () => {
         WebkitBackdropFilter: 'blur(40px) saturate(180%)',
       }}
     >
-      <div className="flex items-center justify-between px-2.5 sm:px-4 lg:px-8 h-14 sm:h-16 w-full gap-2 sm:gap-4">
+      <div className="flex items-center justify-between px-5 sm:px-6 lg:px-8 h-14 sm:h-16 w-full gap-2 sm:gap-4">
 
 
         {/* Right Nav */}
@@ -227,31 +227,40 @@ const Header = () => {
       {/* Search Bar Row — Liquid Glass */}
       <div
         data-tour="search-bar"
-        className="px-2.5 sm:px-4 lg:px-8 w-full pb-3 flex flex-col items-center gap-4"
+        className="px-[8%] sm:px-6 lg:px-8 w-full pb-3 flex flex-col items-center gap-4"
       >
         <div className="flex flex-col items-center gap-2">
           <div className="relative inline-block">
-            <GradientShimmer
-              gradient="sunrise"
-              easing="smooth"
-              duration={2}
-              spread={3}
-              angle={105}
-              pauseBetween={2000}
-              typingEffect={true}
-              className="text-lg sm:text-2xl font-medium tracking-tight text-black text-center"
+            <motion.div
+              initial={{ clipPath: 'inset(0 100% 0 0)' }}
+              animate={{ clipPath: 'inset(0 0% 0 0)' }}
+              transition={{ duration: 2, ease: [0.45, 0, 0.55, 1] }}
+              style={{ display: 'inline-block', paddingRight: '4px' }}
             >
-              {t(getGreetingKey()).replace('{name}', user?.user_metadata?.first_name || 'Cauã')}
-            </GradientShimmer>
+          <GradientShimmer
+            gradient="sunrise"
+            easing="smooth"
+            duration={2}
+            spread={3}
+            angle={105}
+            pauseBetween={2000}
+            className="text-xl sm:text-3xl font-semibold tracking-tighter text-black/90 text-center"
+            style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}
+          >
+            {t(getGreetingKey()).replace('{name}', user?.user_metadata?.first_name || 'Cauã')}
+          </GradientShimmer>
+            </motion.div>
             
-            {/* Blinking Cursor that appears when typing completes */}
+            {/* Blinking Cursor that tracks with the wipe */}
             <motion.span
-              initial={{ opacity: 0 }}
-              animate={{ opacity: [1, 1, 0, 0] }}
+              initial={{ left: '0%', opacity: 0 }}
+              animate={{ left: '100%', opacity: [1, 1, 0, 0] }}
               transition={{
-                duration: 1, repeat: Infinity, times: [0, 0.5, 0.5, 1], delay: 2
+                left: { duration: 2, ease: [0.45, 0, 0.55, 1] },
+                opacity: { duration: 1, repeat: Infinity, times: [0, 0.5, 0.5, 1] }
               }}
-              className="absolute top-0 bottom-0 right-[-12px] flex items-center text-black/60 font-light text-lg sm:text-2xl"
+              className="absolute top-0 bottom-0 flex items-center text-black/60 font-light text-xl sm:text-3xl"
+              style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}
             >
               |
             </motion.span>
@@ -278,7 +287,7 @@ const Header = () => {
               }
             }}
             suggestion={suggestion}
-            placeholder={t('search') + " " + t('search_placeholder')}
+            placeholder={t('search_help')}
           leftActions={
               <>
                 {/* Brand Filter Button — iOS style */}

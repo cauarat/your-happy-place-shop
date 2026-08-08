@@ -90,9 +90,10 @@ const translations: Record<Language, Record<string, string>> = {
     free_shipping: "Free shipping on orders over $100.",
     // Search bar
     search_placeholder: "products, colors...",
-    greeting_morning: "Good morning {name}! What can I help you find?",
-    greeting_afternoon: "Good afternoon {name}! What can I help you find?",
-    greeting_evening: "Good evening {name}! What can I help you find?",
+    search_help: "What can I help you find?",
+    greeting_morning: "Good morning {name}!",
+    greeting_afternoon: "Good afternoon {name}!",
+    greeting_evening: "Good evening {name}!",
     // Community Looks / ALTA
     ai_stylist_tagline: "Your personal AI stylist that truly gets you",
     create_your_own: "Create Your Own",
@@ -320,9 +321,10 @@ const translations: Record<Language, Record<string, string>> = {
     free_shipping: "Frete grátis em pedidos acima de $100.",
     // Search bar
     search_placeholder: "produtos, cores...",
-    greeting_morning: "Bom dia {name}! O que posso te ajudar a encontrar?",
-    greeting_afternoon: "Boa tarde {name}! O que posso te ajudar a encontrar?",
-    greeting_evening: "Boa noite {name}! O que posso te ajudar a encontrar?",
+    search_help: "O que posso te ajudar a encontrar?",
+    greeting_morning: "Bom dia {name}!",
+    greeting_afternoon: "Boa tarde {name}!",
+    greeting_evening: "Boa noite {name}!",
     // Community Looks / ALTA
     ai_stylist_tagline: "Seu estilista pessoal de IA que realmente te entende",
     create_your_own: "Crie o Seu",
@@ -550,9 +552,10 @@ const translations: Record<Language, Record<string, string>> = {
     free_shipping: "Envío gratis en pedidos superiores a $100.",
     // Search bar
     search_placeholder: "productos, colores...",
-    greeting_morning: "¡Buenos días {name}! ¿En qué puedo ayudarte?",
-    greeting_afternoon: "¡Buenas tardes {name}! ¿En qué puedo ayudarte?",
-    greeting_evening: "¡Buenas noches {name}! ¿En qué puedo ayudarte?",
+    search_help: "¿En qué puedo ayudarte a encontrar?",
+    greeting_morning: "¡Buenos días {name}!",
+    greeting_afternoon: "¡Buenas tardes {name}!",
+    greeting_evening: "¡Buenas noches {name}!",
     // Community Looks / ALTA
     ai_stylist_tagline: "Tu estilista personal de IA que realmente te entiende",
     create_your_own: "Crea el Tuyo",
