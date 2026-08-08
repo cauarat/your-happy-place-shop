@@ -5,7 +5,6 @@ import { motion } from "framer-motion";
 import { CosmoColorIcon } from "./Icons";
 import { PromptInput } from "./ui/ai-chat-input";
 import { GradientShimmer } from "./ui/gradient-shimmer";
-import { Typewriter } from "./ui/typewriter";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSearch } from "@/contexts/SearchContext";
@@ -231,6 +230,12 @@ const Header = () => {
         className="px-2.5 sm:px-4 lg:px-8 w-full pb-3 flex flex-col items-center gap-4"
       >
         <div className="flex flex-col items-center gap-2">
+          <motion.div
+            initial={{ clipPath: 'inset(0 100% 0 0)' }}
+            animate={{ clipPath: 'inset(0 0% 0 0)' }}
+            transition={{ duration: 1.5, ease: 'easeOut', delay: 0.2 }}
+            style={{ display: 'inline-block' }}
+          >
           <GradientShimmer
             gradient="sunrise"
             easing="smooth"
@@ -240,15 +245,9 @@ const Header = () => {
             pauseBetween={2000}
             className="text-lg sm:text-2xl font-medium tracking-tight text-black text-center"
           >
-            <Typewriter 
-              words={[t(getGreetingKey()).replace('{name}', user?.user_metadata?.first_name || 'Cauã')]} 
-              speed={50} 
-              delayBetweenWords={2000} 
-              cursor={true} 
-              cursorChar="|" 
-              loop={false}
-            />
+            {t(getGreetingKey()).replace('{name}', user?.user_metadata?.first_name || 'Cauã')}
           </GradientShimmer>
+          </motion.div>
         </div>
         <div className="flex-1 w-full relative z-[5]">
           <PromptInput
