@@ -4,7 +4,7 @@ import { Sparkles, X, Heart, UserPlus, Check, SlidersHorizontal } from "lucide-r
 import { motion } from "framer-motion";
 import { CosmoColorIcon } from "./Icons";
 import { PromptBox } from "./ui/prompt-box";
-import { GradientShimmer } from "./ui/gradient-shimmer";
+import { AppleHelloEnglishEffect } from "./ui/apple-hello-effect";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSearch } from "@/contexts/SearchContext";
@@ -229,24 +229,9 @@ const Header = () => {
         data-tour="search-bar"
         className="px-2.5 sm:px-4 lg:px-8 w-full pb-3 flex flex-col items-center gap-4"
       >
-        <motion.div 
-          className="flex flex-col items-center gap-2 mb-2"
-          initial={{ opacity: 0, y: 10, filter: 'blur(5px)' }}
-          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }} // Apple-like spring/ease
-        >
-          <GradientShimmer
-            gradient="sunrise"
-            easing="smooth"
-            duration={2}
-            spread={3}
-            angle={105}
-            pauseBetween={2000}
-            className="text-2xl sm:text-3xl font-light tracking-tighter text-black text-center"
-          >
-            {t(getGreetingKey()).replace('{name}', user?.user_metadata?.first_name || 'Cauã')}
-          </GradientShimmer>
-        </motion.div>
+        <div className="flex flex-col items-center gap-2">
+          <AppleHelloEnglishEffect speed={1.1} className="h-10 sm:h-12 text-black" />
+        </div>
         <div className="flex-1 w-full relative z-[5]">
           <PromptBox
             value={searchQuery}
