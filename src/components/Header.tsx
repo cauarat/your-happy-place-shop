@@ -277,7 +277,7 @@ const Header = () => {
               boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
               borderColor: 'transparent'
             } : {
-              background: 'rgba(118, 118, 128, 0.12)',
+              background: 'white',
               color: 'rgba(60, 60, 67, 0.6)',
             }}
             title="Filter by brand"
@@ -386,7 +386,7 @@ const Header = () => {
               background: 'transparent',
               borderColor: 'transparent'
             } : {
-              background: 'rgba(118, 118, 128, 0.12)',
+              background: 'white',
             }}
             title="Filter by color"
           >
