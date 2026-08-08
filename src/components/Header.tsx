@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { CosmoColorIcon } from "./Icons";
 import { PromptInput } from "./ui/ai-chat-input";
 import { GradientShimmer } from "./ui/gradient-shimmer";
+import { Typewriter } from "./ui/typewriter";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSearch } from "@/contexts/SearchContext";
@@ -239,7 +240,14 @@ const Header = () => {
             pauseBetween={2000}
             className="text-lg sm:text-2xl font-medium tracking-tight text-black text-center"
           >
-            {t(getGreetingKey()).replace('{name}', user?.user_metadata?.first_name || 'Cauã')}
+            <Typewriter 
+              words={[t(getGreetingKey()).replace('{name}', user?.user_metadata?.first_name || 'Cauã')]} 
+              speed={50} 
+              delayBetweenWords={2000} 
+              cursor={true} 
+              cursorChar="|" 
+              loop={false}
+            />
           </GradientShimmer>
         </div>
         <div className="flex-1 w-full relative z-[5]">
