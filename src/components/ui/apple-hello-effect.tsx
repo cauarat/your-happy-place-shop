@@ -1,6 +1,6 @@
 "use client"
 
-import { motion } from "motion/react"
+import { motion } from "framer-motion"
 
 import { cn } from "@/lib/utils"
 
@@ -40,7 +40,7 @@ function AppleHelloVietnameseEffect({
       xmlns="http://www.w3.org/2000/svg"
       {...(props as any)}
     >
-      <title>xin chào</title>
+      <title>Bom dia Cauã ! O que posso te ajudar a encontrar?</title>
 
       {/* x1 */}
       <motion.path
@@ -202,7 +202,7 @@ function AppleHelloEnglishEffect({ className, speed = 1, onAnimationComplete, ..
       xmlns="http://www.w3.org/2000/svg"
       {...(props as any)}
     >
-      <title>hello</title>
+      <title>Bom dia Thiago ! O que posso te ajudar a encontrar?</title>
 
       {/* h1 */}
       <motion.path
@@ -236,26 +236,3 @@ function AppleHelloEnglishEffect({ className, speed = 1, onAnimationComplete, ..
 }
 
 export { AppleHelloEnglishEffect, AppleHelloVietnameseEffect }
-
-// Demo
-import { useState } from "react"
-
-export function Demo() {
-  const [language, setLanguage] = useState<"english" | "vietnamese">("english")
-
-  return (
-    <div className="flex flex-col items-center justify-center gap-8 bg-transparent">
-      {language === "english" ? (
-        <AppleHelloEnglishEffect
-          className="text-black h-24"
-          onAnimationComplete={() => setTimeout(() => setLanguage("vietnamese"), 2000)}
-        />
-      ) : (
-        <AppleHelloVietnameseEffect
-          className="text-black h-24"
-          onAnimationComplete={() => setTimeout(() => setLanguage("english"), 2000)}
-        />
-      )}
-    </div>
-  )
-}

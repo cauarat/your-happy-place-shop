@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { CosmoColorIcon } from "./Icons";
 import { PromptBox } from "./ui/prompt-box";
 import { GradientShimmer } from "./ui/gradient-shimmer";
-import { Demo as AppleHelloDemo } from "./ui/apple-hello-effect";
+import { AppleHelloEnglishEffect } from "./ui/apple-hello-effect";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSearch } from "@/contexts/SearchContext";
@@ -231,7 +231,7 @@ const Header = () => {
         className="px-2.5 sm:px-4 lg:px-8 w-full pb-3 flex flex-col items-center gap-4"
       >
         <div className="flex flex-col items-center gap-2">
-          <AppleHelloDemo />
+          <AppleHelloEnglishEffect className="text-black h-16 sm:h-20" />
         </div>
         <div className="flex-1 w-full relative z-[5]">
           <PromptBox
