@@ -257,6 +257,10 @@ export const PromptInput = React.forwardRef<HTMLDivElement, PromptInputProps>(
     const [isSmoothResize, setIsSmoothResize] = useState(false);
     const [localValue, setLocalValue] = useState(defaultValue);
 
+    // Spotlight effect states
+    const [position, setPosition] = useState({ x: 0, y: 0 });
+    const [opacity, setOpacity] = useState(0);
+
     const [attachments, setAttachments] = useState<Attachment[]>([]);
     const [activeAttachment, setActiveAttachment] = useState<{ attachment: Attachment; rect: DOMRect } | null>(null);
 
@@ -667,6 +671,12 @@ export const PromptInput = React.forwardRef<HTMLDivElement, PromptInputProps>(
 
           {/* Main Input Card */}
           <div
+            onMouseMove={(e) => {
+              const rect = e.currentTarget.getBoundingClientRect();
+              setPosition({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+            }}
+            onMouseEnter={() => setOpacity(1)}
+            onMouseLeave={() => setOpacity(0)}
             onMouseDown={(e) => {
               const isTextarea = e.target === textareaRef.current;
               if (expanded && !isTextarea && !isRecording) {
@@ -685,6 +695,14 @@ export const PromptInput = React.forwardRef<HTMLDivElement, PromptInputProps>(
               expanded ? "cursor-text" : "cursor-default"
             )}
           >
+            {/* Spotlight Glow */}
+            <div
+              className="pointer-events-none absolute -inset-px transition-opacity duration-300 rounded-[24px]"
+              style={{
+                opacity,
+                background: `radial-gradient(600px circle at ${position.x}px ${position.y}px, rgba(255, 110, 160, 0.08), transparent 40%)`,
+              }}
+            />
             <style dangerouslySetInnerHTML={{ __html: `
               .prompt-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; background: transparent; }
               .prompt-scrollbar::-webkit-scrollbar-track { background: transparent; }
