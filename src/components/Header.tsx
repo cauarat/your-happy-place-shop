@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Sparkles, X, Heart, UserPlus, Check, SlidersHorizontal } from "lucide-react";
 import { motion } from "framer-motion";
 import { CosmoColorIcon } from "./Icons";
-import { PromptInputBox } from "./ui/ai-prompt-box";
+import { PromptInput } from "./ui/ai-chat-input";
 import { GradientShimmer } from "./ui/gradient-shimmer";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -243,7 +243,7 @@ const Header = () => {
           </GradientShimmer>
         </div>
         <div className="flex-1 w-full relative z-[5]">
-          <PromptInputBox
+          <PromptInput
             value={searchQuery}
             onChange={(val) => {
               setSearchQuery(val);
@@ -251,7 +251,7 @@ const Header = () => {
                 navigate("/");
               }
             }}
-            onSend={() => {
+            onSubmit={() => {
               if (location.pathname !== "/") {
                 navigate("/");
               }
