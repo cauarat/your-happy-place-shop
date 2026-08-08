@@ -231,34 +231,27 @@ const Header = () => {
       >
         <div className="flex flex-col items-center gap-2">
           <div className="relative inline-block">
-            <motion.div
-              initial={{ clipPath: 'inset(0 100% 0 0)' }}
-              animate={{ clipPath: 'inset(0 0% 0 0)' }}
-              transition={{ duration: 2, ease: [0.45, 0, 0.55, 1] }}
-              style={{ display: 'inline-block', paddingRight: '4px' }}
+            <GradientShimmer
+              gradient="sunrise"
+              easing="smooth"
+              duration={2}
+              spread={3}
+              angle={105}
+              pauseBetween={2000}
+              typingEffect={true}
+              className="text-lg sm:text-2xl font-medium tracking-tight text-black text-center"
             >
-          <GradientShimmer
-            gradient="sunrise"
-            easing="smooth"
-            duration={2}
-            spread={3}
-            angle={105}
-            pauseBetween={2000}
-            className="text-lg sm:text-2xl font-medium tracking-tight text-black text-center"
-          >
-            {t(getGreetingKey()).replace('{name}', user?.user_metadata?.first_name || 'Cauã')}
-          </GradientShimmer>
-            </motion.div>
+              {t(getGreetingKey()).replace('{name}', user?.user_metadata?.first_name || 'Cauã')}
+            </GradientShimmer>
             
-            {/* Blinking Cursor that tracks with the wipe */}
+            {/* Blinking Cursor that appears when typing completes */}
             <motion.span
-              initial={{ left: '0%', opacity: 0 }}
-              animate={{ left: '100%', opacity: [1, 1, 0, 0] }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: [1, 1, 0, 0] }}
               transition={{
-                left: { duration: 2, ease: [0.45, 0, 0.55, 1] },
-                opacity: { duration: 1, repeat: Infinity, times: [0, 0.5, 0.5, 1] }
+                duration: 1, repeat: Infinity, times: [0, 0.5, 0.5, 1], delay: 2
               }}
-              className="absolute top-0 bottom-0 flex items-center text-black/60 font-light text-lg sm:text-2xl"
+              className="absolute top-0 bottom-0 right-[-12px] flex items-center text-black/60 font-light text-lg sm:text-2xl"
             >
               |
             </motion.span>

@@ -40,8 +40,8 @@ export interface GradientShimmerProps extends Omit<
   HTMLAttributes<HTMLElement>,
   "children"
 > {
-  /** The text to shimmer. The gradient sweeps over it. */
-  children: React.ReactNode;
+  /** The text to shimmer. Plain string only — the gradient sweeps over it. */
+  children: string;
   /** Multi-stop gradient or a preset name. Defaults to `"sunrise"`. */
   gradient?: GradientInput;
   /** Sweep curve. Defaults to `"smooth"`. */
@@ -67,6 +67,8 @@ export interface GradientShimmerProps extends Omit<
   respectReducedMotion?: boolean;
   /** Element to render. Defaults to `"span"`. */
   as?: ElementType;
+  /** If true, the right side of the glow fades to transparent, creating a typing reveal effect. */
+  typingEffect?: boolean;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -170,6 +172,7 @@ const BAND_CORE_RATIO = 0.44;
 export function buildBandGradient(
   stops: GradientStop[],
   angle: number,
+  typingEffect?: boolean,
 ): string {
   const sorted = [...stops].sort((a, b) => a.position - b.position);
   const first = sorted[0]?.color ?? "white";
@@ -188,7 +191,7 @@ export function buildBandGradient(
     `color-mix(in oklab, var(--gs-base) 42%, ${first}) calc(50% - var(--gs-spread-mid))`,
     core,
     `color-mix(in oklab, var(--gs-base) 42%, ${last}) calc(50% + var(--gs-spread-mid))`,
-    `var(--gs-base) calc(50% + var(--gs-spread)))`,
+    `${typingEffect ? "transparent" : "var(--gs-base)"} calc(50% + var(--gs-spread)))`,
   ].join(", ");
 }
 
@@ -331,6 +334,7 @@ export function GradientShimmer({
   pauseOnScroll = true,
   pauseWhenOffscreen = true,
   respectReducedMotion = true,
+  typingEffect = false,
   as = "span",
   className,
   style,
@@ -345,8 +349,8 @@ export function GradientShimmer({
   const safeAngle = finiteOr(angle, DEFAULT_ANGLE);
   const stops = useMemo(() => resolveStops(gradient), [gradient]);
   const backgroundImage = useMemo(
-    () => buildBandGradient(stops, safeAngle),
-    [stops, safeAngle],
+    () => buildBandGradient(stops, safeAngle, typingEffect),
+    [stops, safeAngle, typingEffect],
   );
   const easingValue = easingPresets[easing] ?? easingPresets.smooth;
 
