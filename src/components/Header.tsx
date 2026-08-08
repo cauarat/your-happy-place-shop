@@ -270,11 +270,12 @@ const Header = () => {
         <div className="relative" ref={brandFilterRef}>
           <button
             onClick={() => setIsBrandFilterOpen(!isBrandFilterOpen)}
-            className="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-full transition-all duration-300 outline-none"
+            className="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-full transition-all duration-300 outline-none border border-border shadow-sm hover:border-border/80"
             style={selectedDesigner ? {
               background: 'rgba(0,0,0,0.85)',
               color: 'white',
               boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+              borderColor: 'transparent'
             } : {
               background: 'rgba(118, 118, 128, 0.12)',
               color: 'rgba(60, 60, 67, 0.6)',
@@ -380,9 +381,10 @@ const Header = () => {
         <div className="relative" ref={colorFilterRef}>
           <button
             onClick={() => setIsColorFilterOpen(!isColorFilterOpen)}
-            className="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-full transition-all duration-300 outline-none"
+            className="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-full transition-all duration-300 outline-none border border-border shadow-sm hover:border-border/80"
             style={selectedColor ? {
               background: 'transparent',
+              borderColor: 'transparent'
             } : {
               background: 'rgba(118, 118, 128, 0.12)',
             }}
