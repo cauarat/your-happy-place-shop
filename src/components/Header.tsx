@@ -4,7 +4,8 @@ import { Sparkles, X, Heart, UserPlus, Check, SlidersHorizontal } from "lucide-r
 import { motion } from "framer-motion";
 import { CosmoColorIcon } from "./Icons";
 import { PromptBox } from "./ui/prompt-box";
-import { IOSGreeting } from "./ui/ios-greeting";
+import { GradientShimmer } from "./ui/gradient-shimmer";
+import { Demo as AppleHelloDemo } from "./ui/apple-hello-effect";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSearch } from "@/contexts/SearchContext";
@@ -230,11 +231,7 @@ const Header = () => {
         className="px-2.5 sm:px-4 lg:px-8 w-full pb-3 flex flex-col items-center gap-4"
       >
         <div className="flex flex-col items-center gap-2">
-          <IOSGreeting 
-            text={t(getGreetingKey()).replace('{name}', user?.user_metadata?.first_name || 'Cauã')}
-            className="text-lg sm:text-2xl text-black" 
-            speed={1.2}
-          />
+          <AppleHelloDemo />
         </div>
         <div className="flex-1 w-full relative z-[5]">
           <PromptBox
