@@ -5,7 +5,6 @@ import { motion } from "framer-motion";
 import { CosmoColorIcon } from "./Icons";
 import { PromptInput } from "./ui/ai-chat-input";
 import { GradientShimmer } from "./ui/gradient-shimmer";
-import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSearch } from "@/contexts/SearchContext";
@@ -17,36 +16,6 @@ import { getDesignSettings, getProducts, getDesigners, getCategories } from "@/l
 
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
-
-function TypewriterGreeting({ text, ...props }: { text: string } & any) {
-  const [displayedText, setDisplayedText] = useState("");
-  const [isTyping, setIsTyping] = useState(true);
-
-  useEffect(() => {
-    setDisplayedText("");
-    setIsTyping(true);
-    let i = 0;
-    const intervalId = setInterval(() => {
-      setDisplayedText(text.slice(0, i + 1));
-      i++;
-      if (i >= text.length) {
-        clearInterval(intervalId);
-        setIsTyping(false);
-      }
-    }, 45);
-
-    return () => clearInterval(intervalId);
-  }, [text]);
-
-  return (
-    <GradientShimmer {...props}>
-      {displayedText}
-      <span className={cn("ml-[1px] font-light", isTyping ? "opacity-100" : "animate-pulse")}>
-        |
-      </span>
-    </GradientShimmer>
-  );
-}
 const Header = () => {
   const { t, language } = useLanguage();
   const { itemCount } = useCart();
@@ -261,8 +230,14 @@ const Header = () => {
         className="px-2.5 sm:px-4 lg:px-8 w-full pb-3 flex flex-col items-center gap-4"
       >
         <div className="flex flex-col items-center gap-2">
-          <TypewriterGreeting
-            text={t(getGreetingKey()).replace('{name}', user?.user_metadata?.first_name || 'Cauã')}
+          <div className="relative inline-block">
+            <motion.div
+              initial={{ clipPath: 'inset(0 100% 0 0)' }}
+              animate={{ clipPath: 'inset(0 0% 0 0)' }}
+              transition={{ duration: 1.5, ease: 'easeOut', delay: 0.2 }}
+              style={{ display: 'inline-block', paddingRight: '4px' }}
+            >
+          <GradientShimmer
             gradient="sunrise"
             easing="smooth"
             duration={2}
@@ -270,7 +245,24 @@ const Header = () => {
             angle={105}
             pauseBetween={2000}
             className="text-lg sm:text-2xl font-medium tracking-tight text-black text-center"
-          />
+          >
+            {t(getGreetingKey()).replace('{name}', user?.user_metadata?.first_name || 'Cauã')}
+          </GradientShimmer>
+            </motion.div>
+            
+            {/* Blinking Cursor that tracks with the wipe */}
+            <motion.span
+              initial={{ left: '0%', opacity: 0 }}
+              animate={{ left: '100%', opacity: [1, 1, 0, 0] }}
+              transition={{
+                left: { duration: 1.5, ease: 'easeOut', delay: 0.2 },
+                opacity: { duration: 1, repeat: Infinity, times: [0, 0.5, 0.5, 1], delay: 0.2 }
+              }}
+              className="absolute top-0 bottom-0 flex items-center text-black/60 font-light text-lg sm:text-2xl"
+            >
+              |
+            </motion.span>
+          </div>
         </div>
         <div className="flex-1 w-full relative z-[5]">
           <PromptInput
