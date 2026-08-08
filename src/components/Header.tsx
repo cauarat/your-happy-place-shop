@@ -220,7 +220,31 @@ const Header = () => {
         data-tour="search-bar"
         className="px-2.5 sm:px-4 lg:px-8 w-full pb-3 flex items-center gap-2.5"
       >
-        {/* Brand Filter Button — iOS style */}
+        <div className="flex-1 w-full relative z-[5]">
+          <PromptBox
+            value={searchQuery}
+            onChange={(val) => {
+              setSearchQuery(val);
+              if (location.pathname !== "/") {
+                navigate("/");
+              }
+            }}
+            onSubmit={() => {
+              if (location.pathname !== "/") {
+                navigate("/");
+              }
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Tab" && suggestion) {
+                e.preventDefault();
+                setSearchQuery(searchQuery + suggestion.slice(searchQuery.length));
+              }
+            }}
+            suggestion={suggestion}
+            placeholder={t('search') + " " + t('search_placeholder')}
+          leftActions={
+              <>
+                {/* Brand Filter Button — iOS style */}
         <div className="relative" ref={brandFilterRef}>
           <button
             onClick={() => setIsBrandFilterOpen(!isBrandFilterOpen)}
@@ -330,32 +354,7 @@ const Header = () => {
             </div>
           )}
         </div>
-        <div className="flex-1 w-full relative z-[5]">
-          <PromptBox
-            value={searchQuery}
-            onChange={(val) => {
-              setSearchQuery(val);
-              if (location.pathname !== "/") {
-                navigate("/");
-              }
-            }}
-            onSubmit={() => {
-              if (location.pathname !== "/") {
-                navigate("/");
-              }
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Tab" && suggestion) {
-                e.preventDefault();
-                setSearchQuery(searchQuery + suggestion.slice(searchQuery.length));
-              }
-            }}
-            suggestion={suggestion}
-            placeholder={t('search') + " " + t('search_placeholder')}
-          />
-        </div>
-
-        {/* Color Filter Selector — iOS style */}
+                {/* Color Filter Selector — iOS style */}
         <div className="relative" ref={colorFilterRef}>
           <button
             onClick={() => setIsColorFilterOpen(!isColorFilterOpen)}
@@ -475,10 +474,10 @@ const Header = () => {
             </div>
           )}
         </div>
+              </>
+            }
+          />
+        </div>
       </div>
 
     </header>
-  );
-};
-
-export default Header;

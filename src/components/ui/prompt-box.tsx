@@ -33,7 +33,7 @@ interface PromptBoxProps {
   placeholder?: string;
   className?: string;
   suggestion?: string;
-  onToolsClick?: () => void;
+  leftActions?: React.ReactNode;
 }
 
 export function PromptBox({
@@ -44,7 +44,7 @@ export function PromptBox({
   placeholder = "What can villaoro help you find?",
   className,
   suggestion,
-  onToolsClick
+  leftActions
 }: PromptBoxProps) {
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
   const [isFocused, setIsFocused] = React.useState(false);
@@ -80,7 +80,7 @@ export function PromptBox({
       
       <div 
         className={cn(
-          "relative flex flex-col w-full rounded-[24px] overflow-hidden transition-all duration-300 shadow-sm",
+          "relative flex flex-col w-full rounded-[24px] transition-all duration-300 shadow-sm",
           isFocused ? "bg-white border-black/10 shadow-lg" : "bg-[rgba(118,118,128,0.08)] border-transparent"
         )}
         style={{
@@ -114,30 +114,33 @@ export function PromptBox({
         {/* Action Row */}
         <div className="flex items-center justify-between px-3 pb-3 pt-1">
           <div className="flex items-center gap-1.5">
-            <TooltipProvider delayDuration={200}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button 
-                    onClick={onToolsClick}
-                    className="flex items-center justify-center w-8 h-8 rounded-full bg-black/5 hover:bg-black/10 text-black/60 hover:text-black transition-colors"
-                  >
-                    <Plus size={18} strokeWidth={2.5} />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent side="top">Tools & Filters</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            {leftActions || (
+              <>
+                <TooltipProvider delayDuration={200}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button 
+                        className="flex items-center justify-center w-8 h-8 rounded-full bg-black/5 hover:bg-black/10 text-black/60 hover:text-black transition-colors"
+                      >
+                        <Plus size={18} strokeWidth={2.5} />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">Tools & Filters</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
 
-            <TooltipProvider delayDuration={200}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button className="flex items-center justify-center w-8 h-8 rounded-full bg-transparent hover:bg-black/5 text-black/50 hover:text-black transition-colors">
-                    <Mic size={18} strokeWidth={2.2} />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent side="top">Voice Search</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+                <TooltipProvider delayDuration={200}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button className="flex items-center justify-center w-8 h-8 rounded-full bg-transparent hover:bg-black/5 text-black/50 hover:text-black transition-colors">
+                        <Mic size={18} strokeWidth={2.2} />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">Voice Search</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </>
+            )}
           </div>
 
           <div className="flex items-center">
