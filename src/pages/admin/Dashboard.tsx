@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { getProducts, getLooks } from "@/lib/store";
 import { Link, useNavigate } from "react-router-dom";
 import { Package, Paintbrush, Sparkles } from "lucide-react";
+import { GlobalAdminSearch } from "@/components/admin/GlobalAdminSearch";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -29,10 +30,16 @@ const AdminDashboard = () => {
   }, []);
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      <div>
-        <h1 className="text-3xl tracking-tight mb-2">Dashboard</h1>
-        <p className="text-muted-foreground">Overview of your Villaoro store.</p>
+    <div className="space-y-8 animate-in fade-in duration-500 pb-24">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 className="text-3xl tracking-tight mb-2">Dashboard</h1>
+          <p className="text-muted-foreground">Overview of your Villaoro store.</p>
+        </div>
+      </div>
+
+      <div className="relative z-50">
+        <GlobalAdminSearch />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

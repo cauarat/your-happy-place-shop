@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Sparkles, X, Heart, UserPlus, Check, SlidersHorizontal } from "lucide-react";
 import { motion } from "framer-motion";
 import { CosmoColorIcon } from "./Icons";
+import { PromptBox } from "./ui/prompt-box";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSearch } from "@/contexts/SearchContext";
@@ -337,55 +338,29 @@ const Header = () => {
             </div>
           )}
         </div>
-        <div
-          className="flex-1 flex items-center gap-1.5 sm:gap-2.5 px-3.5 sm:px-4.5 py-2 sm:py-2.5 rounded-full transition-all duration-300 relative overflow-hidden"
-          style={{
-            background: isFocused ? 'rgba(255, 255, 255, 0.8)' : 'rgba(118, 118, 128, 0.12)',
-            border: isFocused ? '0.5px solid rgba(0,0,0,0.12)' : '0.5px solid transparent',
-            boxShadow: isFocused ? '0 4px 24px rgba(0,0,0,0.08)' : 'none',
-          }}
-        >
-          <Sparkles size={14} className={`shrink-0 transition-colors sm:w-[15px] sm:h-[15px] ${isFocused ? "text-black" : "text-[rgba(60,60,67,0.6)]"}`} />
-          <div className="relative flex-1 min-w-0 flex items-center">
-            {suggestion && isFocused && searchQuery && suggestion.toLowerCase().startsWith(searchQuery.toLowerCase()) && (
-              <div className="absolute inset-0 pointer-events-none flex items-center text-[11px] sm:text-[12px] text-[#bbb] whitespace-pre overflow-hidden">
-                <span className="opacity-0">{searchQuery}</span>
-                <span>{suggestion.slice(searchQuery.length)}</span>
-              </div>
-            )}
-            <input
-              ref={inputRef}
-              type="text"
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                if (location.pathname !== "/") {
-                  navigate("/");
-                }
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Tab" && suggestion && isFocused) {
-                  e.preventDefault();
-                  setSearchQuery(searchQuery + suggestion.slice(searchQuery.length));
-                } else if (e.key === "ArrowRight" && suggestion && isFocused && inputRef.current && inputRef.current.selectionStart === searchQuery.length) {
-                  e.preventDefault();
-                  setSearchQuery(searchQuery + suggestion.slice(searchQuery.length));
-                }
-              }}
-              onFocus={() => setIsFocused(true)}
-              onBlur={() => setIsFocused(false)}
-              placeholder={t('search') + " " + t('search_placeholder')}
-              className="w-full text-[12px] sm:text-[13px] outline-none bg-transparent placeholder:text-[rgba(60,60,67,0.6)] text-black relative z-10"
-            />
-          </div>
-          {searchQuery && (
-            <button
-              onClick={() => { setSearchQuery(""); inputRef.current?.focus(); }}
-              className="text-[#999] hover:text-black transition-colors shrink-0 z-20"
-            >
-              <X size={14} />
-            </button>
-          )}
+        <div className="flex-1 w-full relative z-[5]">
+          <PromptBox
+            value={searchQuery}
+            onChange={(val) => {
+              setSearchQuery(val);
+              if (location.pathname !== "/") {
+                navigate("/");
+              }
+            }}
+            onSubmit={() => {
+              if (location.pathname !== "/") {
+                navigate("/");
+              }
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Tab" && suggestion) {
+                e.preventDefault();
+                setSearchQuery(searchQuery + suggestion.slice(searchQuery.length));
+              }
+            }}
+            suggestion={suggestion}
+            placeholder={t('search') + " " + t('search_placeholder')}
+          />
         </div>
 
         {/* Color Filter Selector — iOS style */}
