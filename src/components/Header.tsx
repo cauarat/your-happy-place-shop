@@ -4,6 +4,7 @@ import { Sparkles, X, Heart, UserPlus, Check, SlidersHorizontal } from "lucide-r
 import { motion } from "framer-motion";
 import { CosmoColorIcon } from "./Icons";
 import { PromptBox } from "./ui/prompt-box";
+import { GradientShimmer } from "./ui/gradient-shimmer";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSearch } from "@/contexts/SearchContext";
@@ -219,8 +220,21 @@ const Header = () => {
       {/* Search Bar Row — Liquid Glass */}
       <div
         data-tour="search-bar"
-        className="px-2.5 sm:px-4 lg:px-8 w-full pb-3 flex items-center gap-2.5"
+        className="px-2.5 sm:px-4 lg:px-8 w-full pb-3 flex flex-col items-center gap-4"
       >
+        <div className="flex flex-col items-center gap-2">
+          <GradientShimmer
+            gradient="sunrise"
+            easing="smooth"
+            duration={2}
+            spread={3}
+            angle={105}
+            pauseBetween={2000}
+            className="text-lg sm:text-2xl font-medium tracking-tight text-black text-center"
+          >
+            {`Hey ${user?.user_metadata?.first_name || 'Cauã'}, what can I help you find?`}
+          </GradientShimmer>
+        </div>
         <div className="flex-1 w-full relative z-[5]">
           <PromptBox
             value={searchQuery}
