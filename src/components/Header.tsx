@@ -234,7 +234,7 @@ const Header = () => {
             <motion.div
               initial={{ clipPath: 'inset(0 100% 0 0)' }}
               animate={{ clipPath: 'inset(0 0% 0 0)' }}
-              transition={{ duration: 1.5, ease: 'easeOut', delay: 0.2 }}
+              transition={{ duration: 2, ease: [0.45, 0, 0.55, 1] }}
               style={{ display: 'inline-block', paddingRight: '4px' }}
             >
           <GradientShimmer
@@ -255,8 +255,8 @@ const Header = () => {
               initial={{ left: '0%', opacity: 0 }}
               animate={{ left: '100%', opacity: [1, 1, 0, 0] }}
               transition={{
-                left: { duration: 1.5, ease: 'easeOut', delay: 0.2 },
-                opacity: { duration: 1, repeat: Infinity, times: [0, 0.5, 0.5, 1], delay: 0.2 }
+                left: { duration: 2, ease: [0.45, 0, 0.55, 1] },
+                opacity: { duration: 1, repeat: Infinity, times: [0, 0.5, 0.5, 1] }
               }}
               className="absolute top-0 bottom-0 flex items-center text-black/60 font-light text-lg sm:text-2xl"
             >
