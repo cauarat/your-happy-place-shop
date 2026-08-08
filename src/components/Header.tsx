@@ -30,6 +30,13 @@ const Header = () => {
   const colorFilterRef = useRef<HTMLDivElement>(null);
   const [isBrandFilterOpen, setIsBrandFilterOpen] = useState(false);
   const [isColorFilterOpen, setIsColorFilterOpen] = useState(false);
+
+  const getGreetingKey = () => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) return 'greeting_morning';
+    if (hour >= 12 && hour < 18) return 'greeting_afternoon';
+    return 'greeting_evening';
+  };
   const [designers, setDesigners] = useState<string[]>([]);
   const location = useLocation();
   const navigate = useNavigate();
@@ -232,7 +239,7 @@ const Header = () => {
             pauseBetween={2000}
             className="text-lg sm:text-2xl font-medium tracking-tight text-black text-center"
           >
-            {t('hey_what_can_i_help_you_find').replace('{name}', user?.user_metadata?.first_name || 'Cauã')}
+            {t(getGreetingKey()).replace('{name}', user?.user_metadata?.first_name || 'Cauã')}
           </GradientShimmer>
         </div>
         <div className="flex-1 w-full relative z-[5]">
