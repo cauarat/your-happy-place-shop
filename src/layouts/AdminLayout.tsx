@@ -1,8 +1,7 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Outlet, useNavigate, useLocation, Link } from "react-router-dom";
 import { LayoutDashboard, Package, Settings, Bot, Sparkles, Home, Tag, Users, ShoppingCart, MessageSquare } from "lucide-react";
 import { useMusicPlayer } from "@/contexts/MusicContext";
-import { VinylButton } from "@/components/BackgroundMusic";
 
 const NAV_ITEMS = [
   { label: "Dashboard", path: "/admin/dashboard", icon: LayoutDashboard },
@@ -19,7 +18,16 @@ const NAV_ITEMS = [
 const AdminLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isPlaying, isVisible, togglePlay } = useMusicPlayer();
+  const { isPlaying, togglePlay } = useMusicPlayer();
+  const hasPausedRef = useRef(false);
+
+  // Disable music when entering the admin page
+  useEffect(() => {
+    if (isPlaying && !hasPausedRef.current) {
+      togglePlay();
+      hasPausedRef.current = true;
+    }
+  }, [isPlaying, togglePlay]);
 
   return (
     <div className="min-h-screen flex bg-[#f5f5f7] dark:bg-black/95">
@@ -54,14 +62,11 @@ const AdminLayout = () => {
         <div className="p-4 border-t border-border flex items-center gap-2">
           <Link 
             to="/"
-            className="flex-1 flex items-center gap-3 px-4 py-3 rounded-[14px] text-sm font-medium text-muted-foreground hover:bg-black/5 dark:hover:bg-white/10 hover:text-foreground transition-colors mx-2"
+            className="flex-1 flex items-center justify-center gap-3 px-4 py-3 rounded-[14px] text-sm font-medium text-muted-foreground hover:bg-black/5 dark:hover:bg-white/10 hover:text-foreground transition-colors mx-2"
           >
             <Home className="w-4 h-4" />
             Storefront
           </Link>
-          <div className="shrink-0 flex items-center justify-center w-10">
-            <VinylButton isPlaying={isPlaying} isVisible={isVisible} onToggle={togglePlay} />
-          </div>
         </div>
       </aside>
 
