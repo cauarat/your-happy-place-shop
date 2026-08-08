@@ -90,6 +90,7 @@ const translations: Record<Language, Record<string, string>> = {
     free_shipping: "Free shipping on orders over $100.",
     // Search bar
     search_placeholder: "products, colors...",
+    hey_what_can_i_help_you_find: "Hey {name}, what can I help you find?",
     // Community Looks / ALTA
     ai_stylist_tagline: "Your personal AI stylist that truly gets you",
     create_your_own: "Create Your Own",
@@ -317,6 +318,7 @@ const translations: Record<Language, Record<string, string>> = {
     free_shipping: "Frete grátis em pedidos acima de $100.",
     // Search bar
     search_placeholder: "produtos, cores...",
+    hey_what_can_i_help_you_find: "Ei {name}, o que posso te ajudar a encontrar?",
     // Community Looks / ALTA
     ai_stylist_tagline: "Seu estilista pessoal de IA que realmente te entende",
     create_your_own: "Crie o Seu",
@@ -544,6 +546,7 @@ const translations: Record<Language, Record<string, string>> = {
     free_shipping: "Envío gratis en pedidos superiores a $100.",
     // Search bar
     search_placeholder: "productos, colores...",
+    hey_what_can_i_help_you_find: "Hola {name}, ¿en qué puedo ayudarte?",
     // Community Looks / ALTA
     ai_stylist_tagline: "Tu estilista personal de IA que realmente te entiende",
     create_your_own: "Crea el Tuyo",

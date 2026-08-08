@@ -232,7 +232,7 @@ const Header = () => {
             pauseBetween={2000}
             className="text-lg sm:text-2xl font-medium tracking-tight text-black text-center"
           >
-            {`Hey ${user?.user_metadata?.first_name || 'Cauã'}, what can I help you find?`}
+            {t('hey_what_can_i_help_you_find').replace('{name}', user?.user_metadata?.first_name || 'Cauã')}
           </GradientShimmer>
         </div>
         <div className="flex-1 w-full relative z-[5]">
