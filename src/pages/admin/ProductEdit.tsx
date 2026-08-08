@@ -1,14 +1,15 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getProducts, saveProduct, getCategories, getDesigners, saveDesigners } from "@/lib/store";
 import type { Product, Category, Designer } from "@/data/products";
-import { ArrowLeft, Save, Upload, Image as ImageIcon, Crop, X, Eraser, ArrowUp, ArrowDown, Trash2, CheckCircle2, ArrowRight, Plus, Film, FlipHorizontal, FlipVertical, User } from "lucide-react";
+import { ArrowLeft, Save, Upload, Image as ImageIcon, Crop, X, Eraser, ArrowUp, ArrowDown, Trash2, CheckCircle2, ArrowRight, Plus, Film, FlipHorizontal, FlipVertical, User, Move, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import Cropper from "react-easy-crop";
 import { getCroppedImg } from "@/lib/cropImage";
 import { removeBackground } from "@imgly/background-removal";
 import { compressImage } from "@/lib/compressImage";
 import { uploadToR2 } from "@/utils/cloudflareUpload";
+import { computeCropStyles } from "@/lib/cropUtils";
 
 const defaultProduct: Product = {
   id: "",
@@ -221,6 +222,15 @@ const AdminProductEdit = () => {
   const [flipVertical, setFlipVertical] = useState(false);
   const [cropAspect, setCropAspect] = useState<number>(3/4);
   const [isUploadingDetail, setIsUploadingDetail] = useState(false);
+
+  // Track natural aspect ratios for Display Crop preview
+  const [imageAspects, setImageAspects] = useState<Record<number, number>>({});
+  const handleCropImageLoad = useCallback((imgIndex: number, e: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = e.currentTarget;
+    if (img.naturalWidth && img.naturalHeight) {
+      setImageAspects(prev => ({ ...prev, [imgIndex]: img.naturalWidth / img.naturalHeight }));
+    }
+  }, []);
 
   useEffect(() => {
     setDynamicCategories(getCategories());
@@ -888,6 +898,161 @@ const AdminProductEdit = () => {
             </div>
           </section>
 
+          {/* ─── Display Crop (Focal Point) Section ─── */}
+          {product.images && product.images.length > 0 && (() => {
+            // Match the exact aspect ratio used on the product detail page
+            const isShoe = product.category?.toLowerCase() === 'footwear';
+            const previewAspectClass = isShoe ? 'aspect-[4/3]' : 'aspect-[4/5]';
+            const containerAspect = isShoe ? 4 / 3 : 4 / 5;
+
+            return (
+            <section className="glass p-10 rounded-[32px] border border-white/20 shadow-sm space-y-6">
+              <div>
+                <div className="flex items-center gap-3 mb-1">
+                  <Move className="w-5 h-5 text-muted-foreground" />
+                  <h3 className="text-sm font-medium">Detail Page Display Crop</h3>
+                </div>
+                <p className="text-[10px] uppercase tracking-widest text-muted-foreground mt-1 ml-8">
+                  Choose which part of each image is visible on the product detail page
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {product.images!.map((img, imgIndex) => {
+                  const cropData = product.displayCrops?.[imgIndex] || { x: 50, y: 50, zoom: 1 };
+                  const hasCrop = !!product.displayCrops?.[imgIndex];
+                  const imgAspect = imageAspects[imgIndex];
+
+                  // Compute precise positioning when we know the image's natural aspect ratio
+                  const cropStyles = imgAspect
+                    ? computeCropStyles(imgAspect, containerAspect, cropData)
+                    : { width: '100%', height: '100%', objectFit: 'contain' as const };
+
+                  return (
+                    <div key={imgIndex} className="rounded-2xl border border-border bg-white p-4 space-y-4">
+                      {/* Preview — matches product detail page aspect ratio */}
+                      <div className={`relative ${previewAspectClass} rounded-xl overflow-hidden bg-[#f5f5f5] border border-border/50`}>
+                        <img
+                          src={img}
+                          alt={`Image ${imgIndex + 1}`}
+                          className="transition-all duration-200 ease-out"
+                          onLoad={(e) => handleCropImageLoad(imgIndex, e)}
+                          style={cropStyles}
+                        />
+                        <div className="absolute top-2 left-2 bg-black/60 text-white text-[9px] uppercase tracking-widest font-bold px-2.5 py-1 rounded-full backdrop-blur-sm z-10">
+                          {imgIndex + 1} / {product.images!.length}
+                        </div>
+                        {hasCrop && (
+                          <div className="absolute top-2 right-2 bg-emerald-500/90 text-white text-[9px] uppercase tracking-widest font-bold px-2.5 py-1 rounded-full backdrop-blur-sm z-10">
+                            Cropped
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Controls */}
+                      <div className="space-y-3">
+                        {/* X Position */}
+                        <div className="space-y-1">
+                          <div className="flex justify-between items-center">
+                            <label className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground font-semibold">Horizontal Position</label>
+                            <span className="text-[10px] font-mono text-muted-foreground">{cropData.x}%</span>
+                          </div>
+                          <input
+                            type="range"
+                            min={0}
+                            max={100}
+                            value={cropData.x}
+                            onChange={(e) => {
+                              const val = Number(e.target.value);
+                              setProduct(prev => ({
+                                ...prev,
+                                displayCrops: {
+                                  ...(prev.displayCrops || {}),
+                                  [imgIndex]: { ...cropData, x: val },
+                                },
+                              }));
+                            }}
+                            className="w-full accent-black h-1.5 rounded-full appearance-none bg-gray-200 cursor-pointer"
+                          />
+                        </div>
+
+                        {/* Y Position */}
+                        <div className="space-y-1">
+                          <div className="flex justify-between items-center">
+                            <label className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground font-semibold">Vertical Position</label>
+                            <span className="text-[10px] font-mono text-muted-foreground">{cropData.y}%</span>
+                          </div>
+                          <input
+                            type="range"
+                            min={0}
+                            max={100}
+                            value={cropData.y}
+                            onChange={(e) => {
+                              const val = Number(e.target.value);
+                              setProduct(prev => ({
+                                ...prev,
+                                displayCrops: {
+                                  ...(prev.displayCrops || {}),
+                                  [imgIndex]: { ...cropData, y: val },
+                                },
+                              }));
+                            }}
+                            className="w-full accent-black h-1.5 rounded-full appearance-none bg-gray-200 cursor-pointer"
+                          />
+                        </div>
+
+                        {/* Zoom */}
+                        <div className="space-y-1">
+                          <div className="flex justify-between items-center">
+                            <label className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground font-semibold">Zoom</label>
+                            <span className="text-[10px] font-mono text-muted-foreground">{cropData.zoom.toFixed(1)}x</span>
+                          </div>
+                          <input
+                            type="range"
+                            min={1}
+                            max={3}
+                            step={0.1}
+                            value={cropData.zoom}
+                            onChange={(e) => {
+                              const val = Number(e.target.value);
+                              setProduct(prev => ({
+                                ...prev,
+                                displayCrops: {
+                                  ...(prev.displayCrops || {}),
+                                  [imgIndex]: { ...cropData, zoom: val },
+                                },
+                              }));
+                            }}
+                            className="w-full accent-black h-1.5 rounded-full appearance-none bg-gray-200 cursor-pointer"
+                          />
+                        </div>
+
+                        {/* Reset */}
+                        {hasCrop && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setProduct(prev => {
+                                const newCrops = { ...(prev.displayCrops || {}) };
+                                delete newCrops[imgIndex];
+                                return { ...prev, displayCrops: Object.keys(newCrops).length > 0 ? newCrops : undefined };
+                              });
+                            }}
+                            className="flex items-center gap-2 text-[9px] uppercase tracking-widest font-semibold text-red-500 hover:text-red-700 transition-colors mt-1"
+                          >
+                            <RotateCcw className="w-3.5 h-3.5" />
+                            Reset to Default
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+            );
+          })()}
+
           {/* Footwear 16:9 Detail Image Section */}
           {product.category?.toLowerCase() === 'footwear' && (
             <section className="glass p-10 rounded-[32px] border border-white/20 shadow-sm space-y-6">
@@ -910,7 +1075,7 @@ const AdminProductEdit = () => {
                 ) : (
                   <div className="text-center space-y-4">
                     <div className="w-16 h-16 bg-background rounded-full flex items-center justify-center mx-auto shadow-sm border border-border group-hover:scale-110 transition-transform">
-                      <Image className="w-6 h-6 text-muted-foreground group-hover:text-primary" />
+                      <ImageIcon className="w-6 h-6 text-muted-foreground group-hover:text-primary" />
                     </div>
                     <div>
                       <p className="text-sm font-medium">Drop 16:9 image here</p>

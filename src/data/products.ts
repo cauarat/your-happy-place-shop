@@ -31,6 +31,7 @@ export interface Product {
   colors?: string[];
   sizes?: string[];
   allowQuantity?: boolean;
+  displayCrops?: Record<number, { x: number; y: number; zoom: number }>;
 }
 
 export const products: Product[] = [

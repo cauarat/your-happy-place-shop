@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import ProductTour from "@/components/ProductTour";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { getProducts, getDesignSettings } from "@/lib/store";
@@ -7,6 +7,7 @@ import { Minus, Plus, Heart } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useCart } from "@/contexts/CartContext";
+import { computeCropStyles } from "@/lib/cropUtils";
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -17,6 +18,15 @@ const ProductDetail = () => {
   const { t, language } = useLanguage();
   const { addToCart } = useCart();
   const navigate = useNavigate();
+
+  // Track natural aspect ratios for cropped images
+  const [imageAspects, setImageAspects] = useState<Record<number, number>>({});
+  const handleImageLoad = useCallback((idx: number, e: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = e.currentTarget;
+    if (img.naturalWidth && img.naturalHeight) {
+      setImageAspects(prev => ({ ...prev, [idx]: img.naturalWidth / img.naturalHeight }));
+    }
+  }, []);
 
   useEffect(() => {
     const products = getProducts();
@@ -84,16 +94,39 @@ const ProductDetail = () => {
                 />
               </div>
             )}
-            {(product.images && product.images.length > 0 ? product.images : [product.image]).map((img, i) => (
-              <div key={i} className={`${isShoe ? 'aspect-square md:aspect-[4/3]' : 'aspect-[4/5]'} bg-transparent flex items-center justify-center overflow-hidden`}>
-                <img 
-                  src={img} 
-                  alt={`${product.name} ${i + 1}`} 
-                  className="w-full h-full object-contain"
-                  style={product.removeBackground ? { mixBlendMode: 'multiply' } : {}}
-                />
-              </div>
-            ))}
+            {(product.images && product.images.length > 0 ? product.images : [product.image]).map((img, i) => {
+              const cropData = product.displayCrops?.[i];
+              const hasCrop = !!cropData;
+              const containerAspect = isShoe ? 4 / 3 : 4 / 5;
+              const imgAspect = imageAspects[i];
+
+              // Compute crop styles when we have the image's natural aspect ratio
+              const cropStyles = (hasCrop && imgAspect)
+                ? computeCropStyles(imgAspect, containerAspect, cropData)
+                : undefined;
+
+              return (
+                <div key={i} className={`${isShoe ? 'aspect-square md:aspect-[4/3]' : 'aspect-[4/5]'} bg-transparent overflow-hidden relative`}>
+                  <img 
+                    src={img} 
+                    alt={`${product.name} ${i + 1}`} 
+                    onLoad={(e) => handleImageLoad(i, e)}
+                    className="transition-all duration-300"
+                    style={
+                      cropStyles
+                        ? { ...cropStyles, ...(product.removeBackground ? { mixBlendMode: 'multiply' as const } : {}) }
+                        : {
+                            width: '100%',
+                            height: '100%',
+                            objectFit: hasCrop ? 'cover' : 'contain',
+                            objectPosition: hasCrop ? `${cropData!.x}% ${cropData!.y}%` : undefined,
+                            ...(product.removeBackground ? { mixBlendMode: 'multiply' as const } : {}),
+                          }
+                    }
+                  />
+                </div>
+              );
+            })}
           </div>
 
           {/* Right Column: Checkout */}
