@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { CosmoColorIcon } from "./Icons";
 import { PromptInput } from "./ui/ai-chat-input";
 import { GradientShimmer } from "./ui/gradient-shimmer";
+import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSearch } from "@/contexts/SearchContext";
