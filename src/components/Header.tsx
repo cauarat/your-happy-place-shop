@@ -146,20 +146,6 @@ const Header = () => {
 
         {/* Right Nav */}
         <div className="flex items-center justify-end gap-3 sm:gap-4 lg:gap-5 shrink-0 ml-auto">
-          <VinylButton isPlaying={isPlaying} isVisible={isVisible} onToggle={togglePlay} />
-          <Link to="/community" className="hover:opacity-70 transition-opacity flex items-center justify-center text-black" title="Community Looks">
-            <svg width="20" height="14" viewBox="0 0 48 32" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" className="sm:w-[22px] sm:h-[16px]">
-              {/* Left person */}
-              <circle cx="10" cy="8" r="3.8" strokeWidth="2.2" />
-              <path d="M3.5 23c0-3.6 2.9-6.5 6.5-6.5s6.5 2.9 6.5 6.5" strokeWidth="2.2" />
-              {/* Center person (slightly forward) */}
-              <circle cx="24" cy="6" r="3.8" strokeWidth="2.2" />
-              <path d="M17.5 21c0-3.6 2.9-6.5 6.5-6.5s6.5 2.9 6.5 6.5" strokeWidth="2.2" />
-              {/* Right person */}
-              <circle cx="38" cy="8" r="3.8" strokeWidth="2.2" />
-              <path d="M31.5 23c0-3.6 2.9-6.5 6.5-6.5s6.5 2.9 6.5 6.5" strokeWidth="2.2" />
-            </svg>
-          </Link>
           <Link to="/cart" className="relative hover:opacity-70 transition-opacity flex items-center p-0.5">
             <Heart size={20} strokeWidth={1.5} className="sm:w-[22px] sm:h-[22px]" />
             {itemCount > 0 && (
@@ -184,7 +170,22 @@ const Header = () => {
               <SheetContent side="right" className="w-[80%] max-w-[300px] p-6 bg-white z-[100]">
                 <SheetTitle className="sr-only">Menu</SheetTitle>
                 <div className="flex flex-col gap-6 mt-8">
-                  <div className="flex flex-col w-full">
+                  <div className="flex flex-col gap-4 w-full">
+                    <div className="flex items-center gap-4 justify-between border-b border-border pb-4">
+                      <span className="text-sm font-medium">Background Music</span>
+                      <VinylButton isPlaying={isPlaying} isVisible={isVisible} onToggle={togglePlay} />
+                    </div>
+                    <Link to="/community" className="flex items-center gap-3 text-sm font-medium hover:text-[#555] transition-colors border-b border-border pb-4">
+                      <svg width="20" height="14" viewBox="0 0 48 32" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+                        <circle cx="10" cy="8" r="3.8" strokeWidth="2.2" />
+                        <path d="M3.5 23c0-3.6 2.9-6.5 6.5-6.5s6.5 2.9 6.5 6.5" strokeWidth="2.2" />
+                        <circle cx="24" cy="6" r="3.8" strokeWidth="2.2" />
+                        <path d="M17.5 21c0-3.6 2.9-6.5 6.5-6.5s6.5 2.9 6.5 6.5" strokeWidth="2.2" />
+                        <circle cx="38" cy="8" r="3.8" strokeWidth="2.2" />
+                        <path d="M31.5 23c0-3.6 2.9-6.5 6.5-6.5s6.5 2.9 6.5 6.5" strokeWidth="2.2" />
+                      </svg>
+                      Community Looks
+                    </Link>
                     <LanguageSwitcher />
                   </div>
                   <div className="space-y-4 border-t border-border pt-6">
