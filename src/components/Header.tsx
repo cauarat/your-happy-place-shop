@@ -16,6 +16,36 @@ import { getDesignSettings, getProducts, getDesigners, getCategories } from "@/l
 
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
+
+function TypewriterGreeting({ text, ...props }: { text: string } & any) {
+  const [displayedText, setDisplayedText] = useState("");
+  const [isTyping, setIsTyping] = useState(true);
+
+  useEffect(() => {
+    setDisplayedText("");
+    setIsTyping(true);
+    let i = 0;
+    const intervalId = setInterval(() => {
+      setDisplayedText(text.slice(0, i + 1));
+      i++;
+      if (i >= text.length) {
+        clearInterval(intervalId);
+        setIsTyping(false);
+      }
+    }, 45);
+
+    return () => clearInterval(intervalId);
+  }, [text]);
+
+  return (
+    <GradientShimmer {...props}>
+      {displayedText}
+      <span className={cn("ml-[1px] font-light", isTyping ? "opacity-100" : "animate-pulse")}>
+        |
+      </span>
+    </GradientShimmer>
+  );
+}
 const Header = () => {
   const { t, language } = useLanguage();
   const { itemCount } = useCart();
@@ -230,13 +260,8 @@ const Header = () => {
         className="px-2.5 sm:px-4 lg:px-8 w-full pb-3 flex flex-col items-center gap-4"
       >
         <div className="flex flex-col items-center gap-2">
-          <motion.div
-            initial={{ clipPath: 'inset(0 100% 0 0)' }}
-            animate={{ clipPath: 'inset(0 0% 0 0)' }}
-            transition={{ duration: 1.5, ease: 'easeOut', delay: 0.2 }}
-            style={{ display: 'inline-block' }}
-          >
-          <GradientShimmer
+          <TypewriterGreeting
+            text={t(getGreetingKey()).replace('{name}', user?.user_metadata?.first_name || 'Cauã')}
             gradient="sunrise"
             easing="smooth"
             duration={2}
@@ -244,10 +269,7 @@ const Header = () => {
             angle={105}
             pauseBetween={2000}
             className="text-lg sm:text-2xl font-medium tracking-tight text-black text-center"
-          >
-            {t(getGreetingKey()).replace('{name}', user?.user_metadata?.first_name || 'Cauã')}
-          </GradientShimmer>
-          </motion.div>
+          />
         </div>
         <div className="flex-1 w-full relative z-[5]">
           <PromptInput

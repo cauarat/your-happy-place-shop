@@ -40,8 +40,8 @@ export interface GradientShimmerProps extends Omit<
   HTMLAttributes<HTMLElement>,
   "children"
 > {
-  /** The text to shimmer. Plain string only — the gradient sweeps over it. */
-  children: string;
+  /** The text to shimmer. The gradient sweeps over it. */
+  children: React.ReactNode;
   /** Multi-stop gradient or a preset name. Defaults to `"sunrise"`. */
   gradient?: GradientInput;
   /** Sweep curve. Defaults to `"smooth"`. */
