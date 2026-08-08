@@ -22,8 +22,8 @@ const AdminLayout = () => {
   const { isPlaying, isVisible, togglePlay } = useMusicPlayer();
 
   return (
-    <div className="min-h-screen flex bg-secondary/30">
-      <aside className="w-64 bg-card border-r border-border flex flex-col">
+    <div className="min-h-screen flex bg-[#f5f5f7] dark:bg-black/95">
+      <aside className="w-[280px] bg-white/70 dark:bg-[#1c1c1e]/70 backdrop-blur-2xl border-r border-white/40 dark:border-white/10 flex flex-col relative z-20 shadow-[4px_0_24px_-12px_rgba(0,0,0,0.05)]">
         <div className="p-6 border-b border-border">
           <Link to="/" className="text-xl font-display uppercase tracking-wider block text-center">
             Villaoro<span className="text-muted-foreground ml-2 text-sm lowercase">admin</span>
@@ -38,10 +38,10 @@ const AdminLayout = () => {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm transition-colors ${
+                className={`flex items-center gap-3 px-4 py-3 rounded-[14px] text-sm font-medium transition-all duration-300 mx-2 ${
                   isActive 
-                    ? "bg-primary text-primary-foreground" 
-                    : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                    ? "bg-black text-white shadow-md dark:bg-white dark:text-black scale-[0.98]" 
+                    : "text-muted-foreground hover:bg-black/5 dark:hover:bg-white/10 hover:text-foreground"
                 }`}
               >
                 <Icon className="w-4 h-4" />
@@ -54,7 +54,7 @@ const AdminLayout = () => {
         <div className="p-4 border-t border-border flex items-center gap-2">
           <Link 
             to="/"
-            className="flex-1 flex items-center gap-3 px-4 py-3 rounded-lg text-sm text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+            className="flex-1 flex items-center gap-3 px-4 py-3 rounded-[14px] text-sm font-medium text-muted-foreground hover:bg-black/5 dark:hover:bg-white/10 hover:text-foreground transition-colors mx-2"
           >
             <Home className="w-4 h-4" />
             Storefront

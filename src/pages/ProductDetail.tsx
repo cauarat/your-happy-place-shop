@@ -3,7 +3,6 @@ import ProductTour from "@/components/ProductTour";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { getProducts, getDesignSettings } from "@/lib/store";
 import type { Product } from "@/data/products";
-import Footer from "@/components/Footer";
 import { Minus, Plus, Heart } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -75,8 +74,18 @@ const ProductDetail = () => {
 
           {/* Center Column: Images */}
           <div className="order-1 lg:order-none space-y-6 md:space-y-12">
+            {product.detailImage && (
+              <div className="aspect-video bg-transparent flex items-center justify-center overflow-hidden">
+                <img 
+                  src={product.detailImage} 
+                  alt={`${product.name} 16:9 Detail`} 
+                  className="w-full h-full object-contain"
+                  style={product.removeBackground ? { mixBlendMode: 'multiply' } : {}}
+                />
+              </div>
+            )}
             {(product.images && product.images.length > 0 ? product.images : [product.image]).map((img, i) => (
-              <div key={i} className="aspect-[4/5] bg-transparent flex items-center justify-center overflow-hidden">
+              <div key={i} className={`${isShoe ? 'aspect-square md:aspect-[4/3]' : 'aspect-[4/5]'} bg-transparent flex items-center justify-center overflow-hidden`}>
                 <img 
                   src={img} 
                   alt={`${product.name} ${i + 1}`} 
@@ -176,7 +185,6 @@ const ProductDetail = () => {
         </div>
       </main>
 
-      <Footer />
       <ProductTour onStepChange={(step) => {
         if (step === 1 && !isFavorited) {
           // Delay the favorite transition so the user sees the popup first

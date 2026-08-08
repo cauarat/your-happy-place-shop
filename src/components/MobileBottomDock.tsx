@@ -26,7 +26,6 @@ import {
 } from "@/components/Icons";
 import { getCategories, getDesignSettings } from "@/lib/store";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { GlassFilter } from "@/components/ui/liquid-glass-button";
 
 const getCategoryIcon = (cat: string) => {
   switch (cat.toUpperCase()) {
@@ -69,18 +68,27 @@ export default function MobileBottomDock() {
       style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)' }}
     >
       <div 
-        className="rounded-full pointer-events-auto mx-3 max-w-[100vw] relative"
+        className="rounded-full overflow-hidden pointer-events-auto mx-3 max-w-[100vw] relative"
+        style={{
+          background: 'linear-gradient(135deg, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.75) 50%, rgba(240,240,245,0.85) 100%)',
+          backdropFilter: 'blur(60px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(60px) saturate(180%)',
+          boxShadow: `
+            0 8px 48px rgba(0,0,0,0.10),
+            0 2px 16px rgba(0,0,0,0.06),
+            inset 0 1px 0 rgba(255,255,255,0.7),
+            inset 0 -1px 0 rgba(255,255,255,0.15)
+          `,
+          border: '0.5px solid rgba(255,255,255,0.55)',
+        }}
       >
-        {/* Liquid Glass Background */}
-        <div className="absolute top-0 left-0 z-0 h-full w-full rounded-full 
-            shadow-[0_0_6px_rgba(0,0,0,0.03),0_2px_6px_rgba(0,0,0,0.08),inset_3px_3px_0.5px_-3px_rgba(0,0,0,0.9),inset_-3px_-3px_0.5px_-3px_rgba(0,0,0,0.85),inset_1px_1px_1px_-0.5px_rgba(0,0,0,0.6),inset_-1px_-1px_1px_-0.5px_rgba(0,0,0,0.6),inset_0_0_6px_6px_rgba(0,0,0,0.12),inset_0_0_2px_2px_rgba(0,0,0,0.06),0_0_12px_rgba(255,255,255,0.15)] 
-        transition-all 
-        dark:shadow-[0_0_8px_rgba(0,0,0,0.03),0_2px_6px_rgba(0,0,0,0.08),inset_3px_3px_0.5px_-3.5px_rgba(255,255,255,0.09),inset_-3px_-3px_0.5px_-3.5px_rgba(255,255,255,0.85),inset_1px_1px_1px_-0.5px_rgba(255,255,255,0.6),inset_-1px_-1px_1px_-0.5px_rgba(255,255,255,0.6),inset_0_0_6px_6px_rgba(255,255,255,0.12),inset_0_0_2px_2px_rgba(255,255,255,0.06),0_0_12px_rgba(0,0,0,0.15)]" />
+        {/* Specular highlight overlay */}
         <div
-          className="absolute top-0 left-0 isolate -z-10 h-full w-full overflow-hidden rounded-full"
-          style={{ backdropFilter: 'url("#container-glass")' }}
+          className="absolute inset-0 rounded-full pointer-events-none"
+          style={{
+            background: 'linear-gradient(180deg, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0) 40%, rgba(255,255,255,0.05) 100%)',
+          }}
         />
-        <GlassFilter />
         
         <div
           ref={scrollRef}

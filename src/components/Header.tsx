@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Sparkles, X, Heart, UserPlus, Check, SlidersHorizontal } from "lucide-react";
 import { motion } from "framer-motion";
-import { LiquidButton, GlassFilter } from "@/components/ui/liquid-glass-button";
 import { CosmoColorIcon } from "./Icons";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -230,33 +229,45 @@ const Header = () => {
       >
         {/* Brand Filter Button — iOS style */}
         <div className="relative" ref={brandFilterRef}>
-          <LiquidButton
-            size="icon"
+          <button
             onClick={() => setIsBrandFilterOpen(!isBrandFilterOpen)}
             className="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-full transition-all duration-300 outline-none"
             style={selectedDesigner ? {
+              background: 'rgba(0,0,0,0.85)',
               color: 'white',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
             } : {
+              background: 'rgba(118, 118, 128, 0.12)',
               color: 'rgba(60, 60, 67, 0.6)',
             }}
             title="Filter by brand"
           >
             <SlidersHorizontal size={14} />
-          </LiquidButton>
+          </button>
 
           {/* iOS 27 Liquid Glass popup (Brand) */}
           {isBrandFilterOpen && (
             <div
-              className="absolute top-full left-0 mt-2 w-60 rounded-[22px] z-[100] animate-in fade-in slide-in-from-top-2 duration-200"
+              className="absolute top-full left-0 mt-2 w-60 rounded-[22px] z-[100] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200"
+              style={{
+                background: 'linear-gradient(135deg, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.75) 50%, rgba(240,240,245,0.85) 100%)',
+                backdropFilter: 'blur(60px) saturate(180%)',
+                WebkitBackdropFilter: 'blur(60px) saturate(180%)',
+                boxShadow: `
+                  0 8px 48px rgba(0,0,0,0.10),
+                  0 2px 16px rgba(0,0,0,0.06),
+                  inset 0 1px 0 rgba(255,255,255,0.7),
+                  inset 0 -1px 0 rgba(255,255,255,0.15)
+                `,
+                border: '0.5px solid rgba(255,255,255,0.55)',
+              }}
             >
-              {/* Liquid Glass Background */}
-              <div className="absolute top-0 left-0 z-0 h-full w-full rounded-[22px] 
-                  shadow-[0_0_6px_rgba(0,0,0,0.03),0_2px_6px_rgba(0,0,0,0.08),inset_3px_3px_0.5px_-3px_rgba(0,0,0,0.9),inset_-3px_-3px_0.5px_-3px_rgba(0,0,0,0.85),inset_1px_1px_1px_-0.5px_rgba(0,0,0,0.6),inset_-1px_-1px_1px_-0.5px_rgba(0,0,0,0.6),inset_0_0_6px_6px_rgba(0,0,0,0.12),inset_0_0_2px_2px_rgba(0,0,0,0.06),0_0_12px_rgba(255,255,255,0.15)] 
-              transition-all 
-              dark:shadow-[0_0_8px_rgba(0,0,0,0.03),0_2px_6px_rgba(0,0,0,0.08),inset_3px_3px_0.5px_-3.5px_rgba(255,255,255,0.09),inset_-3px_-3px_0.5px_-3.5px_rgba(255,255,255,0.85),inset_1px_1px_1px_-0.5px_rgba(255,255,255,0.6),inset_-1px_-1px_1px_-0.5px_rgba(255,255,255,0.6),inset_0_0_6px_6px_rgba(255,255,255,0.12),inset_0_0_2px_2px_rgba(255,255,255,0.06),0_0_12px_rgba(0,0,0,0.15)]" />
+              {/* Specular highlight overlay */}
               <div
-                className="absolute top-0 left-0 isolate -z-10 h-full w-full overflow-hidden rounded-[22px]"
-                style={{ backdropFilter: 'url("#container-glass")' }}
+                className="absolute inset-0 rounded-[22px] pointer-events-none"
+                style={{
+                  background: 'linear-gradient(180deg, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0) 40%, rgba(255,255,255,0.05) 100%)',
+                }}
               />
               {/* Header */}
               <div className="relative px-4 pt-4 pb-2.5" style={{ borderBottom: '0.5px solid rgba(0,0,0,0.06)' }}>
@@ -327,29 +338,14 @@ const Header = () => {
           )}
         </div>
         <div
-          className="flex-1 flex items-center gap-1.5 sm:gap-2.5 px-3.5 sm:px-4.5 py-2 sm:py-2.5 rounded-full transition-all duration-300 relative group"
+          className="flex-1 flex items-center gap-1.5 sm:gap-2.5 px-3.5 sm:px-4.5 py-2 sm:py-2.5 rounded-full transition-all duration-300 relative overflow-hidden"
+          style={{
+            background: isFocused ? 'rgba(255, 255, 255, 0.8)' : 'rgba(118, 118, 128, 0.12)',
+            border: isFocused ? '0.5px solid rgba(0,0,0,0.12)' : '0.5px solid transparent',
+            boxShadow: isFocused ? '0 4px 24px rgba(0,0,0,0.08)' : 'none',
+          }}
         >
-          {/* Liquid Glass Background */}
-          <div className="absolute top-0 left-0 z-0 h-full w-full rounded-full 
-              shadow-[0_0_6px_rgba(0,0,0,0.03),0_2px_6px_rgba(0,0,0,0.08),inset_3px_3px_0.5px_-3px_rgba(0,0,0,0.9),inset_-3px_-3px_0.5px_-3px_rgba(0,0,0,0.85),inset_1px_1px_1px_-0.5px_rgba(0,0,0,0.6),inset_-1px_-1px_1px_-0.5px_rgba(0,0,0,0.6),inset_0_0_6px_6px_rgba(0,0,0,0.12),inset_0_0_2px_2px_rgba(0,0,0,0.06),0_0_12px_rgba(255,255,255,0.15)] 
-          transition-all 
-          dark:shadow-[0_0_8px_rgba(0,0,0,0.03),0_2px_6px_rgba(0,0,0,0.08),inset_3px_3px_0.5px_-3.5px_rgba(255,255,255,0.09),inset_-3px_-3px_0.5px_-3.5px_rgba(255,255,255,0.85),inset_1px_1px_1px_-0.5px_rgba(255,255,255,0.6),inset_-1px_-1px_1px_-0.5px_rgba(255,255,255,0.6),inset_0_0_6px_6px_rgba(255,255,255,0.12),inset_0_0_2px_2px_rgba(255,255,255,0.06),0_0_12px_rgba(0,0,0,0.15)]" />
-          <div
-            className="absolute top-0 left-0 isolate -z-10 h-full w-full overflow-hidden rounded-full"
-            style={{ backdropFilter: 'url("#container-glass")' }}
-          />
-
-          {/* Focused Highlight Overlay */}
-          <div 
-            className={`absolute top-0 left-0 z-0 h-full w-full rounded-full transition-all duration-300 pointer-events-none ${isFocused ? 'opacity-100 scale-100' : 'opacity-0 scale-[0.98]'}`}
-            style={{
-              background: 'linear-gradient(135deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.2) 100%)',
-              border: '0.5px solid rgba(0,0,0,0.15)',
-              boxShadow: '0 4px 24px rgba(0,0,0,0.12)',
-            }}
-          />
-
-          <Sparkles size={14} className={`shrink-0 transition-colors sm:w-[15px] sm:h-[15px] ${isFocused ? "text-black" : "text-[rgba(60,60,67,0.6)]"} relative z-10`} />
+          <Sparkles size={14} className={`shrink-0 transition-colors sm:w-[15px] sm:h-[15px] ${isFocused ? "text-black" : "text-[rgba(60,60,67,0.6)]"}`} />
           <div className="relative flex-1 min-w-0 flex items-center">
             {suggestion && isFocused && searchQuery && suggestion.toLowerCase().startsWith(searchQuery.toLowerCase()) && (
               <div className="absolute inset-0 pointer-events-none flex items-center text-[11px] sm:text-[12px] text-[#bbb] whitespace-pre overflow-hidden">
@@ -394,8 +390,7 @@ const Header = () => {
 
         {/* Color Filter Selector — iOS style */}
         <div className="relative" ref={colorFilterRef}>
-          <LiquidButton
-            size="icon"
+          <button
             onClick={() => setIsColorFilterOpen(!isColorFilterOpen)}
             className="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-full transition-all duration-300 outline-none"
             style={selectedColor ? {
@@ -413,21 +408,31 @@ const Header = () => {
             ) : (
               <CosmoColorIcon size={16} className="opacity-80" />
             )}
-          </LiquidButton>
+          </button>
 
           {/* iOS 27 Liquid Glass popup (Color) */}
           {isColorFilterOpen && (
             <div
-              className="absolute top-full right-0 mt-2 w-60 rounded-[22px] z-[100] animate-in fade-in slide-in-from-top-2 duration-200"
+              className="absolute top-full right-0 mt-2 w-60 rounded-[22px] z-[100] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200"
+              style={{
+                background: 'linear-gradient(135deg, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.75) 50%, rgba(240,240,245,0.85) 100%)',
+                backdropFilter: 'blur(60px) saturate(180%)',
+                WebkitBackdropFilter: 'blur(60px) saturate(180%)',
+                boxShadow: `
+                  0 8px 48px rgba(0,0,0,0.10),
+                  0 2px 16px rgba(0,0,0,0.06),
+                  inset 0 1px 0 rgba(255,255,255,0.7),
+                  inset 0 -1px 0 rgba(255,255,255,0.15)
+                `,
+                border: '0.5px solid rgba(255,255,255,0.55)',
+              }}
             >
-              {/* Liquid Glass Background */}
-              <div className="absolute top-0 left-0 z-0 h-full w-full rounded-[22px] 
-                  shadow-[0_0_6px_rgba(0,0,0,0.03),0_2px_6px_rgba(0,0,0,0.08),inset_3px_3px_0.5px_-3px_rgba(0,0,0,0.9),inset_-3px_-3px_0.5px_-3px_rgba(0,0,0,0.85),inset_1px_1px_1px_-0.5px_rgba(0,0,0,0.6),inset_-1px_-1px_1px_-0.5px_rgba(0,0,0,0.6),inset_0_0_6px_6px_rgba(0,0,0,0.12),inset_0_0_2px_2px_rgba(0,0,0,0.06),0_0_12px_rgba(255,255,255,0.15)] 
-              transition-all 
-              dark:shadow-[0_0_8px_rgba(0,0,0,0.03),0_2px_6px_rgba(0,0,0,0.08),inset_3px_3px_0.5px_-3.5px_rgba(255,255,255,0.09),inset_-3px_-3px_0.5px_-3.5px_rgba(255,255,255,0.85),inset_1px_1px_1px_-0.5px_rgba(255,255,255,0.6),inset_-1px_-1px_1px_-0.5px_rgba(255,255,255,0.6),inset_0_0_6px_6px_rgba(255,255,255,0.12),inset_0_0_2px_2px_rgba(255,255,255,0.06),0_0_12px_rgba(0,0,0,0.15)]" />
+              {/* Specular highlight overlay */}
               <div
-                className="absolute top-0 left-0 isolate -z-10 h-full w-full overflow-hidden rounded-[22px]"
-                style={{ backdropFilter: 'url("#container-glass")' }}
+                className="absolute inset-0 rounded-[22px] pointer-events-none"
+                style={{
+                  background: 'linear-gradient(180deg, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0) 40%, rgba(255,255,255,0.05) 100%)',
+                }}
               />
 
               {/* Header */}

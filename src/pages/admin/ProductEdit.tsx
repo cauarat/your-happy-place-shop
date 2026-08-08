@@ -54,13 +54,13 @@ const detectImageBackground = (img: HTMLImageElement): string => {
   return `rgb(${r},${g},${b})`;
 };
 
-const standardizeImage = (base64: string): Promise<string> => {
+const standardizeImage = (base64: string, is16x9: boolean = false): Promise<string> => {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => {
-      // Catalog standard is 3:4 (1500x2000 for high quality)
-      const targetWidth = 1500;
-      const targetHeight = 2000;
+      // Catalog standard is 3:4 (1500x2000), 16:9 is 1920x1080
+      const targetWidth = is16x9 ? 1920 : 1500;
+      const targetHeight = is16x9 ? 1080 : 2000;
       
       const canvas = document.createElement('canvas');
       canvas.width = targetWidth;
@@ -219,6 +219,8 @@ const AdminProductEdit = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [flipHorizontal, setFlipHorizontal] = useState(false);
   const [flipVertical, setFlipVertical] = useState(false);
+  const [cropAspect, setCropAspect] = useState<number>(3/4);
+  const [isUploadingDetail, setIsUploadingDetail] = useState(false);
 
   useEffect(() => {
     setDynamicCategories(getCategories());
@@ -248,7 +250,7 @@ const AdminProductEdit = () => {
     }));
   };
 
-  const handleImageFile = (file: File) => {
+  const handleImageFile = (file: File, isDetail: boolean = false) => {
     if (!file.type.startsWith("image/")) {
       toast.error("Please upload an image file.");
       return;
@@ -258,8 +260,10 @@ const AdminProductEdit = () => {
     reader.onload = async (e) => {
       const base64 = e.target?.result as string;
       const loadingToast = toast.loading("Standardizing image for catalog...");
+      setIsUploadingDetail(isDetail);
+      setCropAspect(isDetail ? 16/9 : 3/4);
       try {
-        const standardized = await standardizeImage(base64);
+        const standardized = await standardizeImage(base64, isDetail);
         const compressed = await compressImage(standardized);
         setImageToCrop(compressed);
         setIsCropping(true);
@@ -317,6 +321,9 @@ const AdminProductEdit = () => {
       const r2Url = await uploadToR2(compressed);
 
       setProduct(prev => {
+        if (isUploadingDetail) {
+          return { ...prev, detailImage: r2Url };
+        }
         const newImages = [...(prev.images || [])];
         newImages.push(r2Url);
         return {
@@ -881,6 +888,69 @@ const AdminProductEdit = () => {
             </div>
           </section>
 
+          {/* Footwear 16:9 Detail Image Section */}
+          {product.category?.toLowerCase() === 'footwear' && (
+            <section className="glass p-10 rounded-[32px] border border-white/20 shadow-sm space-y-6">
+              <div>
+                <h3 className="text-sm font-medium">16:9 Detail Image</h3>
+                <p className="text-[10px] uppercase tracking-widest text-muted-foreground mt-1">Upload a landscape picture specifically for the footwear product detail page</p>
+              </div>
+              <div 
+                className="group relative aspect-video bg-secondary/30 rounded-[24px] border-2 border-dashed border-border flex flex-col items-center justify-center p-8 transition-all hover:border-primary/50 hover:bg-secondary/50 cursor-pointer overflow-hidden max-w-xl"
+                onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                onDrop={(e) => {
+                  e.preventDefault(); e.stopPropagation();
+                  const file = e.dataTransfer.files?.[0];
+                  if (file) handleImageFile(file, true);
+                }}
+                onClick={() => document.getElementById('detail-image-upload')?.click()}
+              >
+                {product.detailImage ? (
+                  <img src={product.detailImage} className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="" />
+                ) : (
+                  <div className="text-center space-y-4">
+                    <div className="w-16 h-16 bg-background rounded-full flex items-center justify-center mx-auto shadow-sm border border-border group-hover:scale-110 transition-transform">
+                      <Image className="w-6 h-6 text-muted-foreground group-hover:text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">Drop 16:9 image here</p>
+                      <p className="text-[10px] uppercase tracking-widest text-muted-foreground mt-1">or click to browse</p>
+                    </div>
+                  </div>
+                )}
+                
+                {product.detailImage && (
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
+                     <button 
+                      type="button" 
+                      onClick={(e) => { e.stopPropagation(); setIsUploadingDetail(true); setCropAspect(16/9); setIsCropping(true); setImageToCrop(product.detailImage!); }}
+                      className="p-3 bg-white text-black rounded-full hover:scale-110 transition-transform"
+                    >
+                      <Crop className="w-5 h-5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); setProduct(prev => ({ ...prev, detailImage: undefined })); }}
+                      className="p-3 bg-red-500 text-white rounded-full hover:scale-110 transition-transform"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                  </div>
+                )}
+              </div>
+              <input
+                type="file"
+                id="detail-image-upload"
+                className="hidden"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleImageFile(file, true);
+                }}
+              />
+            </section>
+          )}
+
       </div>
 
       {/* Cropper Modal */}
@@ -907,7 +977,7 @@ const AdminProductEdit = () => {
                 image={imageToCrop}
                 crop={crop}
                 zoom={zoom}
-                aspect={3/4}
+                aspect={cropAspect}
                 onCropChange={setCrop}
                 onZoomChange={setZoom}
                 onCropComplete={onCropComplete}

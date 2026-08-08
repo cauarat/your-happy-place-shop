@@ -23,6 +23,7 @@ export interface Product {
   rating: number;
   removeBackground?: boolean;
   originalImage?: string;
+  detailImage?: string;
   description?: string;
   images?: string[];
   productLinks?: string[];
