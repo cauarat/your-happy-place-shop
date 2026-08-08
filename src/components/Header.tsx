@@ -270,7 +270,7 @@ const Header = () => {
         <div className="relative" ref={brandFilterRef}>
           <button
             onClick={() => setIsBrandFilterOpen(!isBrandFilterOpen)}
-            className="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-full transition-all duration-300 outline-none border border-border shadow-sm hover:border-border/80"
+            className="flex items-center justify-center w-8 h-8 shrink-0 rounded-full transition-all duration-300 outline-none border border-border shadow-sm hover:border-border/80"
             style={selectedDesigner ? {
               background: 'rgba(0,0,0,0.85)',
               color: 'white',
@@ -282,7 +282,7 @@ const Header = () => {
             }}
             title="Filter by brand"
           >
-            <SlidersHorizontal size={14} />
+            <SlidersHorizontal size={13} />
           </button>
 
           {/* iOS 27 Liquid Glass popup (Brand) */}
@@ -381,7 +381,7 @@ const Header = () => {
         <div className="relative" ref={colorFilterRef}>
           <button
             onClick={() => setIsColorFilterOpen(!isColorFilterOpen)}
-            className="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-full transition-all duration-300 outline-none border border-border shadow-sm hover:border-border/80"
+            className="flex items-center justify-center w-8 h-8 shrink-0 rounded-full transition-all duration-300 outline-none border border-border shadow-sm hover:border-border/80"
             style={selectedColor ? {
               background: 'transparent',
               borderColor: 'transparent'
@@ -392,11 +392,11 @@ const Header = () => {
           >
             {selectedColor ? (
               <div 
-                className="w-6 h-6 sm:w-7 sm:h-7 rounded-full border border-black/15 shadow-sm" 
+                className="w-5 h-5 rounded-full border border-black/15 shadow-sm" 
                 style={{ backgroundColor: colors.find(c => c.name === selectedColor)?.hex }}
               />
             ) : (
-              <CosmoColorIcon size={16} className="opacity-80" />
+              <CosmoColorIcon size={14} className="opacity-80" />
             )}
           </button>
 
