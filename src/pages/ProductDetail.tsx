@@ -83,7 +83,7 @@ const ProductDetail = () => {
           </div>
 
           {/* Center Column: Images */}
-          <div className="order-1 lg:order-none space-y-6 md:space-y-12">
+          <div className={`order-1 lg:order-none space-y-6 md:space-y-12 ${isShoe ? 'lg:mt-48' : 'lg:mt-16'}`}>
             {product.detailImage && (
               <div className="aspect-video bg-transparent flex items-center justify-center overflow-hidden">
                 <img 
