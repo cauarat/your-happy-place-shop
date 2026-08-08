@@ -142,15 +142,7 @@ const Header = () => {
       }}
     >
       <div className="flex items-center justify-between px-2.5 sm:px-4 lg:px-8 h-14 sm:h-16 w-full gap-2 sm:gap-4">
-        {/* Left: Logo */}
-        <div className="flex items-center shrink-0">
-          <Link 
-            to={enableNews ? "/news" : "/"}
-            className="text-[2rem] sm:text-[2.5rem] md:text-[3rem] font-black leading-none tracking-tighter hover:opacity-70 transition-opacity whitespace-nowrap pr-2 sm:pr-6"
-          >
-            Villaoro
-          </Link>
-        </div>
+
 
         {/* Right Nav */}
         <div className="flex items-center justify-end gap-3 sm:gap-4 lg:gap-5 shrink-0 ml-auto">
