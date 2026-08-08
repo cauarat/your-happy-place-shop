@@ -229,7 +229,12 @@ const Header = () => {
         data-tour="search-bar"
         className="px-2.5 sm:px-4 lg:px-8 w-full pb-3 flex flex-col items-center gap-4"
       >
-        <div className="flex flex-col items-center gap-2">
+        <motion.div 
+          className="flex flex-col items-center gap-2 mb-2"
+          initial={{ opacity: 0, y: 10, filter: 'blur(5px)' }}
+          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }} // Apple-like spring/ease
+        >
           <GradientShimmer
             gradient="sunrise"
             easing="smooth"
@@ -237,11 +242,11 @@ const Header = () => {
             spread={3}
             angle={105}
             pauseBetween={2000}
-            className="text-lg sm:text-2xl font-medium tracking-tight text-black text-center"
+            className="text-2xl sm:text-3xl font-light tracking-tighter text-black text-center"
           >
             {t(getGreetingKey()).replace('{name}', user?.user_metadata?.first_name || 'Cauã')}
           </GradientShimmer>
-        </div>
+        </motion.div>
         <div className="flex-1 w-full relative z-[5]">
           <PromptBox
             value={searchQuery}
