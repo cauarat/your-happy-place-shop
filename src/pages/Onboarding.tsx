@@ -182,15 +182,15 @@ const Onboarding = () => {
             />
           }
           title={
-            <div className="h-[60px] md:h-[90px] overflow-hidden relative w-full flex items-center justify-center">
-              <AnimatePresence>
+            <div className="h-[1.2em] overflow-hidden relative w-full">
+              <AnimatePresence initial={false}>
                 <motion.span
                   key={greetingIndex}
-                  initial={{ y: 40, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  exit={{ y: -40, opacity: 0 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                  className="absolute w-full flex justify-center items-center"
+                  initial={{ y: "100%" }}
+                  animate={{ y: "0%" }}
+                  exit={{ y: "-100%" }}
+                  transition={{ duration: 0.55, ease: [0.32, 0.72, 0, 1] }}
+                  className="absolute inset-x-0 flex justify-center"
                 >
                   {greetings[greetingIndex].text}
                 </motion.span>
