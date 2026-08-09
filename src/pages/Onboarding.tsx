@@ -7,8 +7,7 @@ import { useOnboarding } from '../contexts/OnboardingContext';
 import { designers as staticDesigners } from '../data/products';
 import { supabase } from '../lib/supabase';
 import { getDesigners } from '../lib/store';
-import { DisplayCard } from '@/components/ui/display-cards';
-import { cn } from '@/lib/utils';
+import { Component as LanguageSelectorDropdown, LanguageOption } from '@/components/ui/language-selector-dropdown';
 
 const Onboarding = () => {
   const location = useLocation();
@@ -125,7 +124,7 @@ const Onboarding = () => {
 
   // Roulette index state for Step 1
   const [greetingIndex, setGreetingIndex] = useState(0);
-  const [selectedFlag, setSelectedFlag] = useState<string | null>(null);
+  const [localLang, setLocalLang] = useState('SELECT');
 
   useEffect(() => {
     if (step !== 1) return;
@@ -138,24 +137,11 @@ const Onboarding = () => {
   // Screen 1: Language (Zero Click Advance)
   const renderStep1 = () => {
     const greetings = getGreetings();
-    const flagsBase = [
-      { code: 'EN', imageUrl: 'https://flagcdn.com/w640/us.png', lang: 'English', country: 'United States' },
-      { code: 'PT', imageUrl: 'https://flagcdn.com/w640/br.png', lang: 'Português', country: 'Brasil' },
-      { code: 'ES', imageUrl: 'https://flagcdn.com/w640/es.png', lang: 'Español', country: 'España' },
-    ];
-    // Render the currently active language last so it sits frontmost (vivid) in the stack;
-    // the other two fan out behind it in grayscale until hovered/tapped.
-    const flags = [
-      ...flagsBase.filter(f => f.code !== language),
-      ...flagsBase.filter(f => f.code === language),
-    ];
-    // [back, middle, front] positioning + reveal classes for the fanned card stack.
-    // Offsets are large enough (~56px+) that each card keeps a comfortably tappable
-    // sliver exposed even without hovering first — required since touch has no hover.
-    const stackPositionClasses = [
-      "-translate-x-14 hover:-translate-y-10 grayscale hover:grayscale-0",
-      "translate-y-10 hover:-translate-y-2 grayscale hover:grayscale-0",
-      "translate-x-14 translate-y-20 hover:translate-y-10 grayscale hover:grayscale-0",
+    const appLanguages: LanguageOption[] = [
+      { code: 'SELECT', label: 'Selecione', flag: '🗣️' },
+      { code: 'EN', label: 'English', flag: '🇺🇸' },
+      { code: 'PT', label: 'Português', flag: '🇧🇷' },
+      { code: 'ES', label: 'Español', flag: '🇪🇸' },
     ];
 
     return (
@@ -195,39 +181,22 @@ const Onboarding = () => {
             </AnimatePresence>
           </div>
 
-          {/* Flag cards — fanned display-card stack */}
+          {/* Language selector dropdown */}
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-            className="grid [grid-template-areas:'stack'] place-items-center py-2"
           >
-            {flags.map((flag, i) => {
-              const isSelected = selectedFlag === flag.code;
-              return (
-                <div
-                  key={flag.code}
-                  onClick={() => {
-                    setSelectedFlag(flag.code);
-                    setLanguage(flag.code as any);
-                    setTimeout(() => setStep(2), 500);
-                  }}
-                  className={cn(
-                    "relative flex -skew-y-[8deg] select-none rounded-2xl overflow-hidden transition-all duration-700 shadow-md",
-                    "[grid-area:stack] w-[192px] h-[132px] cursor-pointer",
-                    stackPositionClasses[i],
-                    isSelected && "!grayscale-0 scale-105 z-30 before:!opacity-0 ring-4 ring-black/10"
-                  )}
-                >
-                  <img 
-                    src={flag.imageUrl} 
-                    alt={flag.country} 
-                    className="w-full h-full object-cover" 
-                    draggable={false}
-                  />
-                </div>
-              );
-            })}
+            <LanguageSelectorDropdown
+              languages={appLanguages}
+              value={localLang}
+              onChange={(lang) => {
+                if (lang.code === 'SELECT') return;
+                setLocalLang(lang.code);
+                setLanguage(lang.code as any);
+                setTimeout(() => setStep(2), 400);
+              }}
+            />
           </motion.div>
 
         </div>
