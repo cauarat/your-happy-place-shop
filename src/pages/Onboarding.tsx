@@ -7,6 +7,8 @@ import { useOnboarding } from '../contexts/OnboardingContext';
 import { designers as staticDesigners } from '../data/products';
 import { supabase } from '../lib/supabase';
 import { getDesigners } from '../lib/store';
+import { DisplayCard } from '@/components/ui/display-cards';
+import { cn } from '@/lib/utils';
 
 const Onboarding = () => {
   const location = useLocation();
@@ -136,10 +138,24 @@ const Onboarding = () => {
   // Screen 1: Language (Zero Click Advance)
   const renderStep1 = () => {
     const greetings = getGreetings();
+    const flagsBase = [
+      { code: 'EN', imageUrl: 'https://flagcdn.com/w640/us.png', lang: 'English', country: 'United States' },
+      { code: 'PT', imageUrl: 'https://flagcdn.com/w640/br.png', lang: 'Português', country: 'Brasil' },
+      { code: 'ES', imageUrl: 'https://flagcdn.com/w640/es.png', lang: 'Español', country: 'España' },
+    ];
+    // Render the currently active language last so it sits frontmost (vivid) in the stack;
+    // the other two fan out behind it in grayscale until hovered/tapped.
     const flags = [
-      { code: 'EN', emoji: '🇺🇸' },
-      { code: 'PT', emoji: '🇧🇷' },
-      { code: 'ES', emoji: '🇪🇸' },
+      ...flagsBase.filter(f => f.code !== language),
+      ...flagsBase.filter(f => f.code === language),
+    ];
+    // [back, middle, front] positioning + reveal classes for the fanned card stack.
+    // Offsets are large enough (~56px+) that each card keeps a comfortably tappable
+    // sliver exposed even without hovering first — required since touch has no hover.
+    const stackPositionClasses = [
+      "hover:-translate-y-10 before:pointer-events-none before:absolute before:w-full before:h-full before:left-0 before:top-0 before:content-[''] before:rounded-xl before:outline-1 before:outline-border before:bg-blend-overlay before:bg-background/50 before:transition-opacity before:duration-700 grayscale hover:grayscale-0 hover:before:opacity-0",
+      "translate-x-14 translate-y-10 hover:-translate-y-2 before:pointer-events-none before:absolute before:w-full before:h-full before:left-0 before:top-0 before:content-[''] before:rounded-xl before:outline-1 before:outline-border before:bg-blend-overlay before:bg-background/50 before:transition-opacity before:duration-700 grayscale hover:grayscale-0 hover:before:opacity-0",
+      "translate-x-28 translate-y-20 hover:translate-y-16",
     ];
 
     return (
@@ -179,44 +195,40 @@ const Onboarding = () => {
             </AnimatePresence>
           </div>
 
-          {/* Flag circles */}
-          <div className="flex items-center justify-center gap-5">
-            {flags.map((flag, i) => (
-              <motion.button
-                key={flag.code}
-                initial={{ opacity: 0, scale: 0.7 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.3 + i * 0.1, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                whileTap={{ scale: 0.9 }}
-                onClick={() => {
-                  setSelectedFlag(flag.code);
-                  setLanguage(flag.code as any);
-                  setTimeout(() => setStep(2), 500);  // Go to Add to Home Screen
-                }}
-                className={`relative w-[72px] h-[72px] rounded-full flex items-center justify-center transition-all duration-500 ${
-                  selectedFlag === flag.code
-                    ? 'bg-black/80 backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.18),inset_0_1px_1px_rgba(255,255,255,0.1)] border border-white/10 scale-110'
-                    : 'bg-white/50 backdrop-blur-xl border border-white/40 shadow-[0_4px_24px_rgba(0,0,0,0.06),0_1px_4px_rgba(0,0,0,0.04),inset_0_1px_2px_rgba(255,255,255,0.9)] hover:shadow-[0_6px_28px_rgba(0,0,0,0.1),inset_0_1px_2px_rgba(255,255,255,0.9)] hover:scale-105 active:scale-95'
-                }`}
-                style={{
-                  WebkitBackdropFilter: selectedFlag === flag.code ? 'blur(40px) saturate(180%)' : 'blur(24px) saturate(150%)',
-                  backdropFilter: selectedFlag === flag.code ? 'blur(40px) saturate(180%)' : 'blur(24px) saturate(150%)',
-                }}
-              >
-                <span className="text-[30px] leading-none select-none drop-shadow-sm">{flag.emoji}</span>
-
-                {/* Selection ring animation */}
-                {selectedFlag === flag.code && (
-                  <motion.div
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ duration: 0.3, ease: 'easeOut' }}
-                    className="absolute inset-[-4px] rounded-full border-[1.5px] border-black/30"
+          {/* Flag cards — fanned display-card stack */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            className="grid [grid-template-areas:'stack'] place-items-center py-2"
+          >
+            {flags.map((flag, i) => {
+              const isSelected = selectedFlag === flag.code;
+              return (
+                <div
+                  key={flag.code}
+                  onClick={() => {
+                    setSelectedFlag(flag.code);
+                    setLanguage(flag.code as any);
+                    setTimeout(() => setStep(2), 500);
+                  }}
+                  className={cn(
+                    "relative flex -skew-y-[8deg] select-none rounded-2xl overflow-hidden transition-all duration-700 shadow-md",
+                    "[grid-area:stack] w-[192px] h-[132px] cursor-pointer",
+                    stackPositionClasses[i],
+                    isSelected && "!grayscale-0 scale-105 z-30 before:!opacity-0 ring-4 ring-black/10"
+                  )}
+                >
+                  <img 
+                    src={flag.imageUrl} 
+                    alt={flag.country} 
+                    className="w-full h-full object-cover" 
+                    draggable={false}
                   />
-                )}
-              </motion.button>
-            ))}
-          </div>
+                </div>
+              );
+            })}
+          </motion.div>
 
         </div>
       </motion.div>
