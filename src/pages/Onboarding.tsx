@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Lock, ArrowLeft, Check } from 'lucide-react';
+import { Lock, ArrowLeft, Check, ChevronDown } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useOnboarding } from '../contexts/OnboardingContext';
@@ -279,6 +279,13 @@ const Onboarding = () => {
                 {t('onboarding_take_quick_tour')}
               </span>
             </button>
+            <motion.div
+              animate={{ y: [0, 4, 0] }}
+              transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+              className="mt-2 text-muted-foreground opacity-70"
+            >
+              <ChevronDown className="w-5 h-5" />
+            </motion.div>
           </div>
         </ScrollMorphHero>
       </motion.div>
