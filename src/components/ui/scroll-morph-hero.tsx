@@ -103,9 +103,11 @@ export function ScrollMorphHero({
   }, []);
 
   // --- One-time entrance: scatter -> line -> circle (resting state) ---
+  // Slowed down so the user can actually watch each stage happen instead of
+  // just catching the tail end of it.
   React.useEffect(() => {
-    const t1 = setTimeout(() => setPhase("line"), 500);
-    const t2 = setTimeout(() => setPhase("circle"), 2100);
+    const t1 = setTimeout(() => setPhase("line"), 1400);
+    const t2 = setTimeout(() => setPhase("circle"), 3600);
     return () => {
       clearTimeout(t1);
       clearTimeout(t2);
@@ -228,12 +230,16 @@ export function ScrollMorphHero({
         </motion.p>
       </div>
 
-      {/* Reveal content — fades in, in the same spot, as the icons settle */}
+      {/* Reveal content — fades in, in the same spot, as the icons settle.
+          Stays pointer-events-none at the wrapper level (it's a full-screen
+          inset-0 box with an explicit z-index, so an "auto" here would sit
+          above and swallow hover/clicks over the icons anywhere on screen);
+          only the actual interactive piece (children, e.g. the language
+          dropdown) opts back into pointer events. */}
       <motion.div
         animate={{ opacity: revealProgress, y: (1 - revealProgress) * 16 }}
         transition={{ duration: 0.3 }}
-        style={{ pointerEvents: revealProgress > 0.5 ? "auto" : "none" }}
-        className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center px-6"
+        className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center px-6 pointer-events-none"
       >
         {revealLogo && <div className="mb-6">{revealLogo}</div>}
         <div className="text-3xl md:text-5xl font-semibold tracking-tight text-foreground">
@@ -242,7 +248,14 @@ export function ScrollMorphHero({
         {revealSubtitle && (
           <p className="mt-4 max-w-sm text-sm md:text-base text-muted-foreground">{revealSubtitle}</p>
         )}
-        {children && <div className="mt-8">{children}</div>}
+        {children && (
+          <div
+            className="mt-8"
+            style={{ pointerEvents: revealProgress > 0.5 ? "auto" : "none" }}
+          >
+            {children}
+          </div>
+        )}
       </motion.div>
 
       {/* Icons — purely decorative, must not intercept clicks meant for the
@@ -284,6 +297,9 @@ export function ScrollMorphHero({
           }
 
           return (
+            // Outer div: pure positioning, driven by scroll (unchanged logic).
+            // Inner div: idle "alive" float + hover response, kept separate so
+            // it never fights the scroll-driven x/y/scale animation above.
             <motion.div
               key={item.id}
               animate={{
@@ -293,15 +309,41 @@ export function ScrollMorphHero({
                 scale: target.scale,
                 opacity: target.opacity,
               }}
-              transition={{
-                type: "spring",
-                stiffness: 45,
-                damping: 16,
-                delay: phase === "scatter" ? i * 0.05 : 0,
-              }}
-              className="absolute flex items-center justify-center w-16 h-16 md:w-20 md:h-20 p-3 rounded-3xl shadow-xl bg-card/80 backdrop-blur-md border border-border/10"
+              transition={
+                phase === "scatter"
+                  ? { type: "spring", stiffness: 22, damping: 14, delay: i * 0.09 }
+                  : phase === "line"
+                  ? { type: "spring", stiffness: 26, damping: 15, delay: i * 0.04 }
+                  : { type: "spring", stiffness: 45, damping: 16 }
+              }
+              className="absolute pointer-events-auto"
             >
-              <item.icon className="w-8 h-8 md:w-10 md:h-10 text-foreground" />
+              <motion.div
+                animate={
+                  phase === "circle"
+                    ? { y: [0, -7, 0], rotate: [0, i % 2 === 0 ? 2 : -2, 0] }
+                    : { y: 0, rotate: 0 }
+                }
+                transition={
+                  phase === "circle"
+                    ? {
+                        duration: 3.2 + (i % 4) * 0.4,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                        delay: i * 0.18,
+                      }
+                    : { duration: 0.3 }
+                }
+                whileHover={{
+                  scale: 1.14,
+                  y: -10,
+                  rotate: 0,
+                  transition: { type: "spring", stiffness: 300, damping: 14 },
+                }}
+                className="flex items-center justify-center w-16 h-16 md:w-20 md:h-20 p-3 rounded-3xl shadow-xl bg-card/80 backdrop-blur-md border border-border/10 cursor-pointer"
+              >
+                <item.icon className="w-8 h-8 md:w-10 md:h-10 text-foreground" />
+              </motion.div>
             </motion.div>
           );
         })}
