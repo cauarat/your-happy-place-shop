@@ -9,8 +9,8 @@ import { supabase } from '../lib/supabase';
 import { getDesigners } from '../lib/store';
 import { Component as LanguageSelectorDropdown, LanguageOption } from '@/components/ui/language-selector-dropdown';
 import { FloatingIconsHero } from '@/components/ui/floating-icons-hero-section';
-import { Footprints, Shirt, Glasses, Box } from 'lucide-react';
-import { BagIcon, CapIcon, PantsIcon, JacketIcon, HoodieIcon, SweaterIcon } from '@/components/Icons';
+import { Footprints, Shirt, Glasses } from 'lucide-react';
+import { BagIcon, CapIcon, PantsIcon, JacketIcon, HoodieIcon, SweaterIcon, PufferJacketIcon } from '@/components/Icons';
 
 const onboardingHeroIcons = [
   { id: 1, icon: HoodieIcon, className: 'top-[8%] left-[8%]' },
@@ -22,7 +22,7 @@ const onboardingHeroIcons = [
   { id: 7, icon: Glasses, className: 'top-[42%] right-[7%]' },
   { id: 8, icon: SweaterIcon, className: 'bottom-[6%] left-[42%]' },
   { id: 9, icon: Shirt, className: 'top-[70%] left-[20%]' },
-  { id: 10, icon: Box, className: 'top-[68%] right-[22%]' },
+  { id: 10, icon: PufferJacketIcon, className: 'top-[68%] right-[22%]' },
 ];
 
 const Onboarding = () => {
