@@ -63,12 +63,13 @@ export const Component = ({
           "bg-white/60 dark:bg-neutral-900/90 backdrop-blur-md shadow-sm",
           "border-gray-200 dark:border-neutral-700",
           "text-gray-800 dark:text-neutral-200",
-          "hover:bg-gray-50 dark:hover:bg-neutral-800 transition-all"
+          "hover:bg-gray-50 dark:hover:bg-neutral-800 transition-all",
+          !selected.label && "justify-center w-10 h-10 px-0"
         )}
       >
-        <span>{selected.flag}</span>
-        <span>{selected.label}</span>
-        <ChevronDown className="h-4 w-4" />
+        <span className={!selected.label ? "text-lg" : ""}>{selected.flag}</span>
+        {selected.label && <span>{selected.label}</span>}
+        {selected.label && <ChevronDown className="h-4 w-4" />}
       </button>
 
       {/* Dropdown Menu */}
@@ -81,7 +82,7 @@ export const Component = ({
             "animate-fade-in"
           )}
         >
-          {languages.map((lang) => (
+          {languages.filter(lang => lang.label).map((lang) => (
             <button
               key={lang.code}
               onClick={() => {

@@ -138,7 +138,7 @@ const Onboarding = () => {
   const renderStep1 = () => {
     const greetings = getGreetings();
     const appLanguages: LanguageOption[] = [
-      { code: 'SELECT', label: 'Selecione', flag: '🗣️' },
+      { code: 'SELECT', label: '', flag: '🗣️' },
       { code: 'EN', label: 'English', flag: '🇺🇸' },
       { code: 'PT', label: 'Português', flag: '🇧🇷' },
       { code: 'ES', label: 'Español', flag: '🇪🇸' },
@@ -166,7 +166,7 @@ const Onboarding = () => {
           </motion.div>
 
           {/* Roulette greeting text */}
-          <div className="h-[52px] overflow-hidden relative mb-10">
+          <div className="h-[52px] overflow-hidden relative mb-4">
             <AnimatePresence mode="wait">
               <motion.h1
                 key={greetingIndex}
