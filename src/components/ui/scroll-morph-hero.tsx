@@ -242,7 +242,7 @@ export function ScrollMorphHero({
         className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center px-6 pointer-events-none"
       >
         {revealLogo && <div className="mb-6">{revealLogo}</div>}
-        <div className="text-3xl md:text-5xl font-semibold tracking-tight text-foreground">
+        <div className="text-xl md:text-2xl font-semibold tracking-tight text-foreground">
           {revealTitle}
         </div>
         {revealSubtitle && (

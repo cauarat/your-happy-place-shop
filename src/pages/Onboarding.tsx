@@ -212,6 +212,21 @@ const Onboarding = () => {
       setLanguage(lang.code as any);
     };
 
+    const greetingRoulette = (
+      <AnimatePresence mode="wait">
+        <motion.span
+          key={greetingIndex}
+          initial={{ y: 28, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: -28, opacity: 0 }}
+          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+          className="inline-block"
+        >
+          {greetings[greetingIndex].text}
+        </motion.span>
+      </AnimatePresence>
+    );
+
     return (
       <motion.div
         key="step0"
@@ -224,13 +239,7 @@ const Onboarding = () => {
         <ScrollMorphHero
           icons={onboardingHeroIcons}
           scrollHint={t('scroll_to_explore')}
-          introTitle={
-            <img
-              src="/apple-touch-icon.png"
-              alt="Villaoro"
-              className="w-[96px] h-[96px] md:w-[112px] md:h-[112px] rounded-[24px] mx-auto"
-            />
-          }
+          introTitle={greetingRoulette}
           introSubtitle={
             <LanguageSegmentedControl
               languages={appLanguages}
@@ -238,26 +247,12 @@ const Onboarding = () => {
               onChange={handleSelectLanguage}
             />
           }
-          revealLogo={
+          revealTitle={
             <img
               src="/apple-touch-icon.png"
               alt="Villaoro"
-              className="w-[64px] h-[64px] rounded-[16px] mx-auto"
+              className="w-[72px] h-[72px] md:w-[80px] md:h-[80px] rounded-[18px] mx-auto"
             />
-          }
-          revealTitle={
-            <AnimatePresence mode="wait">
-              <motion.span
-                key={greetingIndex}
-                initial={{ y: 28, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: -28, opacity: 0 }}
-                transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-                className="inline-block"
-              >
-                {greetings[greetingIndex].text}
-              </motion.span>
-            </AnimatePresence>
           }
           revealSubtitle={t('onboarding_lang_desc')}
         >
