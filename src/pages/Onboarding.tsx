@@ -266,8 +266,7 @@ const Onboarding = () => {
             </button>
             <button
               onClick={() => {
-                // TODO: Add logic for 'already a member'
-                setStep(2);
+                navigate('/login');
               }}
               className="w-full flex items-center justify-center h-[52px] bg-foreground text-background rounded-full hover:scale-[1.02] transition-transform active:scale-95 shadow-xl shadow-black/10"
             >
