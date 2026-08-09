@@ -129,7 +129,10 @@ const ProductCard = ({ product, index, isFeatured }: { product: Product, index?:
           </p>
         )}
       </div>
-      )})()}
+      </>
+        );
+      })()}
+
     </Link>
   );
 };
