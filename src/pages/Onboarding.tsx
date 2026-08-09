@@ -412,7 +412,7 @@ const Onboarding = () => {
         transition={{ delay: 0.75, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
       >
         <button
-          onClick={() => setStep(3)}
+          onClick={() => setStep(4)}
           className="w-full py-4 px-6 rounded-[20px] bg-zinc-900 text-white font-medium tracking-wide text-[16px] transition-all duration-300 hover:bg-black hover:shadow-xl hover:shadow-black/20 active:scale-[0.98]"
         >
           {t('install_app_continue')}
@@ -421,52 +421,6 @@ const Onboarding = () => {
     </motion.div>
   );
 
-  // Screen 3: The Invitation (Quick Tour / Login)
-  const renderStep3 = () => (
-    <motion.div
-      key="step3"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0, filter: "blur(10px)", scale: 1.05 }}
-      transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-      className="relative flex flex-col items-center justify-center w-full h-full min-h-screen bg-white overflow-hidden"
-    >
-      <div className="relative z-10 flex flex-col items-center justify-between h-full w-full max-w-md p-8 pb-12 pt-20">
-        <div className="flex-1 flex flex-col items-center justify-center text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.8, ease: "easeOut" }}
-          >
-            <h1 className="text-[2.5rem] md:text-[3rem] font-black leading-none tracking-tighter text-black mb-4">
-              Villaoro
-            </h1>
-          </motion.div>
-        </div>
-
-        <motion.div 
-          className="w-full mt-auto flex flex-col gap-4"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6, duration: 0.8, ease: "easeOut" }}
-        >
-          <button 
-            onClick={() => setStep(4)}
-            className="group relative w-full flex items-center justify-center gap-3 bg-white hover:bg-zinc-50 text-black py-4 px-6 rounded-full transition-all duration-300 overflow-hidden border border-zinc-200 shadow-sm"
-          >
-            <span className="font-medium tracking-wide text-base">{t('onboarding_take_quick_tour')}</span>
-          </button>
-          
-          <button 
-            onClick={() => navigate('/login')}
-            className="group relative w-full flex items-center justify-center gap-3 bg-black hover:bg-zinc-900 text-white py-4 px-6 rounded-full transition-all duration-300 shadow-sm"
-          >
-            <span className="font-medium tracking-wide text-base">{t('onboarding_already_member')}</span>
-          </button>
-        </motion.div>
-      </div>
-    </motion.div>
-  );
 
   // Screen 4: First Name Input (Cosmos Style)
   const renderStep4 = () => (
@@ -1008,7 +962,6 @@ const Onboarding = () => {
     <AnimatePresence mode="wait">
       {step === 0 && renderStep0()}
       {step === 2 && renderStep2()}
-      {step === 3 && renderStep3()}
       {step === 4 && renderStep4()}
       {step === 5 && renderStep5()}
       {step === 6 && renderStep6()}
