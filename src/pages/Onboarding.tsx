@@ -248,11 +248,16 @@ const Onboarding = () => {
             />
           }
           revealTitle={
-            <img
-              src="/apple-touch-icon.png"
-              alt="Villaoro"
-              className="w-[72px] h-[72px] md:w-[80px] md:h-[80px] rounded-[18px] mx-auto"
-            />
+            <div className="font-serif text-[64px] md:text-[80px] leading-none flex items-center justify-center tracking-tight text-foreground select-none">
+              <span>V</span>
+              <motion.span
+                animate={{ opacity: [1, 0, 1] }}
+                transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
+                className="font-light -ml-[2px] md:-ml-1"
+              >
+                |
+              </motion.span>
+            </div>
           }
         >
           <div className="flex flex-col items-center gap-4 w-[280px] sm:w-[320px] max-w-full">
