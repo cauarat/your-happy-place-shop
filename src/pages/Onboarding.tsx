@@ -262,14 +262,6 @@ const Onboarding = () => {
         >
           <div className="flex flex-col items-center gap-4 w-[280px] sm:w-[320px] max-w-full">
             <button
-              onClick={() => setStep(2)}
-              className="w-full flex items-center justify-center h-[52px] bg-background text-foreground border border-border/30 rounded-full hover:bg-black/5 hover:scale-[1.02] transition-all active:scale-95 shadow-sm"
-            >
-              <span className="font-medium tracking-wide text-[15px]">
-                {t('onboarding_take_quick_tour')}
-              </span>
-            </button>
-            <button
               onClick={() => {
                 navigate('/login');
               }}
@@ -277,6 +269,14 @@ const Onboarding = () => {
             >
               <span className="font-medium tracking-wide text-[15px]">
                 {t('onboarding_already_member')}
+              </span>
+            </button>
+            <button
+              onClick={() => setStep(2)}
+              className="w-full flex items-center justify-center h-[52px] bg-background text-foreground border border-border/30 rounded-full hover:bg-black/5 hover:scale-[1.02] transition-all active:scale-95 shadow-sm"
+            >
+              <span className="font-medium tracking-wide text-[15px]">
+                {t('onboarding_take_quick_tour')}
               </span>
             </button>
           </div>
