@@ -8,9 +8,48 @@ import { designers as staticDesigners } from '../data/products';
 import { supabase } from '../lib/supabase';
 import { getDesigners } from '../lib/store';
 import { Component as LanguageSelectorDropdown, LanguageOption } from '@/components/ui/language-selector-dropdown';
-import { FloatingIconsHero } from '@/components/ui/floating-icons-hero-section';
+import { ScrollMorphHero } from '@/components/ui/scroll-morph-hero';
 import { Footprints, Shirt, Glasses } from 'lucide-react';
 import { BagIcon, CapIcon, PantsIcon, JacketIcon, HoodieIcon, SweaterIcon, PufferJacketIcon } from '@/components/Icons';
+
+// iOS-style segmented control: a shared layoutId pill glides between options,
+// spring-driven, so switching languages feels native rather than a plain fade.
+const LanguageSegmentedControl = ({
+  languages,
+  value,
+  onChange,
+}: {
+  languages: LanguageOption[];
+  value: string;
+  onChange: (lang: LanguageOption) => void;
+}) => (
+  <div className="inline-flex items-center gap-0.5 rounded-full bg-zinc-100/90 backdrop-blur-sm p-1 shadow-[inset_0_1px_2px_rgba(0,0,0,0.04)]">
+    {languages.map((lang) => {
+      const active = value === lang.code;
+      return (
+        <button
+          key={lang.code}
+          onClick={() => onChange(lang)}
+          className="relative rounded-full px-4 py-2 text-sm font-medium transition-colors"
+        >
+          {active && (
+            <motion.span
+              layoutId="lang-segment-pill"
+              className="absolute inset-0 rounded-full bg-white shadow-[0_1px_4px_rgba(0,0,0,0.12)]"
+              transition={{ type: 'spring', stiffness: 500, damping: 34 }}
+            />
+          )}
+          <span
+            className={`relative z-10 flex items-center gap-1.5 ${active ? 'text-black' : 'text-zinc-500'}`}
+          >
+            <span>{lang.flag}</span>
+            <span>{lang.code}</span>
+          </span>
+        </button>
+      );
+    })}
+  </div>
+);
 
 const onboardingHeroIcons = [
   { id: 1, icon: HoodieIcon, className: 'top-[8%] left-[8%]' },
@@ -27,7 +66,7 @@ const onboardingHeroIcons = [
 
 const Onboarding = () => {
   const location = useLocation();
-  const [step, setStep] = useState(location.state?.step || 1);
+  const [step, setStep] = useState(location.state?.step ?? 0);
   const { firstName, setFirstName } = useOnboarding();
   const [gender, setGender] = useState('');
   const [category, setCategory] = useState('');
@@ -140,82 +179,95 @@ const Onboarding = () => {
 
   // Roulette index state for Step 1
   const [greetingIndex, setGreetingIndex] = useState(0);
-  const [localLang, setLocalLang] = useState('SELECT');
+  // Starts on the auto-detected language so both language pickers below show
+  // a real selection immediately, instead of an empty "choose one" state.
+  const [localLang, setLocalLang] = useState(language);
 
   useEffect(() => {
-    if (step !== 1) return;
+    if (step !== 0) return;
     const interval = setInterval(() => {
       setGreetingIndex(prev => (prev + 1) % 3);
     }, 2500);
     return () => clearInterval(interval);
   }, [step]);
 
-  // Screen 1: Language (Zero Click Advance)
-  const renderStep1 = () => {
+  // Screen 0: one continuous scroll-driven experience — catalog icons scatter
+  // into a circle with a welcome message, then as the user keeps scrolling
+  // (in either direction, fully reversible) they spread into their final
+  // layout while the logo/greeting/language-picker fade in in the same spot.
+  // There's no hand-off between two separate screens; it's a single surface.
+  const renderStep0 = () => {
     const greetings = getGreetings();
     const appLanguages: LanguageOption[] = [
-      { code: 'SELECT', label: '', flag: '🗣️' },
       { code: 'EN', label: 'English', flag: '🇺🇸' },
       { code: 'PT', label: 'Português', flag: '🇧🇷' },
       { code: 'ES', label: 'Español', flag: '🇪🇸' },
     ];
 
+    // Shared by both language pickers (the segmented control on the resting
+    // circle and the dropdown in the revealed content) so either one updates
+    // the site's language immediately and keeps the other in sync.
+    const handleSelectLanguage = (lang: LanguageOption) => {
+      setLocalLang(lang.code as any);
+      setLanguage(lang.code as any);
+      setTimeout(() => setStep(2), 400);
+    };
+
     return (
       <motion.div
-        key="step1"
+        key="step0"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0, scale: 1.02 }}
         transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
         className="relative w-full h-full min-h-screen bg-white text-black select-none"
       >
-        <FloatingIconsHero
+        <ScrollMorphHero
           icons={onboardingHeroIcons}
-          eyebrow={
-            <motion.img
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.1, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          scrollHint={t('scroll_to_explore')}
+          introTitle={
+            <img
               src="/apple-touch-icon.png"
               alt="Villaoro"
-              className="w-[64px] h-[64px] rounded-[16px]"
+              className="w-[96px] h-[96px] md:w-[112px] md:h-[112px] rounded-[24px] mx-auto"
             />
           }
-          title={
-            <div className="h-[1.2em] overflow-hidden relative w-full">
-              <AnimatePresence initial={false}>
-                <motion.span
-                  key={greetingIndex}
-                  initial={{ y: "100%" }}
-                  animate={{ y: "0%" }}
-                  exit={{ y: "-100%" }}
-                  transition={{ duration: 0.55, ease: [0.32, 0.72, 0, 1] }}
-                  className="absolute inset-x-0 flex justify-center"
-                >
-                  {greetings[greetingIndex].text}
-                </motion.span>
-              </AnimatePresence>
-            </div>
-          }
-          subtitle={t('onboarding_lang_desc')}
-        >
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          >
-            <LanguageSelectorDropdown
+          introSubtitle={
+            <LanguageSegmentedControl
               languages={appLanguages}
               value={localLang}
-              onChange={(lang) => {
-                if (lang.code === 'SELECT') return;
-                setLocalLang(lang.code);
-                setLanguage(lang.code as any);
-                setTimeout(() => setStep(2), 400);
-              }}
+              onChange={handleSelectLanguage}
             />
-          </motion.div>
-        </FloatingIconsHero>
+          }
+          revealLogo={
+            <img
+              src="/apple-touch-icon.png"
+              alt="Villaoro"
+              className="w-[64px] h-[64px] rounded-[16px] mx-auto"
+            />
+          }
+          revealTitle={
+            <AnimatePresence mode="wait">
+              <motion.span
+                key={greetingIndex}
+                initial={{ y: 28, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: -28, opacity: 0 }}
+                transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+                className="inline-block"
+              >
+                {greetings[greetingIndex].text}
+              </motion.span>
+            </AnimatePresence>
+          }
+          revealSubtitle={t('onboarding_lang_desc')}
+        >
+          <LanguageSelectorDropdown
+            languages={appLanguages}
+            value={localLang}
+            onChange={handleSelectLanguage}
+          />
+        </ScrollMorphHero>
       </motion.div>
     );
   };
@@ -941,7 +993,7 @@ const Onboarding = () => {
 
   return (
     <AnimatePresence mode="wait">
-      {step === 1 && renderStep1()}
+      {step === 0 && renderStep0()}
       {step === 2 && renderStep2()}
       {step === 3 && renderStep3()}
       {step === 4 && renderStep4()}
