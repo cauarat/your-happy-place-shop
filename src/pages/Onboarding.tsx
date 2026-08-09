@@ -210,7 +210,6 @@ const Onboarding = () => {
     const handleSelectLanguage = (lang: LanguageOption) => {
       setLocalLang(lang.code as any);
       setLanguage(lang.code as any);
-      setTimeout(() => setStep(2), 400);
     };
 
     return (
