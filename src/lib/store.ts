@@ -234,7 +234,7 @@ export interface Order {
 }
 
 export const getOrders = async (): Promise<Order[]> => {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from('orders')
     .select('*')
     .order('created_at', { ascending: false });
@@ -255,7 +255,7 @@ export const getOrders = async (): Promise<Order[]> => {
 };
 
 export const saveOrder = async (order: Order): Promise<void> => {
-  const { error } = await supabase
+  const { error } = await (supabase as any)
     .from('orders')
     .upsert({
       id: order.id,
@@ -275,7 +275,7 @@ export const saveOrder = async (order: Order): Promise<void> => {
 };
 
 export const updateOrderStatus = async (orderId: string, status: OrderStatus): Promise<void> => {
-  const { error } = await supabase
+  const { error } = await (supabase as any)
     .from('orders')
     .update({ status })
     .eq('id', orderId);
@@ -422,7 +422,7 @@ export interface CustomerSuggestion {
 const SUGGESTIONS_KEY = 'villaoro_customer_suggestions';
 
 export const getCustomerSuggestions = async (): Promise<CustomerSuggestion[]> => {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from('customer_suggestions')
     .select('*')
     .order('created_at', { ascending: false });
@@ -445,7 +445,7 @@ export const getCustomerSuggestions = async (): Promise<CustomerSuggestion[]> =>
 };
 
 export const saveCustomerSuggestion = async (suggestion: CustomerSuggestion): Promise<void> => {
-  const { error } = await supabase
+  const { error } = await (supabase as any)
     .from('customer_suggestions')
     .upsert({
       id: suggestion.id,

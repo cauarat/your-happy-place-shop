@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sparkles, Package, AlertCircle, BarChart3, Tag, Settings, MessageSquare, Users, Image as ImageIcon, FileText, Copy, Link as LinkIcon, TrendingUp, Clock } from 'lucide-react';
-import { getProducts, getCategories, getDesigners, getLooks, Product, Category, Designer } from '@/lib/store';
+import { getProducts, getCategories, getDesigners, getLooks } from '@/lib/store';
+import type { Product, Category, Designer } from '@/data/products';
 
 interface SearchResult {
   type: 'action' | 'product' | 'insight' | 'attention' | 'catalog';

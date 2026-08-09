@@ -232,9 +232,9 @@ export const CheckoutTour = ({ onStepChange }: CheckoutTourProps = {}) => {
   }
 
   // Animation values based on placement
-  let initialAnim = { opacity: 0, scale: 0.95, x: "-50%", y: -20 };
-  let animateAnim = { opacity: 1, scale: 1, x: "-50%", y: 0 };
-  let exitAnim = { opacity: 0, scale: 0.95, x: "-50%", y: 20 };
+  let initialAnim: any = { opacity: 0, scale: 0.95, x: "-50%", y: -20 };
+  let animateAnim: any = { opacity: 1, scale: 1, x: "-50%", y: 0 };
+  let exitAnim: any = { opacity: 0, scale: 0.95, x: "-50%", y: 20 };
 
   if (placement === 'top') {
     initialAnim = { opacity: 0, scale: 0.95, x: "-50%", y: 20 };
