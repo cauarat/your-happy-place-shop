@@ -8,13 +8,21 @@ import Sidebar from "@/components/Sidebar";
 import SortBar, { SortKey } from "@/components/SortBar";
 import ProductCard from "@/components/ProductCard";
 import { getProducts, getDesigners, getCategories, getDesignSettings, saveCustomerSuggestion } from "@/lib/store";
+import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import type { Product } from "@/data/products";
 import ImmersiveAi from "@/components/ImmersiveAi";
 import TryTheLook from "@/components/TryTheLook";
 import AppTour from "@/components/AppTour";
-import { motion, AnimatePresence } from "framer-motion";
-import { X, Newspaper, ChevronDown, SlidersHorizontal, Package, MessageSquare, Send, CheckCircle } from "lucide-react";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
+import { motion, AnimatePresence, useScroll, useMotionValueEvent } from "framer-motion";
+import { X, Newspaper, ChevronDown, ChevronUp, SlidersHorizontal, Package, MessageSquare, Send, CheckCircle } from "lucide-react";
 
 /* Shared slide-down animation config — mirrors LanguageSwitcher */
 const dropdownVariants = {
@@ -143,6 +151,13 @@ const getCategoryIcon = (cat: string) => {
 };
 
 const Index = () => {
+  const { scrollY } = useScroll();
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useMotionValueEvent(scrollY, "change", (latest) => {
+    setIsScrolled(latest > 50);
+  });
+
   const [searchParams] = useSearchParams();
   const { t } = useLanguage();
   const { user } = useAuth();
@@ -401,7 +416,10 @@ const Index = () => {
 
         {/* Active Filter Label & Count */}
         <div
-          className="sticky top-[100px] sm:top-[112px] z-40 w-full pt-2 pb-6 -mb-6 pointer-events-none"
+          className={cn(
+            "sticky top-[env(safe-area-inset-top)] z-40 w-full pb-6 -mb-6 pointer-events-none transition-all duration-300",
+            isScrolled ? "pt-5 sm:pt-6" : "pt-0"
+          )}
           style={{
             background: 'linear-gradient(to bottom, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0) 100%)',
             backdropFilter: 'blur(40px) saturate(180%)',
@@ -411,11 +429,20 @@ const Index = () => {
           }}
         >
           <div className="relative flex items-center justify-center px-3 sm:px-6 lg:px-10 py-1 w-full pointer-events-auto">
-            <div className="flex items-center justify-center overflow-hidden w-full max-w-[75%] sm:max-w-[85%] mx-auto">
+            <button 
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              className="flex items-center justify-center gap-1.5 overflow-hidden w-full max-w-[75%] sm:max-w-[85%] mx-auto hover:opacity-70 transition-opacity cursor-pointer group"
+            >
               <span className="text-[11px] sm:text-xs font-semibold tracking-widest uppercase truncate text-black text-center">
                 {topBarLabel}
               </span>
-            </div>
+              <motion.div
+                animate={{ rotate: isScrolled ? 0 : 90 }}
+                transition={{ duration: 0.35, ease: "easeInOut" }}
+              >
+                <ChevronUp size={14} strokeWidth={2.5} className="text-black/60 group-hover:text-black transition-colors" />
+              </motion.div>
+            </button>
             {/* Clear Filters Button (only if filters are active) */}
             {(category !== "All" || designer !== "All" || showSaleOnly || searchQuery.trim() || selectedColor || selectedDesigner) && (
               <button
@@ -678,24 +705,35 @@ const Index = () => {
                         </motion.button>
                       </div>
 
-                      {/* Product grid: standard 4 column layout */}
+                      {/* Product Carousel */}
                       <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ duration: 0.4, delay: sectionIndex * 0.08 + 0.12 }}
-                        className="grid grid-cols-2 md:grid-cols-4 gap-x-1 sm:gap-x-2 lg:gap-x-4 gap-y-4 sm:gap-y-5 lg:gap-y-8 mb-0"
+                        className="w-full mb-0 relative group"
                       >
-                        {brandProducts.map((product, i) => (
-                            <motion.div
-                              key={product.id}
-                              initial={{ opacity: 0, y: 15 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              transition={{ duration: 0.35, delay: i * 0.04 }}
-                              className="col-span-1 flex flex-col"
-                            >
-                              <ProductCard product={product} index={sectionIndex * 10 + i} isFeatured={false} />
-                            </motion.div>
-                        ))}
+                        <Carousel
+                          opts={{
+                            align: "start",
+                            dragFree: true,
+                          }}
+                          className="w-full"
+                        >
+                          <CarouselContent className="-ml-1 sm:-ml-2 lg:-ml-4">
+                            {brandProducts.map((product, i) => (
+                              <CarouselItem key={product.id} className="pl-1 sm:pl-2 lg:pl-4 basis-1/2 md:basis-1/4">
+                                <motion.div
+                                  initial={{ opacity: 0, y: 15 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  transition={{ duration: 0.35, delay: i * 0.04 }}
+                                  className="h-full"
+                                >
+                                  <ProductCard product={product} index={sectionIndex * 10 + i} isFeatured={false} />
+                                </motion.div>
+                              </CarouselItem>
+                            ))}
+                          </CarouselContent>
+                        </Carousel>
                       </motion.div>
                     </section>
                   ))}

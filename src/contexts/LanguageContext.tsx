@@ -90,7 +90,7 @@ const translations: Record<Language, Record<string, string>> = {
     free_shipping: "Free shipping on orders over $100.",
     // Search bar
     search_placeholder: "products, colors...",
-    search_help: "What can I help you find?",
+    search_help: "Search...",
     greeting_morning: "Good morning {name}!",
     greeting_afternoon: "Good afternoon {name}!",
     greeting_evening: "Good evening {name}!",
@@ -321,7 +321,7 @@ const translations: Record<Language, Record<string, string>> = {
     free_shipping: "Frete grátis em pedidos acima de $100.",
     // Search bar
     search_placeholder: "produtos, cores...",
-    search_help: "O que posso te ajudar a encontrar?",
+    search_help: "Pesquisar...",
     greeting_morning: "Bom dia {name}!",
     greeting_afternoon: "Boa tarde {name}!",
     greeting_evening: "Boa noite {name}!",
@@ -552,7 +552,7 @@ const translations: Record<Language, Record<string, string>> = {
     free_shipping: "Envío gratis en pedidos superiores a $100.",
     // Search bar
     search_placeholder: "productos, colores...",
-    search_help: "¿En qué puedo ayudarte a encontrar?",
+    search_help: "Buscar...",
     greeting_morning: "¡Buenos días {name}!",
     greeting_afternoon: "¡Buenas tardes {name}!",
     greeting_evening: "¡Buenas noches {name}!",

@@ -141,19 +141,10 @@ const Header = () => {
 
 
   return (
-    <header 
-      className="sticky top-0 z-50 pt-[env(safe-area-inset-top)]"
-      style={{
-        background: 'linear-gradient(to bottom, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.7) 100%)',
-        backdropFilter: 'blur(40px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(40px) saturate(180%)',
-      }}
-    >
-      <div className="flex items-center justify-between px-5 sm:px-6 lg:px-8 h-14 sm:h-16 w-full gap-2 sm:gap-4">
-
-
-        {/* Right Nav */}
-        <div className="flex items-center justify-end gap-3 sm:gap-4 lg:gap-5 shrink-0 ml-auto">
+    <>
+      {/* Right Nav - Floating outside header so it stays fixed on scroll */}
+      <div className="fixed top-[env(safe-area-inset-top)] right-0 h-14 sm:h-16 px-5 sm:px-6 lg:px-8 flex items-center justify-end gap-3 sm:gap-4 lg:gap-5 shrink-0 z-[100] pointer-events-none">
+        <div className="flex items-center justify-end gap-3 sm:gap-4 lg:gap-5 pointer-events-auto">
           <Link to="/cart" className="relative hover:opacity-70 transition-opacity flex items-center p-0.5">
             <Heart size={20} strokeWidth={1.5} className="sm:w-[22px] sm:h-[22px]" />
             {itemCount > 0 && (
@@ -222,6 +213,18 @@ const Header = () => {
             </Sheet>
           </div>
         </div>
+      </div>
+
+    <header 
+      className="relative z-50 pt-[env(safe-area-inset-top)]"
+      style={{
+        background: 'linear-gradient(to bottom, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.7) 100%)',
+        backdropFilter: 'blur(40px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(40px) saturate(180%)',
+      }}
+    >
+      <div className="flex items-center justify-between px-5 sm:px-6 lg:px-8 h-14 sm:h-16 w-full gap-2 sm:gap-4">
+
       </div>
 
       {/* Search Bar Row — Liquid Glass */}
@@ -529,6 +532,7 @@ const Header = () => {
       </div>
 
     </header>
+    </>
   );
 };
 
