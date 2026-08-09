@@ -248,7 +248,7 @@ const Onboarding = () => {
             />
           }
           revealTitle={
-            <div className="font-serif text-[36px] md:text-[44px] leading-none flex items-center justify-center tracking-tight text-foreground select-none font-light">
+            <div className="font-serif text-[48px] md:text-[56px] leading-none flex items-center justify-center tracking-tight text-foreground select-none font-light">
               <span>V</span>
               <motion.span
                 animate={{ opacity: [1, 0, 1] }}

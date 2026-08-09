@@ -275,7 +275,7 @@ export function ScrollMorphHero({
         )}
         {children && (
           <div
-            className="mt-8"
+            className="mt-4"
             style={{ pointerEvents: revealProgress > 0.5 ? "auto" : "none" }}
           >
             {children}
