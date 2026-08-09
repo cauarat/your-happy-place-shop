@@ -1,23 +1,25 @@
 "use client";
 
 import * as React from "react";
-import { motion, useMotionValue, useSpring, animate } from "framer-motion";
+import { motion, useMotionValue, useReducedMotion, useSpring } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { ChevronDown } from "lucide-react";
 
-export type ScrollMorphPhase = "entrance" | "circle";
+export type ScrollMorphPhase = "entrance" | "resting";
 
 export interface ScrollMorphIcon {
   id: number;
   icon: React.FC<React.SVGProps<SVGSVGElement>>;
-  // Tailwind top/left/right/bottom arbitrary-percentage classes — the exact
-  // destination layout the icons morph into as the reveal content appears.
+  // Tailwind top/left/right/bottom arbitrary-percentage classes — the scattered
+  // resting layout the icons fly into on load, and gather back out of as the
+  // reveal content appears.
   className: string;
 }
 
 export interface ScrollMorphHeroProps {
   icons: ScrollMorphIcon[];
-  // Copy shown centered while icons rest in the circle, before any scrolling.
+  // Copy shown centered while icons rest scattered across the screen, before
+  // any scrolling.
   introTitle: React.ReactNode;
   introSubtitle?: React.ReactNode;
   scrollHint?: string;
@@ -32,13 +34,25 @@ export interface ScrollMorphHeroProps {
 }
 
 const lerp = (a: number, b: number, t: number) => a * (1 - t) + b * t;
-const easeOutQuint = (t: number) => 1 - Math.pow(1 - t, 5);
 
-// The whole circle -> final-layout -> content-reveal sequence lives on one
+// --- Entrance choreography ---
+// The page holds blank for a beat, then the icons arrive one at a time from
+// beyond the edges — each on its own ray out of the container's center, so
+// they come from ten different angles rather than one shared direction — and
+// settle onto their resting spots. Nothing overlaps at the start, which is
+// what keeps it from reading as a burst.
+const ENTRANCE_HOLD = 0.25; // blank beat before the first icon moves
+const ENTRANCE_STAGGER = 0.08; // gap between consecutive icons
+const ENTRANCE_TRAVEL = 0.9; // one icon's flight, from offscreen to settled
+// Decisive deceleration, no overshoot: the icons glide to a stop rather than
+// bouncing into place.
+const ENTRANCE_EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
+
+// The whole scattered -> circle -> content-reveal sequence lives on one
 // continuous scroll axis, so scrolling up at any point unwinds exactly what
 // scrolling down built up — nothing is a one-way, auto-triggered jump.
 const MAX_SCROLL = 800;
-const ICON_MORPH_END = 550; // icons finish spreading into their final layout
+const ICON_MORPH_END = 550; // icons finish gathering into the circle
 const REVEAL_START = 320; // reveal content starts fading in (overlaps the
 const REVEAL_END = 800; // icon morph's tail, so the two read as one motion)
 
@@ -91,7 +105,10 @@ export function ScrollMorphHero({
   const [containerSize, setContainerSize] = React.useState({ width: 0, height: 0 });
 
   // --- Track container size (so positions stay correct on resize) ---
-  React.useEffect(() => {
+  // Layout effect, not a plain one: the icons' resting spots are derived from
+  // this, so measuring after the first paint would flash every icon stacked at
+  // the container's center for a frame before they snapped outwards.
+  React.useLayoutEffect(() => {
     const el = containerRef.current;
     if (!el) return;
     const observer = new ResizeObserver((entries) => {
@@ -104,30 +121,80 @@ export function ScrollMorphHero({
     return () => observer.disconnect();
   }, []);
 
-  // --- One-time entrance: scatter -> line -> circle (resting state) ---
-  // A single continuous 0->1 tween, not discrete phase snaps — icon
-  // positions below are derived from this same value every frame, so the
-  // whole path (scatter -> line -> circle) reads as one fluid arc instead
-  // of two separate re-target jumps.
-  const entranceProgress = useMotionValue(0);
-  const [entranceValue, setEntranceValue] = React.useState(0);
+  const isMobile = containerSize.width > 0 && containerSize.width < 768;
+  const iconSize = isMobile ? 64 : 80;
 
-  React.useEffect(() => {
-    return entranceProgress.on("change", setEntranceValue);
-  }, [entranceProgress]);
+  // Someone who asked their OS for less motion gets the same sequence without
+  // the flight: the icons simply resolve in place.
+  const reduceMotion = useReducedMotion();
+  const travelDuration = reduceMotion ? 0.35 : ENTRANCE_TRAVEL;
 
-  React.useEffect(() => {
-    // Linear driver on purpose: the actual easing shape comes from
-    // easeInOutCubic applied per-icon below. Stacking an eased driver under
-    // an eased per-icon curve front-loads almost all the motion into the
-    // first fraction of the duration, which looked instant, not fluid.
-    const controls = animate(entranceProgress, 1, {
-      duration: 2.6,
-      ease: "linear",
-      onComplete: () => setPhase("circle"),
+  // --- Entrance choreography (recomputed only when the layout changes) ---
+  // Per icon: where it starts (just past the edge it's nearest, along the ray
+  // from the center through its resting spot) and when it's released. The
+  // release order runs clockwise from 12 o'clock rather than following the
+  // array, so the eye is led around the screen instead of jumping about.
+  const entrances = React.useMemo(() => {
+    const halfW = containerSize.width / 2;
+    const halfH = containerSize.height / 2;
+    // Icons rest close to the edges, so simply "starting outside" would leave
+    // the ones near a corner with almost no distance to cover. A floor on the
+    // travel keeps every arrival substantial enough to read as a glide.
+    const minTravel = Math.max(containerSize.width, containerSize.height) * 0.22;
+
+    const geometry = icons.map((item) => {
+      const rest = positionToCenterOffset(
+        item.className,
+        containerSize.width,
+        containerSize.height,
+        iconSize
+      );
+      const distance = Math.hypot(rest.x, rest.y) || 1;
+      const dir = { x: rest.x / distance, y: rest.y / distance };
+
+      // How far along that ray the icon has to sit to be clear of the viewport.
+      // Whichever edge the ray crosses first is the one it flies in from.
+      const toSideEdge =
+        Math.abs(dir.x) > 1e-3 ? (halfW + iconSize - Math.abs(rest.x)) / Math.abs(dir.x) : Infinity;
+      const toTopEdge =
+        Math.abs(dir.y) > 1e-3 ? (halfH + iconSize - Math.abs(rest.y)) / Math.abs(dir.y) : Infinity;
+      const travel = Math.max(Math.min(toSideEdge, toTopEdge) + 40, minTravel);
+
+      return {
+        offset: { x: dir.x * travel, y: dir.y * travel },
+        // Angle measured clockwise from 12 o'clock.
+        clockwise: (Math.atan2(rest.y, rest.x) + Math.PI / 2 + Math.PI * 2) % (Math.PI * 2),
+      };
     });
-    return () => controls.stop();
-  }, [entranceProgress]);
+
+    const delays: number[] = [];
+    geometry
+      .map((g, index) => ({ index, clockwise: g.clockwise }))
+      .sort((a, b) => a.clockwise - b.clockwise)
+      .forEach((entry, position) => {
+        delays[entry.index] = reduceMotion
+          ? position * 0.04
+          : ENTRANCE_HOLD + position * ENTRANCE_STAGGER;
+      });
+
+    return geometry.map((g, index) => ({
+      offset: reduceMotion ? { x: 0, y: 0 } : g.offset,
+      delay: delays[index],
+    }));
+  }, [icons, containerSize.width, containerSize.height, iconSize, reduceMotion]);
+
+  // The flight itself is declarative, per icon (see the map below). This only
+  // waits for the last one to land before handing the screen over to the
+  // greeting and unlocking the scroll.
+  React.useEffect(() => {
+    if (!containerSize.width) return;
+    const lastRelease = entrances.reduce((latest, e) => Math.max(latest, e.delay), 0);
+    const timer = setTimeout(
+      () => setPhase("resting"),
+      (lastRelease + travelDuration) * 1000
+    );
+    return () => clearTimeout(timer);
+  }, [entrances, containerSize.width, travelDuration]);
 
   // --- Virtual scroll (wheel + touch), fully bidirectional ---
   const virtualScroll = useMotionValue(0);
@@ -186,33 +253,24 @@ export function ScrollMorphHero({
     1
   );
 
-  // --- Per-icon entrance variation (computed once) ---
-  // Small random offsets on how far out each icon starts, how much of an arc
-  // it sweeps, and its initial tilt — enough to feel organic without breaking
-  // the coordinated bloom into noise.
-  const scatterPositions = React.useMemo(
-    () =>
-      icons.map(() => ({
-        radiusFactor: 0.5 + Math.random() * 0.15,
-        sweep: Math.PI * (0.45 + Math.random() * 0.3),
-        rotation: (Math.random() - 0.5) * 90,
-      })),
-    [icons]
-  );
-
-  const isMobile = containerSize.width > 0 && containerSize.width < 768;
-  const iconSize = isMobile ? 64 : 80;
+  // The ring the icons gather into as the user scrolls, and the room it leaves
+  // in its middle for the revealed content.
+  const minDimension = Math.min(containerSize.width || 1, containerSize.height || 1);
+  const circleRadius = Math.min(minDimension * 0.32, 300);
+  // On a phone the ring is narrower than the CTA it would encircle, so the
+  // buttons drop just below it rather than colliding with the icons.
+  const tightRing = 2 * circleRadius - iconSize < 320;
 
   return (
     <div
       ref={containerRef}
       className={cn("relative w-full h-screen min-h-[700px] bg-background overflow-hidden touch-none", className)}
     >
-      {/* Intro copy — visible while resting in the circle, fades as scrolling begins */}
+      {/* Intro copy — visible while the icons rest scattered, fades as scrolling begins */}
       <div className="absolute inset-0 z-0 flex flex-col items-center justify-center text-center px-6 pointer-events-none">
         <motion.h1
           animate={
-            phase === "circle"
+            phase === "resting"
               ? { opacity: Math.max(1 - iconMorph * 1.8, 0), y: 0, filter: "blur(0px)" }
               : { opacity: 0, y: 12, filter: "blur(8px)" }
           }
@@ -224,12 +282,12 @@ export function ScrollMorphHero({
         {introSubtitle && (
           <motion.div
             animate={
-              phase === "circle"
+              phase === "resting"
                 ? { opacity: Math.max(1 - iconMorph * 2.4, 0), scale: 1 }
                 : { opacity: 0, scale: 0.96 }
             }
             transition={{ duration: 0.4 }}
-            style={{ pointerEvents: phase === "circle" && iconMorph < 0.4 ? "auto" : "none" }}
+            style={{ pointerEvents: phase === "resting" && iconMorph < 0.4 ? "auto" : "none" }}
             className="mt-5 max-w-sm text-sm md:text-base text-muted-foreground"
           >
             {introSubtitle}
@@ -237,7 +295,7 @@ export function ScrollMorphHero({
         )}
         <motion.div
           animate={
-            phase === "circle" ? { opacity: Math.max(1 - iconMorph * 3.2, 0) * 0.5 } : { opacity: 0 }
+            phase === "resting" ? { opacity: Math.max(1 - iconMorph * 3.2, 0) * 0.5 } : { opacity: 0 }
           }
           transition={{ duration: 0.4 }}
           className="mt-8 flex flex-col items-center gap-2"
@@ -255,13 +313,14 @@ export function ScrollMorphHero({
         </motion.div>
       </div>
 
-      {/* Reveal content — fades in, in the same spot, as the icons settle.
+      {/* Reveal content — fades in, in the same spot, as the ring closes.
           Stays pointer-events-none at the wrapper level (it's a full-screen
           inset-0 box with an explicit z-index, so an "auto" here would sit
           above and swallow hover/clicks over the icons anywhere on screen);
           only the actual interactive piece (children, e.g. the language
           dropdown) opts back into pointer events. */}
       <motion.div
+        initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: revealProgress, y: (1 - revealProgress) * 16 }}
         transition={{ duration: 0.3 }}
         className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center px-6 pointer-events-none"
@@ -275,8 +334,19 @@ export function ScrollMorphHero({
         )}
         {children && (
           <div
-            className="mt-4"
-            style={{ pointerEvents: revealProgress > 0.5 ? "auto" : "none" }}
+            className={
+              tightRing
+                ? "absolute left-0 right-0 flex justify-center px-6"
+                : "mt-4"
+            }
+            style={{
+              pointerEvents: revealProgress > 0.5 ? "auto" : "none",
+              // Anchored by its top edge just past the ring's lowest icon, so
+              // the CTA clears the circle whatever height it happens to be.
+              ...(tightRing
+                ? { top: `calc(50% + ${Math.round(circleRadius + iconSize / 2 + 28)}px)` }
+                : {}),
+            }}
           >
             {children}
           </div>
@@ -286,108 +356,101 @@ export function ScrollMorphHero({
       {/* Icons — purely decorative, must not intercept clicks meant for the
           intro/reveal content sitting in the gap between them */}
       <div className="relative flex items-center justify-center w-full h-full pointer-events-none">
-        {icons.map((item, i) => {
-          let target = { x: 0, y: 0, rotation: 0, scale: 1, opacity: 1 };
+        {/* Held back until the container has been measured — an icon mounted
+            against a 0x0 container would compute its entrance from the wrong
+            geometry and fly in from the center. */}
+        {containerSize.width > 0 && icons.map((item, i) => {
+          // Where this icon rests before any scrolling: its scattered spot,
+          // spread across the whole screen.
+          const scatteredPos = positionToCenterOffset(
+            item.className,
+            containerSize.width,
+            containerSize.height,
+            iconSize
+          );
+          // ...and where it ends up once the user has scrolled: a slot on the
+          // ring that closes around the revealed content.
+          const ringAngle = (i / icons.length) * Math.PI * 2;
+          const circlePos = {
+            x: Math.cos(ringAngle) * circleRadius,
+            y: Math.sin(ringAngle) * circleRadius,
+          };
 
-          if (phase === "entrance") {
-            // Icons spiral inward: each starts far outside the viewport on its
-            // own radial line, then sweeps in along a curved arc to its slot on
-            // the circle. Interpolating in polar space (radius + angle) rather
-            // than straight x/y is what makes the path curve continuously —
-            // there's no waypoint to hit, so nothing ever reads as a corner.
-            const stagger = icons.length > 1 ? 0.3 / (icons.length - 1) : 0;
-            const localT = Math.min(
-              Math.max((entranceValue - i * stagger) / (1 - i * stagger), 0),
-              1
-            );
-            const eased = easeOutQuint(localT);
-            const appearT = Math.min(localT / 0.25, 1);
+          // Scroll gathers the scattered icons into the ring, and unwinds back
+          // out again on the way up.
+          const target = {
+            x: lerp(scatteredPos.x, circlePos.x, iconMorph),
+            y: lerp(scatteredPos.y, circlePos.y, iconMorph),
+          };
 
-            const minDimension = Math.min(containerSize.width || 1, containerSize.height || 1);
-            const circleRadius = Math.min(minDimension * 0.32, 300);
-            const finalAngle = (i / icons.length) * Math.PI * 2;
-
-            const jitter = scatterPositions[i];
-            const startRadius = Math.max(containerSize.width, containerSize.height) * jitter.radiusFactor;
-            const startAngle = finalAngle - jitter.sweep;
-
-            const radius = lerp(startRadius, circleRadius, eased);
-            const angle = lerp(startAngle, finalAngle, eased);
-
-            target = {
-              x: Math.cos(angle) * radius,
-              y: Math.sin(angle) * radius,
-              rotation: lerp(jitter.rotation, 0, eased),
-              scale: lerp(0.5, 1, appearT),
-              opacity: appearT,
-            };
-          } else {
-            const minDimension = Math.min(containerSize.width || 1, containerSize.height || 1);
-            const circleRadius = Math.min(minDimension * 0.32, 300);
-            const angle = (i / icons.length) * 360;
-            const rad = (angle * Math.PI) / 180;
-            const circlePos = {
-              x: Math.cos(rad) * circleRadius,
-              y: Math.sin(rad) * circleRadius,
-            };
-
-            const finalPos = positionToCenterOffset(
-              item.className,
-              containerSize.width,
-              containerSize.height,
-              iconSize
-            );
-
-            target = {
-              x: lerp(circlePos.x, finalPos.x, iconMorph),
-              y: lerp(circlePos.y, finalPos.y, iconMorph),
-              rotation: 0,
-              scale: 1,
-              opacity: 1,
-            };
-          }
+          const entrance = entrances[i];
 
           return (
-            // Outer div: pure positioning, driven by scroll (unchanged logic).
-            // Inner div: idle "alive" float + hover response, kept separate so
-            // it never fights the scroll-driven x/y/scale animation above.
+            // Outer div: the resting/ring position, driven by scroll.
+            // `initial={false}` so the first paint lands on the resting spot —
+            // the entrance is a separate offset on the div below, which keeps
+            // the flight in and the later scroll morph from fighting over the
+            // same transform.
+            // Middle div: the one-time flight in from offscreen.
+            // Inner div: idle "alive" float + hover response.
             <motion.div
               key={item.id}
-              animate={{
-                x: target.x,
-                y: target.y,
-                rotate: target.rotation,
-                scale: target.scale,
-                opacity: target.opacity,
-              }}
+              initial={false}
+              animate={{ x: target.x, y: target.y }}
               transition={{ type: "spring", stiffness: 140, damping: 22, mass: 0.6 }}
               className="absolute pointer-events-auto"
             >
               <motion.div
-                animate={
-                  phase === "circle"
-                    ? { y: [0, -7, 0], rotate: [0, i % 2 === 0 ? 2 : -2, 0] }
-                    : { y: 0, rotate: 0 }
-                }
-                transition={
-                  phase === "circle"
-                    ? {
-                        duration: 3.2 + (i % 4) * 0.4,
-                        repeat: Infinity,
-                        ease: "easeInOut",
-                        delay: i * 0.18,
-                      }
-                    : { duration: 0.3 }
-                }
-                whileHover={{
-                  scale: 1.14,
-                  y: -10,
-                  rotate: 0,
-                  transition: { type: "spring", stiffness: 300, damping: 14 },
+                initial={{
+                  x: entrance.offset.x,
+                  y: entrance.offset.y,
+                  scale: 0.88,
+                  rotate: i % 2 === 0 ? -4 : 4,
+                  opacity: 0,
                 }}
-                className="flex items-center justify-center w-16 h-16 md:w-20 md:h-20 p-3 rounded-3xl shadow-xl bg-card/80 backdrop-blur-md border border-border/10 cursor-pointer"
+                animate={{ x: 0, y: 0, scale: 1, rotate: 0, opacity: 1 }}
+                transition={{
+                  default: {
+                    delay: entrance.delay,
+                    duration: travelDuration,
+                    ease: ENTRANCE_EASE,
+                  },
+                  // Fades in over the first stretch of the flight, so an icon is
+                  // already visible while travelling rather than materialising
+                  // at the end of it.
+                  opacity: {
+                    delay: entrance.delay,
+                    duration: travelDuration * 0.45,
+                    ease: "easeOut",
+                  },
+                }}
               >
-                <item.icon className="w-8 h-8 md:w-10 md:h-10 text-foreground" />
+                <motion.div
+                  animate={
+                    phase === "resting"
+                      ? { y: [0, -7, 0], rotate: [0, i % 2 === 0 ? 2 : -2, 0] }
+                      : { y: 0, rotate: 0 }
+                  }
+                  transition={
+                    phase === "resting"
+                      ? {
+                          duration: 3.2 + (i % 4) * 0.4,
+                          repeat: Infinity,
+                          ease: "easeInOut",
+                          delay: i * 0.18,
+                        }
+                      : { duration: 0.3 }
+                  }
+                  whileHover={{
+                    scale: 1.14,
+                    y: -10,
+                    rotate: 0,
+                    transition: { type: "spring", stiffness: 300, damping: 14 },
+                  }}
+                  className="flex items-center justify-center w-16 h-16 md:w-20 md:h-20 p-3 rounded-3xl shadow-xl bg-card/80 backdrop-blur-md border border-border/10 cursor-pointer"
+                >
+                  <item.icon className="w-8 h-8 md:w-10 md:h-10 text-foreground" />
+                </motion.div>
               </motion.div>
             </motion.div>
           );
