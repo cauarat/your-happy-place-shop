@@ -153,9 +153,9 @@ const Onboarding = () => {
     // Offsets are large enough (~56px+) that each card keeps a comfortably tappable
     // sliver exposed even without hovering first — required since touch has no hover.
     const stackPositionClasses = [
-      "-translate-x-14 hover:-translate-y-10 before:pointer-events-none before:absolute before:w-full before:h-full before:left-0 before:top-0 before:content-[''] before:rounded-xl before:outline-1 before:outline-border before:bg-blend-overlay before:bg-background/50 before:transition-opacity before:duration-700 grayscale hover:grayscale-0 hover:before:opacity-0",
-      "translate-y-10 hover:-translate-y-2 before:pointer-events-none before:absolute before:w-full before:h-full before:left-0 before:top-0 before:content-[''] before:rounded-xl before:outline-1 before:outline-border before:bg-blend-overlay before:bg-background/50 before:transition-opacity before:duration-700 grayscale hover:grayscale-0 hover:before:opacity-0",
-      "translate-x-14 translate-y-20 hover:translate-y-16",
+      "-translate-x-14 hover:-translate-y-10 grayscale hover:grayscale-0",
+      "translate-y-10 hover:-translate-y-2 grayscale hover:grayscale-0",
+      "translate-x-14 translate-y-20 hover:translate-y-10 grayscale hover:grayscale-0",
     ];
 
     return (
