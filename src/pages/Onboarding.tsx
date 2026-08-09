@@ -8,6 +8,22 @@ import { designers as staticDesigners } from '../data/products';
 import { supabase } from '../lib/supabase';
 import { getDesigners } from '../lib/store';
 import { Component as LanguageSelectorDropdown, LanguageOption } from '@/components/ui/language-selector-dropdown';
+import { FloatingIconsHero } from '@/components/ui/floating-icons-hero-section';
+import { Footprints, Shirt, Glasses, Box } from 'lucide-react';
+import { BagIcon, CapIcon, PantsIcon, JacketIcon, HoodieIcon, SweaterIcon } from '@/components/Icons';
+
+const onboardingHeroIcons = [
+  { id: 1, icon: HoodieIcon, className: 'top-[8%] left-[8%]' },
+  { id: 2, icon: JacketIcon, className: 'top-[15%] right-[10%]' },
+  { id: 3, icon: BagIcon, className: 'bottom-[12%] left-[12%]' },
+  { id: 4, icon: PantsIcon, className: 'bottom-[10%] right-[10%]' },
+  { id: 5, icon: CapIcon, className: 'top-[5%] left-[42%]' },
+  { id: 6, icon: Footprints, className: 'top-[45%] left-[6%]' },
+  { id: 7, icon: Glasses, className: 'top-[42%] right-[7%]' },
+  { id: 8, icon: SweaterIcon, className: 'bottom-[6%] left-[42%]' },
+  { id: 9, icon: Shirt, className: 'top-[70%] left-[20%]' },
+  { id: 10, icon: Box, className: 'top-[68%] right-[22%]' },
+];
 
 const Onboarding = () => {
   const location = useLocation();
@@ -151,37 +167,36 @@ const Onboarding = () => {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0, scale: 1.02 }}
         transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-        className="relative flex flex-col w-full h-full min-h-screen bg-white overflow-hidden text-black select-none"
+        className="relative w-full h-full min-h-screen bg-white text-black select-none"
       >
-        <div className="flex flex-col items-center justify-center flex-1 w-full max-w-md mx-auto px-8">
-
-          {/* App Logo */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.1, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-            className="mb-10"
-          >
-            <img src="/apple-touch-icon.png" alt="Villaoro" className="w-[88px] h-[88px] rounded-[22px]" />
-          </motion.div>
-
-          {/* Roulette greeting text */}
-          <div className="h-[52px] overflow-hidden relative mb-4">
+        <FloatingIconsHero
+          icons={onboardingHeroIcons}
+          eyebrow={
+            <motion.img
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.1, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+              src="/apple-touch-icon.png"
+              alt="Villaoro"
+              className="w-[64px] h-[64px] rounded-[16px]"
+            />
+          }
+          title={
             <AnimatePresence mode="wait">
-              <motion.h1
+              <motion.span
                 key={greetingIndex}
-                initial={{ y: 36, opacity: 0 }}
+                initial={{ y: 28, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                exit={{ y: -36, opacity: 0 }}
+                exit={{ y: -28, opacity: 0 }}
                 transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-                className="text-[28px] md:text-[32px] font-semibold text-zinc-900 tracking-tight text-center whitespace-nowrap"
+                className="inline-block"
               >
                 {greetings[greetingIndex].text}
-              </motion.h1>
+              </motion.span>
             </AnimatePresence>
-          </div>
-
-          {/* Language selector dropdown */}
+          }
+          subtitle={t('onboarding_lang_desc')}
+        >
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
@@ -198,8 +213,7 @@ const Onboarding = () => {
               }}
             />
           </motion.div>
-
-        </div>
+        </FloatingIconsHero>
       </motion.div>
     );
   };
