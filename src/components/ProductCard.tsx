@@ -1,5 +1,7 @@
 import { Product } from "@/data/products";
 import { Link } from "react-router-dom";
+import { useState, useCallback } from "react";
+import { computeCropStyles } from "@/lib/cropUtils";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getDesignSettings } from "@/lib/store";
 import { useCart } from "@/contexts/CartContext";
@@ -14,6 +16,14 @@ const ProductCard = ({ product, index, isFeatured }: { product: Product, index?:
   const cartItems = items.filter(item => item.product.id === product.id);
   const totalQuantity = cartItems.reduce((sum, item) => sum + item.quantity, 0);
   const isFavorite = totalQuantity > 0;
+
+  const [imgAspect, setImgAspect] = useState<number | null>(null);
+  const handleImageLoad = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = e.currentTarget;
+    if (img.naturalWidth && img.naturalHeight) {
+      setImgAspect(img.naturalWidth / img.naturalHeight);
+    }
+  }, []);
 
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -38,17 +48,29 @@ const ProductCard = ({ product, index, isFeatured }: { product: Product, index?:
       className="group block w-full select-none"
       data-tour={index === 0 ? "product-card" : undefined}
     >
-      <div className={`relative bg-white overflow-hidden rounded-2xl flex items-center justify-center ${isFeatured ? 'w-full h-auto aspect-auto' : 'aspect-[4/5]'}`}>
-        <img 
-          src={product.image} 
-          alt={product.name} 
-          loading={(index !== undefined && index < 8) || isFeatured ? "eager" : "lazy"}
-          {...(((index !== undefined && index < 4) || isFeatured) ? { fetchPriority: "high" } as any : {})}
-          decoding="async"
-          className={`w-full ${isFeatured ? 'h-auto object-contain' : 'h-full object-contain'} transition-transform duration-700 ease-out group-hover:scale-[1.02]`}
-        />
-        
-        {/* Interactive Favorite Heart */}
+      {(() => {
+        const cropData = product.displayCrops?.[0];
+        const hasCrop = !!cropData;
+        const containerAspect = 4 / 5;
+        // Skip crop styles if this is a featured card without a fixed aspect container
+        const cropStyles = (hasCrop && imgAspect && !isFeatured) 
+          ? computeCropStyles(imgAspect, containerAspect, cropData) 
+          : undefined;
+
+        return (
+          <div className={`relative bg-white overflow-hidden rounded-2xl ${cropStyles ? '' : 'flex items-center justify-center'} ${isFeatured ? 'w-full h-auto aspect-auto' : 'aspect-[4/5]'}`}>
+            <img 
+              src={product.image} 
+              alt={product.name} 
+              onLoad={handleImageLoad}
+              loading={(index !== undefined && index < 8) || isFeatured ? "eager" : "lazy"}
+              {...(((index !== undefined && index < 4) || isFeatured) ? { fetchPriority: "high" } as any : {})}
+              decoding="async"
+              className={cropStyles ? `transition-transform duration-700 ease-out group-hover:scale-[1.02]` : `w-full ${isFeatured ? 'h-auto object-contain' : 'h-full object-contain'} transition-transform duration-700 ease-out group-hover:scale-[1.02]`}
+              style={cropStyles || undefined}
+            />
+            
+            {/* Interactive Favorite Heart */}
         <button
           onClick={handleFavoriteClick}
           className="absolute top-2.5 right-2.5 z-10 p-2 hover:bg-black/5 rounded-full transition-colors focus:outline-none flex items-center justify-center"
@@ -105,6 +127,7 @@ const ProductCard = ({ product, index, isFeatured }: { product: Product, index?:
           </p>
         )}
       </div>
+      )})()}
     </Link>
   );
 };
