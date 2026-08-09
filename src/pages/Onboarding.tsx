@@ -282,7 +282,7 @@ const Onboarding = () => {
             <motion.div
               animate={{ y: [0, 4, 0] }}
               transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-              className="mt-2 text-muted-foreground opacity-70"
+              className="-mt-3 text-muted-foreground opacity-70"
             >
               <ChevronDown className="w-5 h-5" />
             </motion.div>
