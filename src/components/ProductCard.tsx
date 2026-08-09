@@ -111,6 +111,7 @@ const ProductCard = ({ product, index, isFeatured }: { product: Product, index?:
           </div>
         </button>
       </div>
+      );})()}
       <div className="flex flex-col mt-3 space-y-1 w-full text-left">
         <p className="text-[11px] md:text-[12px] text-black font-semibold uppercase tracking-widest leading-none">
           {product.designer}
@@ -129,10 +130,6 @@ const ProductCard = ({ product, index, isFeatured }: { product: Product, index?:
           </p>
         )}
       </div>
-      </>
-        );
-      })()}
-
     </Link>
   );
 };
