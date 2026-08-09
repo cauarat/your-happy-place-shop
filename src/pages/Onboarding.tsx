@@ -256,20 +256,22 @@ const Onboarding = () => {
           }
           revealSubtitle={t('onboarding_lang_desc')}
         >
-          <div className="flex flex-col items-center gap-8">
-            <LanguageSelectorDropdown
-              languages={appLanguages}
-              value={localLang}
-              onChange={handleSelectLanguage}
-            />
+          <div className="flex flex-col items-center gap-4 w-full max-w-[280px] mx-auto">
             <button
               onClick={() => setStep(2)}
-              className="flex items-center justify-center h-[52px] bg-foreground text-background px-8 rounded-full hover:scale-105 transition-transform active:scale-95 shadow-xl shadow-black/10"
+              className="flex items-center justify-center w-full h-[52px] bg-foreground text-background rounded-full hover:scale-105 transition-transform active:scale-95 shadow-xl shadow-black/10"
             >
-              <span className="font-semibold tracking-wide text-[15px] mr-2">
-                {t('onboarding_continue')}
+              <span className="font-semibold tracking-wide text-[15px]">
+                {t('onboarding_quick_tour')}
               </span>
-              <ArrowRight className="w-[18px] h-[18px]" />
+            </button>
+            <button
+              onClick={() => navigate('/login')}
+              className="flex items-center justify-center w-full h-[52px] bg-white text-foreground border border-border/40 rounded-full hover:bg-zinc-50 transition-colors active:scale-95 shadow-sm"
+            >
+              <span className="font-medium tracking-wide text-[15px]">
+                {t('onboarding_already_member')}
+              </span>
             </button>
           </div>
         </ScrollMorphHero>
