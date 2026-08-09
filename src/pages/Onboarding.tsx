@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Lock, ArrowLeft, Check } from 'lucide-react';
+import { Lock, ArrowLeft, Check, ArrowRight } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useOnboarding } from '../contexts/OnboardingContext';
@@ -256,11 +256,22 @@ const Onboarding = () => {
           }
           revealSubtitle={t('onboarding_lang_desc')}
         >
-          <LanguageSelectorDropdown
-            languages={appLanguages}
-            value={localLang}
-            onChange={handleSelectLanguage}
-          />
+          <div className="flex flex-col items-center gap-8">
+            <LanguageSelectorDropdown
+              languages={appLanguages}
+              value={localLang}
+              onChange={handleSelectLanguage}
+            />
+            <button
+              onClick={() => setStep(2)}
+              className="flex items-center justify-center h-[52px] bg-foreground text-background px-8 rounded-full hover:scale-105 transition-transform active:scale-95 shadow-xl shadow-black/10"
+            >
+              <span className="font-semibold tracking-wide text-[15px] mr-2">
+                {t('onboarding_continue')}
+              </span>
+              <ArrowRight className="w-[18px] h-[18px]" />
+            </button>
+          </div>
         </ScrollMorphHero>
       </motion.div>
     );
