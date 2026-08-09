@@ -72,6 +72,17 @@
     text-rendering: optimizeLegibility;
   }
   
+  /* Chrome/Safari paint autofilled fields with their own pale blue box, which
+     breaks every transparent input on the onboarding and sign-in screens. */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus {
+    -webkit-text-fill-color: hsl(var(--foreground));
+    -webkit-box-shadow: 0 0 0 1000px transparent inset;
+    caret-color: hsl(var(--foreground));
+    transition: background-color 9999s ease-in-out 0s;
+  }
+
   img {
     image-rendering: -webkit-optimize-contrast;
     -webkit-backface-visibility: hidden;
