@@ -182,18 +182,20 @@ const Onboarding = () => {
             />
           }
           title={
-            <AnimatePresence mode="wait">
-              <motion.span
-                key={greetingIndex}
-                initial={{ y: 28, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: -28, opacity: 0 }}
-                transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-                className="inline-block"
-              >
-                {greetings[greetingIndex].text}
-              </motion.span>
-            </AnimatePresence>
+            <div className="h-[60px] md:h-[90px] overflow-hidden relative w-full flex items-center justify-center">
+              <AnimatePresence>
+                <motion.span
+                  key={greetingIndex}
+                  initial={{ y: 40, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  exit={{ y: -40, opacity: 0 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                  className="absolute w-full flex justify-center items-center"
+                >
+                  {greetings[greetingIndex].text}
+                </motion.span>
+              </AnimatePresence>
+            </div>
           }
           subtitle={t('onboarding_lang_desc')}
         >
