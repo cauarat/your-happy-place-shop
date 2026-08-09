@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Lock, ArrowLeft, Check, ArrowRight } from 'lucide-react';
+import { Lock, ArrowLeft, Check } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useOnboarding } from '../contexts/OnboardingContext';
@@ -254,20 +254,22 @@ const Onboarding = () => {
               className="w-[72px] h-[72px] md:w-[80px] md:h-[80px] rounded-[18px] mx-auto"
             />
           }
-          revealSubtitle={t('onboarding_lang_desc')}
         >
-          <div className="flex flex-col items-center gap-4 w-full max-w-[280px] mx-auto">
+          <div className="flex flex-col items-center gap-4 w-[280px] sm:w-[320px] max-w-full">
             <button
               onClick={() => setStep(2)}
-              className="flex items-center justify-center w-full h-[52px] bg-foreground text-background rounded-full hover:scale-105 transition-transform active:scale-95 shadow-xl shadow-black/10"
+              className="w-full flex items-center justify-center h-[52px] bg-background text-foreground border border-border/30 rounded-full hover:bg-black/5 hover:scale-[1.02] transition-all active:scale-95 shadow-sm"
             >
-              <span className="font-semibold tracking-wide text-[15px]">
-                {t('onboarding_quick_tour')}
+              <span className="font-medium tracking-wide text-[15px]">
+                {t('onboarding_take_quick_tour')}
               </span>
             </button>
             <button
-              onClick={() => navigate('/login')}
-              className="flex items-center justify-center w-full h-[52px] bg-white text-foreground border border-border/40 rounded-full hover:bg-zinc-50 transition-colors active:scale-95 shadow-sm"
+              onClick={() => {
+                // TODO: Add logic for 'already a member'
+                setStep(2);
+              }}
+              className="w-full flex items-center justify-center h-[52px] bg-foreground text-background rounded-full hover:scale-[1.02] transition-transform active:scale-95 shadow-xl shadow-black/10"
             >
               <span className="font-medium tracking-wide text-[15px]">
                 {t('onboarding_already_member')}
