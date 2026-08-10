@@ -1,8 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { motion, useMotionValue, useReducedMotion, useSpring } from "framer-motion";
+import { motion, useReducedMotion, useScroll, useSpring } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { scrollPageTo } from "@/lib/motion";
 import { ChevronDown } from "lucide-react";
 
 export type ScrollMorphPhase = "entrance" | "resting";
@@ -48,13 +49,22 @@ const ENTRANCE_TRAVEL = 0.9; // one icon's flight, from offscreen to settled
 // bouncing into place.
 const ENTRANCE_EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
-// The whole scattered -> circle -> content-reveal sequence lives on one
-// continuous scroll axis, so scrolling up at any point unwinds exactly what
-// scrolling down built up — nothing is a one-way, auto-triggered jump.
-const MAX_SCROLL = 800;
+// The scattered -> circle -> content-reveal sequence is driven by the page's
+// own scroll position, not by a wheel/touch listener of our own. The hero is a
+// tall runway with a sticky stage inside it: the stage holds still while the
+// runway scrolls past underneath, and every value below is read off that
+// progress. Nothing is captured, nothing is thresholded, nothing has to be
+// unlocked — scrolling up unwinds exactly what scrolling down built, and
+// carrying straight on takes you to whatever the page puts after the hero.
+const MORPH_SCROLL = 800; // pixels of scroll the morph itself is spread over
 const ICON_MORPH_END = 550; // icons finish gathering into the circle
 const REVEAL_START = 320; // reveal content starts fading in (overlaps the
 const REVEAL_END = 800; // icon morph's tail, so the two read as one motion)
+// Extra runway after the morph completes: the stage stays put while this is
+// scrolled through, so the finished state reads as a screen you're on rather
+// than a single position you pass through.
+const REST_SCROLL = 420;
+const SCROLL_RANGE = MORPH_SCROLL + REST_SCROLL;
 
 // Converts a `top-[x%] left-[x%]` (or bottom/right) className into a pixel
 // offset from the container's center, i.e. what an absolutely-positioned
@@ -100,6 +110,9 @@ export function ScrollMorphHero({
   children,
   className,
 }: ScrollMorphHeroProps) {
+  // The runway is the tall element the page scrolls through; the stage is the
+  // sticky screen inside it that everything is drawn on.
+  const runwayRef = React.useRef<HTMLDivElement>(null);
   const containerRef = React.useRef<HTMLDivElement>(null);
   const [phase, setPhase] = React.useState<ScrollMorphPhase>("entrance");
   const [containerSize, setContainerSize] = React.useState({ width: 0, height: 0 });
@@ -196,53 +209,39 @@ export function ScrollMorphHero({
     return () => clearTimeout(timer);
   }, [entrances, containerSize.width, travelDuration]);
 
-  // --- Virtual scroll (wheel + touch), fully bidirectional ---
-  const virtualScroll = useMotionValue(0);
-  const scrollRef = React.useRef(0);
-  const smoothScroll = useSpring(virtualScroll, { stiffness: 45, damping: 20 });
+  // --- Page scroll drives everything ---
+  // Progress runs 0 -> 1 across the runway: 0 with its top at the top of the
+  // viewport, 1 with its bottom at the bottom, which is exactly the stretch
+  // the sticky stage is held in place for. Because it's the document's own
+  // scroll, momentum, rubber-banding, keyboard paging and the scrollbar all
+  // work, and there's nothing to release when the sequence finishes.
+  const { scrollYProgress } = useScroll({
+    target: runwayRef,
+    offset: ["start start", "end end"],
+  });
+  // A light spring only: enough to round off the discrete steps a mouse wheel
+  // produces, not enough to lag behind a finger.
+  const smoothProgress = useSpring(scrollYProgress, {
+    stiffness: 220,
+    damping: 40,
+    mass: 0.3,
+    restDelta: 0.0005,
+  });
   const [scrollValue, setScrollValue] = React.useState(0);
 
   React.useEffect(() => {
-    return smoothScroll.on("change", setScrollValue);
-  }, [smoothScroll]);
+    return smoothProgress.on("change", (p) => setScrollValue(p * SCROLL_RANGE));
+  }, [smoothProgress]);
 
-  React.useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-
-    const advance = (delta: number) => {
-      const next = Math.min(Math.max(scrollRef.current + delta, 0), MAX_SCROLL);
-      scrollRef.current = next;
-      virtualScroll.set(next);
-    };
-
-    const handleWheel = (e: WheelEvent) => {
-      if (phase === "entrance") return;
-      e.preventDefault();
-      advance(e.deltaY);
-    };
-
-    let touchStartY = 0;
-    const handleTouchStart = (e: TouchEvent) => {
-      touchStartY = e.touches[0].clientY;
-    };
-    const handleTouchMove = (e: TouchEvent) => {
-      if (phase === "entrance") return;
-      e.preventDefault();
-      const touchY = e.touches[0].clientY;
-      advance(touchStartY - touchY);
-      touchStartY = touchY;
-    };
-
-    el.addEventListener("wheel", handleWheel, { passive: false });
-    el.addEventListener("touchstart", handleTouchStart, { passive: false });
-    el.addEventListener("touchmove", handleTouchMove, { passive: false });
-    return () => {
-      el.removeEventListener("wheel", handleWheel);
-      el.removeEventListener("touchstart", handleTouchStart);
-      el.removeEventListener("touchmove", handleTouchMove);
-    };
-  }, [phase, virtualScroll]);
+  // Clicking the scroll hint does exactly what scrolling would: carries the
+  // page to the point where the morph has just completed, which is the start
+  // of the rest stretch. Same guided scroll the page uses to reach whatever
+  // follows the hero, so both gestures land the same way.
+  const scrollToMorphEnd = () => {
+    const runway = runwayRef.current;
+    if (!runway) return;
+    scrollPageTo(runway.getBoundingClientRect().top + window.scrollY + MORPH_SCROLL);
+  };
 
   // Two overlapping progress values derived from the same scroll position —
   // the overlap (reveal starts before the morph finishes) is what makes the
@@ -262,199 +261,219 @@ export function ScrollMorphHero({
   const tightRing = 2 * circleRadius - iconSize < 320;
 
   return (
+    // Runway: pure scroll distance, nothing drawn on it. Its height is what
+    // decides how much scrolling the sequence is spread across.
     <div
-      ref={containerRef}
-      className={cn("relative w-full h-screen min-h-[700px] bg-background overflow-hidden touch-none", className)}
+      ref={runwayRef}
+      className={cn("relative w-full", className)}
+      style={{ height: `calc(100vh + ${SCROLL_RANGE}px)` }}
     >
-      {/* Intro copy — visible while the icons rest scattered, fades as scrolling begins */}
-      <div className="absolute inset-0 z-0 flex flex-col items-center justify-center text-center px-6 pointer-events-none">
-        <motion.h1
-          animate={
-            phase === "resting"
-              ? { opacity: Math.max(1 - iconMorph * 1.8, 0), y: 0, filter: "blur(0px)" }
-              : { opacity: 0, y: 12, filter: "blur(8px)" }
-          }
-          transition={{ duration: 0.4 }}
-          className="text-3xl md:text-5xl font-semibold tracking-tight text-foreground"
-        >
-          {introTitle}
-        </motion.h1>
-        {introSubtitle && (
-          <motion.div
+      {/* Stage: held against the top of the viewport for the length of the
+          runway, so the sequence plays out in a screen that appears still
+          while the page scrolls underneath it. */}
+      <div
+        ref={containerRef}
+        className="sticky top-0 h-screen w-full overflow-hidden bg-background"
+      >
+        {/* Intro copy — visible while the icons rest scattered, fades as scrolling begins */}
+        <div className="absolute inset-0 z-0 flex flex-col items-center justify-center text-center px-6 pointer-events-none">
+          <motion.h1
             animate={
               phase === "resting"
-                ? { opacity: Math.max(1 - iconMorph * 2.4, 0), scale: 1 }
-                : { opacity: 0, scale: 0.96 }
+                ? { opacity: Math.max(1 - iconMorph * 1.8, 0), y: 0, filter: "blur(0px)" }
+                : { opacity: 0, y: 12, filter: "blur(8px)" }
             }
             transition={{ duration: 0.4 }}
-            style={{ pointerEvents: phase === "resting" && iconMorph < 0.4 ? "auto" : "none" }}
-            className="mt-5 max-w-sm text-sm md:text-base text-muted-foreground"
+            className="text-3xl md:text-5xl font-semibold tracking-tight text-foreground"
           >
-            {introSubtitle}
-          </motion.div>
-        )}
-        <motion.div
-          animate={
-            phase === "resting" ? { opacity: Math.max(1 - iconMorph * 3.2, 0) * 0.5 } : { opacity: 0 }
-          }
-          transition={{ duration: 0.4 }}
-          className="mt-8 flex flex-col items-center gap-2"
-        >
-          <span className="text-xs font-bold tracking-[0.2em] text-muted-foreground uppercase">
-            {scrollHint}
-          </span>
-          <motion.div
-            animate={{ y: [0, 4, 0] }}
-            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-            className="text-muted-foreground opacity-70"
-          >
-            <ChevronDown className="w-4 h-4" />
-          </motion.div>
-        </motion.div>
-      </div>
-
-      {/* Reveal content — fades in, in the same spot, as the ring closes.
-          Stays pointer-events-none at the wrapper level (it's a full-screen
-          inset-0 box with an explicit z-index, so an "auto" here would sit
-          above and swallow hover/clicks over the icons anywhere on screen);
-          only the actual interactive piece (children, e.g. the language
-          dropdown) opts back into pointer events. */}
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: revealProgress, y: (1 - revealProgress) * 16 }}
-        transition={{ duration: 0.3 }}
-        className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center px-6 pointer-events-none"
-      >
-        {revealLogo && <div className="mb-6">{revealLogo}</div>}
-        <div className="text-xl md:text-2xl font-semibold tracking-tight text-foreground">
-          {revealTitle}
-        </div>
-        {revealSubtitle && (
-          <p className="mt-4 max-w-sm text-sm md:text-base text-muted-foreground">{revealSubtitle}</p>
-        )}
-        {children && (
-          <div
-            className={
-              tightRing
-                ? "absolute left-0 right-0 flex justify-center px-6"
-                : "mt-4"
-            }
-            style={{
-              pointerEvents: revealProgress > 0.5 ? "auto" : "none",
-              // Anchored by its top edge just past the ring's lowest icon, so
-              // the CTA clears the circle whatever height it happens to be.
-              ...(tightRing
-                ? { top: `calc(50% + ${Math.round(circleRadius + iconSize / 2 + 28)}px)` }
-                : {}),
-            }}
-          >
-            {children}
-          </div>
-        )}
-      </motion.div>
-
-      {/* Icons — purely decorative, must not intercept clicks meant for the
-          intro/reveal content sitting in the gap between them */}
-      <div className="relative flex items-center justify-center w-full h-full pointer-events-none">
-        {/* Held back until the container has been measured — an icon mounted
-            against a 0x0 container would compute its entrance from the wrong
-            geometry and fly in from the center. */}
-        {containerSize.width > 0 && icons.map((item, i) => {
-          // Where this icon rests before any scrolling: its scattered spot,
-          // spread across the whole screen.
-          const scatteredPos = positionToCenterOffset(
-            item.className,
-            containerSize.width,
-            containerSize.height,
-            iconSize
-          );
-          // ...and where it ends up once the user has scrolled: a slot on the
-          // ring that closes around the revealed content.
-          const ringAngle = (i / icons.length) * Math.PI * 2;
-          const circlePos = {
-            x: Math.cos(ringAngle) * circleRadius,
-            y: Math.sin(ringAngle) * circleRadius,
-          };
-
-          // Scroll gathers the scattered icons into the ring, and unwinds back
-          // out again on the way up.
-          const target = {
-            x: lerp(scatteredPos.x, circlePos.x, iconMorph),
-            y: lerp(scatteredPos.y, circlePos.y, iconMorph),
-          };
-
-          const entrance = entrances[i];
-
-          return (
-            // Outer div: the resting/ring position, driven by scroll.
-            // `initial={false}` so the first paint lands on the resting spot —
-            // the entrance is a separate offset on the div below, which keeps
-            // the flight in and the later scroll morph from fighting over the
-            // same transform.
-            // Middle div: the one-time flight in from offscreen.
-            // Inner div: idle "alive" float + hover response.
+            {introTitle}
+          </motion.h1>
+          {introSubtitle && (
             <motion.div
-              key={item.id}
-              initial={false}
-              animate={{ x: target.x, y: target.y }}
-              transition={{ type: "spring", stiffness: 140, damping: 22, mass: 0.6 }}
-              className="absolute pointer-events-auto"
+              animate={
+                phase === "resting"
+                  ? { opacity: Math.max(1 - iconMorph * 2.4, 0), scale: 1 }
+                  : { opacity: 0, scale: 0.96 }
+              }
+              transition={{ duration: 0.4 }}
+              style={{ pointerEvents: phase === "resting" && iconMorph < 0.4 ? "auto" : "none" }}
+              className="mt-5 max-w-sm text-sm md:text-base text-muted-foreground"
             >
+              {introSubtitle}
+            </motion.div>
+          )}
+          <motion.div
+            animate={
+              phase === "resting" ? { opacity: Math.max(1 - iconMorph * 3.2, 0) * 0.5 } : { opacity: 0 }
+            }
+            transition={{ duration: 0.4 }}
+            // Live only while it's actually legible; once the morph is under
+            // way this is an invisible box sitting over the revealed content.
+            style={{ pointerEvents: phase === "resting" && iconMorph < 0.4 ? "auto" : "none" }}
+            className="mt-8"
+          >
+            <button
+              type="button"
+              onClick={scrollToMorphEnd}
+              className="flex flex-col items-center gap-2 group"
+            >
+              <span className="text-xs font-bold tracking-[0.2em] text-muted-foreground uppercase transition-colors group-hover:text-foreground">
+                {scrollHint}
+              </span>
+              <motion.span
+                animate={{ y: [0, 4, 0] }}
+                transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                className="text-muted-foreground opacity-70 group-hover:opacity-100 transition-opacity"
+              >
+                <ChevronDown className="w-4 h-4" />
+              </motion.span>
+            </button>
+          </motion.div>
+        </div>
+
+        {/* Reveal content — fades in, in the same spot, as the ring closes.
+            Stays pointer-events-none at the wrapper level (it's a full-screen
+            inset-0 box with an explicit z-index, so an "auto" here would sit
+            above and swallow hover/clicks over the icons anywhere on screen);
+            only the actual interactive piece (children, e.g. the language
+            dropdown) opts back into pointer events. */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: revealProgress, y: (1 - revealProgress) * 16 }}
+          transition={{ duration: 0.3 }}
+          className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center px-6 pointer-events-none"
+        >
+          {revealLogo && <div className="mb-6">{revealLogo}</div>}
+          <div className="text-xl md:text-2xl font-semibold tracking-tight text-foreground">
+            {revealTitle}
+          </div>
+          {revealSubtitle && (
+            <p className="mt-4 max-w-sm text-sm md:text-base text-muted-foreground">{revealSubtitle}</p>
+          )}
+          {children && (
+            <div
+              className={
+                tightRing
+                  ? "absolute left-0 right-0 flex justify-center px-6"
+                  : "mt-4"
+              }
+              style={{
+                pointerEvents: revealProgress > 0.5 ? "auto" : "none",
+                // Anchored by its top edge just past the ring's lowest icon, so
+                // the CTA clears the circle whatever height it happens to be.
+                ...(tightRing
+                  ? { top: `calc(50% + ${Math.round(circleRadius + iconSize / 2 + 28)}px)` }
+                  : {}),
+              }}
+            >
+              {children}
+            </div>
+          )}
+        </motion.div>
+
+        {/* Icons — purely decorative, must not intercept clicks meant for the
+            intro/reveal content sitting in the gap between them */}
+        <div className="relative flex items-center justify-center w-full h-full pointer-events-none">
+          {/* Held back until the container has been measured — an icon mounted
+              against a 0x0 container would compute its entrance from the wrong
+              geometry and fly in from the center. */}
+          {containerSize.width > 0 && icons.map((item, i) => {
+            // Where this icon rests before any scrolling: its scattered spot,
+            // spread across the whole screen.
+            const scatteredPos = positionToCenterOffset(
+              item.className,
+              containerSize.width,
+              containerSize.height,
+              iconSize
+            );
+            // ...and where it ends up once the user has scrolled: a slot on the
+            // ring that closes around the revealed content.
+            const ringAngle = (i / icons.length) * Math.PI * 2;
+            const circlePos = {
+              x: Math.cos(ringAngle) * circleRadius,
+              y: Math.sin(ringAngle) * circleRadius,
+            };
+
+            // Scroll gathers the scattered icons into the ring, and unwinds back
+            // out again on the way up.
+            const target = {
+              x: lerp(scatteredPos.x, circlePos.x, iconMorph),
+              y: lerp(scatteredPos.y, circlePos.y, iconMorph),
+            };
+
+            const entrance = entrances[i];
+
+            return (
+              // Outer div: the resting/ring position, driven by scroll.
+              // `initial={false}` so the first paint lands on the resting spot —
+              // the entrance is a separate offset on the div below, which keeps
+              // the flight in and the later scroll morph from fighting over the
+              // same transform.
+              // Middle div: the one-time flight in from offscreen.
+              // Inner div: idle "alive" float + hover response.
               <motion.div
-                initial={{
-                  x: entrance.offset.x,
-                  y: entrance.offset.y,
-                  scale: 0.88,
-                  rotate: i % 2 === 0 ? -4 : 4,
-                  opacity: 0,
-                }}
-                animate={{ x: 0, y: 0, scale: 1, rotate: 0, opacity: 1 }}
-                transition={{
-                  default: {
-                    delay: entrance.delay,
-                    duration: travelDuration,
-                    ease: ENTRANCE_EASE,
-                  },
-                  // Fades in over the first stretch of the flight, so an icon is
-                  // already visible while travelling rather than materialising
-                  // at the end of it.
-                  opacity: {
-                    delay: entrance.delay,
-                    duration: travelDuration * 0.45,
-                    ease: "easeOut",
-                  },
-                }}
+                key={item.id}
+                initial={false}
+                animate={{ x: target.x, y: target.y }}
+                transition={{ type: "spring", stiffness: 140, damping: 22, mass: 0.6 }}
+                className="absolute pointer-events-auto"
               >
                 <motion.div
-                  animate={
-                    phase === "resting"
-                      ? { y: [0, -7, 0], rotate: [0, i % 2 === 0 ? 2 : -2, 0] }
-                      : { y: 0, rotate: 0 }
-                  }
-                  transition={
-                    phase === "resting"
-                      ? {
-                          duration: 3.2 + (i % 4) * 0.4,
-                          repeat: Infinity,
-                          ease: "easeInOut",
-                          delay: i * 0.18,
-                        }
-                      : { duration: 0.3 }
-                  }
-                  whileHover={{
-                    scale: 1.14,
-                    y: -10,
-                    rotate: 0,
-                    transition: { type: "spring", stiffness: 300, damping: 14 },
+                  initial={{
+                    x: entrance.offset.x,
+                    y: entrance.offset.y,
+                    scale: 0.88,
+                    rotate: i % 2 === 0 ? -4 : 4,
+                    opacity: 0,
                   }}
-                  className="flex items-center justify-center w-16 h-16 md:w-20 md:h-20 p-3 rounded-3xl shadow-xl bg-card/80 backdrop-blur-md border border-border/10 cursor-pointer"
+                  animate={{ x: 0, y: 0, scale: 1, rotate: 0, opacity: 1 }}
+                  transition={{
+                    default: {
+                      delay: entrance.delay,
+                      duration: travelDuration,
+                      ease: ENTRANCE_EASE,
+                    },
+                    // Fades in over the first stretch of the flight, so an icon is
+                    // already visible while travelling rather than materialising
+                    // at the end of it.
+                    opacity: {
+                      delay: entrance.delay,
+                      duration: travelDuration * 0.45,
+                      ease: "easeOut",
+                    },
+                  }}
                 >
-                  <item.icon className="w-8 h-8 md:w-10 md:h-10 text-foreground" />
+                  <motion.div
+                    animate={
+                      phase === "resting"
+                        ? { y: [0, -7, 0], rotate: [0, i % 2 === 0 ? 2 : -2, 0] }
+                        : { y: 0, rotate: 0 }
+                    }
+                    transition={
+                      phase === "resting"
+                        ? {
+                            duration: 3.2 + (i % 4) * 0.4,
+                            repeat: Infinity,
+                            ease: "easeInOut",
+                            delay: i * 0.18,
+                          }
+                        : { duration: 0.3 }
+                    }
+                    whileHover={{
+                      scale: 1.14,
+                      y: -10,
+                      rotate: 0,
+                      transition: { type: "spring", stiffness: 300, damping: 14 },
+                    }}
+                    className="flex items-center justify-center w-16 h-16 md:w-20 md:h-20 p-3 rounded-3xl shadow-xl bg-card/80 backdrop-blur-md border border-border/10 cursor-pointer"
+                  >
+                    <item.icon className="w-8 h-8 md:w-10 md:h-10 text-foreground" />
+                  </motion.div>
                 </motion.div>
               </motion.div>
-            </motion.div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
     </div>
   );

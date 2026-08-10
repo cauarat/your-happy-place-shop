@@ -224,6 +224,10 @@ const translations: Record<Language, Record<string, string>> = {
     tour_done: "Done",
     install_app_tip: "💡 PWA Tip: Using 'Install App' opens Villaoro in full-screen. On iOS Chrome, if the option isn't visible, please use Safari.",
     install_app_continue: "Continue",
+    // Quick tour — catalogue preview
+    tour_preview_eyebrow: "A first look",
+    tour_preview_title: "This is your catalogue",
+    tour_preview_subtitle: "Every piece hand-picked, refreshed every week. Keep scrolling.",
     // Sign in
     login_title: "Welcome back",
     login_subtitle: "Sign in to your curated space.",
@@ -472,6 +476,10 @@ const translations: Record<Language, Record<string, string>> = {
     tour_done: "Concluir",
     install_app_tip: "💡 Dica: A opção 'Instalar aplicativo' abre o site em tela cheia. No iOS, se não achar a opção no Chrome, use o Safari.",
     install_app_continue: "Continuar",
+    // Quick tour — catalogue preview
+    tour_preview_eyebrow: "Uma primeira olhada",
+    tour_preview_title: "Este é o seu catálogo",
+    tour_preview_subtitle: "Cada peça escolhida a dedo, renovada toda semana. Continue rolando.",
     // Sign in
     login_title: "Bem-vindo de volta",
     login_subtitle: "Entre no seu espaço curado.",
@@ -720,6 +728,10 @@ const translations: Record<Language, Record<string, string>> = {
     tour_done: "Hecho",
     install_app_tip: "💡 Consejo: La opción 'Instalar aplicación' abre el sitio a pantalla completa. En iOS, si no ves la opción en Chrome, usa Safari.",
     install_app_continue: "Continuar",
+    // Quick tour — catalogue preview
+    tour_preview_eyebrow: "Un primer vistazo",
+    tour_preview_title: "Este es tu catálogo",
+    tour_preview_subtitle: "Cada pieza elegida a mano, renovada cada semana. Sigue bajando.",
     // Sign in
     login_title: "Bienvenido de nuevo",
     login_subtitle: "Entra en tu espacio curado.",

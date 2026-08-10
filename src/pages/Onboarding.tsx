@@ -11,6 +11,7 @@ import { Component as LanguageSelectorDropdown, LanguageOption } from '@/compone
 import { ScrollMorphHero } from '@/components/ui/scroll-morph-hero';
 import { ContainerScroll } from '@/components/ui/container-scroll-animation';
 import CatalogPreview from '@/components/CatalogPreview';
+import { DURATION, EASE_SOFT, jumpPageToTop, scrollPageToElement } from '@/lib/motion';
 import { Footprints, Shirt, Glasses } from 'lucide-react';
 import { BagIcon, CapIcon, PantsIcon, JacketIcon, HoodieIcon, SweaterIcon, PufferJacketIcon } from '@/components/Icons';
 
@@ -86,7 +87,7 @@ const CatalogTourSection = React.forwardRef<HTMLElement, { onContinue: () => voi
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.6 }}
-          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: DURATION.content, ease: EASE_SOFT }}
           className="w-full max-w-md mx-auto px-6 -mt-24 md:-mt-48 pb-16 flex justify-center"
         >
           <button
@@ -127,9 +128,7 @@ const Onboarding = () => {
   const [loadingText, setLoadingText] = useState('');
   const [authError, setAuthError] = useState('');
   // The quick tour lives directly below the hero in the same scrolling
-  // document, so choosing it scrolls the page down rather than swapping
-  // screens — the hero stays where it was, just above.
-  const [tourStarted, setTourStarted] = useState(false);
+  // document, so reaching it is scrolling the page — never a screen swap.
   const tourSectionRef = React.useRef<HTMLElement>(null);
   const { language, setLanguage, t } = useLanguage();
   const navigate = useNavigate();
@@ -233,46 +232,18 @@ const Onboarding = () => {
     }
   };
 
-  // Mounts the tour below the hero (if it isn't already there) and glides the
-  // page down onto it. Two frames of delay so the section has been laid out
-  // before we ask the browser to scroll to it.
+  // A shortcut for the same journey scrolling already makes: the tour is
+  // right there in the page, this just glides to it on the site's curve.
   const startTour = () => {
-    const scrollToTour = () => {
-      const el = tourSectionRef.current;
-      if (!el) return;
-      const targetY = el.getBoundingClientRect().top + window.scrollY;
-      const startY = window.scrollY;
-      const distance = targetY - startY;
-      const duration = 1200; // ms — slower, smoother glide
-      let startTime: number | null = null;
-
-      const easeInOutCubic = (t: number) =>
-        t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-
-      const step = (timestamp: number) => {
-        if (!startTime) startTime = timestamp;
-        const elapsed = timestamp - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        window.scrollTo(0, startY + distance * easeInOutCubic(progress));
-        if (progress < 1) requestAnimationFrame(step);
-      };
-      requestAnimationFrame(step);
-    };
-
-    if (tourStarted) {
-      scrollToTour();
-      return;
-    }
-    setTourStarted(true);
-    requestAnimationFrame(() => requestAnimationFrame(scrollToTour));
+    if (tourSectionRef.current) scrollPageToElement(tourSectionRef.current);
   };
 
   // Leaving the tour: glide back up while it fades out, so the install screen
   // takes over from a clean scroll position.
-  const finishTour = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    setStep(2);
-  };
+  // Leaving the tour: it fades out where it is, and the scroll is reset once
+  // it's gone (see the AnimatePresence below). Scrolling the page back up
+  // first would mean watching a screen you've already left travel past.
+  const finishTour = () => setStep(2);
 
   // Roulette index state for Step 1
   const [greetingIndex, setGreetingIndex] = useState(0);
@@ -316,7 +287,7 @@ const Onboarding = () => {
           initial={{ y: 28, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: -28, opacity: 0 }}
-          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: DURATION.content, ease: EASE_SOFT }}
           className="inline-block"
         >
           {greetings[greetingIndex].text}
@@ -330,13 +301,11 @@ const Onboarding = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0, scale: 1.02 }}
-        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: DURATION.screen, ease: EASE_SOFT }}
         className="relative w-full h-full min-h-screen bg-white text-black select-none"
       >
         <ScrollMorphHero
           icons={onboardingHeroIcons}
-          scrollLocked={!tourStarted}
-          onScrollPastEnd={startTour}
           scrollHint={t('scroll_to_explore')}
           introTitle={greetingRoulette}
           introSubtitle={
@@ -392,7 +361,10 @@ const Onboarding = () => {
           </div>
         </ScrollMorphHero>
 
-        {tourStarted && <CatalogTourSection ref={tourSectionRef} onContinue={finishTour} />}
+        {/* Always in the document, directly below the hero's runway: carrying
+            on scrolling arrives here with nothing to trigger or wait for, and
+            scrolling back up unwinds the ring exactly as it was built. */}
+        <CatalogTourSection ref={tourSectionRef} onContinue={finishTour} />
       </motion.div>
     );
   };
@@ -404,7 +376,7 @@ const Onboarding = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0, scale: 1.02 }}
-      transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: DURATION.screen, ease: EASE_SOFT }}
       className="relative flex flex-col w-full h-full min-h-screen bg-[#FDFDFD] overflow-hidden text-black select-none"
     >
       <div className="flex flex-col items-center justify-center flex-1 w-full max-w-md mx-auto px-6">
@@ -413,7 +385,7 @@ const Onboarding = () => {
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.2, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ delay: 0.2, duration: DURATION.content, ease: EASE_SOFT }}
           className="mb-6 mt-4"
         >
           <div
@@ -432,7 +404,7 @@ const Onboarding = () => {
         <motion.h2
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.35, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ delay: 0.35, duration: DURATION.content, ease: EASE_SOFT }}
           className="text-[24px] font-semibold text-zinc-900 tracking-tight text-center mb-2.5"
         >
           {t('install_app_title')}
@@ -442,7 +414,7 @@ const Onboarding = () => {
         <motion.p
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.45, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ delay: 0.45, duration: DURATION.content, ease: EASE_SOFT }}
           className="text-[15px] text-zinc-500 font-light text-center leading-relaxed mb-8 max-w-[300px]"
         >
           {t('install_app_subtitle')}
@@ -452,7 +424,7 @@ const Onboarding = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.55, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ delay: 0.55, duration: DURATION.content, ease: EASE_SOFT }}
           className="w-full bg-white rounded-3xl p-5 shadow-[0_2px_20px_rgba(0,0,0,0.04)] border border-zinc-100 flex flex-col gap-0 relative"
         >
           {/* Step 1 */}
@@ -521,7 +493,7 @@ const Onboarding = () => {
         className="w-full px-6 pb-10 pt-4 max-w-md mx-auto relative z-10"
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.75, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ delay: 0.75, duration: DURATION.content, ease: EASE_SOFT }}
       >
         <button
           onClick={() => setStep(4)}
@@ -541,7 +513,7 @@ const Onboarding = () => {
       initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, x: -20 }}
-      transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: DURATION.screen, ease: EASE_SOFT }}
       className="relative flex flex-col w-full h-full min-h-screen bg-white overflow-hidden text-black"
     >
       <div className="relative z-10 flex flex-col items-center flex-1 w-full max-w-md p-8 pb-10 mx-auto">
@@ -549,7 +521,7 @@ const Onboarding = () => {
           <motion.div
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1, duration: 0.6 }}
+            transition={{ delay: 0.1, duration: DURATION.content, ease: EASE_SOFT }}
             className="w-full text-center"
           >
             <h2 className="text-[15px] font-medium text-zinc-900 mb-1">
@@ -575,7 +547,7 @@ const Onboarding = () => {
           className="w-full mt-auto flex flex-col gap-6"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.6 }}
+          transition={{ delay: 0.3, duration: DURATION.content, ease: EASE_SOFT }}
         >
           <button 
             onClick={() => {
@@ -621,7 +593,7 @@ const Onboarding = () => {
         initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, x: -20 }}
-        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: DURATION.screen, ease: EASE_SOFT }}
         className="relative flex flex-col w-full h-full min-h-screen bg-white overflow-hidden text-black"
       >
         <div className="relative z-10 flex flex-col items-center flex-1 w-full max-w-md p-8 pb-10 mx-auto">
@@ -630,7 +602,7 @@ const Onboarding = () => {
             <motion.div
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1, duration: 0.6 }}
+              transition={{ delay: 0.1, duration: DURATION.content, ease: EASE_SOFT }}
               className="w-full text-center mb-10"
             >
               <h2 className="text-[15px] font-medium text-zinc-900 mb-1">
@@ -647,7 +619,7 @@ const Onboarding = () => {
                   key={opt.id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 + (index * 0.1), duration: 0.5 }}
+                  transition={{ delay: 0.2 + (index * 0.1), duration: DURATION.content, ease: EASE_SOFT }}
                   onClick={() => {
                     setGender(opt.id);
                     setTimeout(() => setStep(6), 200); 
@@ -672,7 +644,7 @@ const Onboarding = () => {
             className="w-full mt-auto flex justify-center"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.6 }}
+            transition={{ delay: 0.6, duration: DURATION.content, ease: EASE_SOFT }}
           >
             <button 
               onClick={() => setStep(4)}
@@ -703,7 +675,7 @@ const Onboarding = () => {
         initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, x: -20 }}
-        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: DURATION.screen, ease: EASE_SOFT }}
         className="relative flex flex-col w-full h-full min-h-screen bg-white overflow-hidden text-black"
       >
         <div className="relative z-10 flex flex-col items-center flex-1 w-full max-w-md p-8 pb-10 mx-auto">
@@ -712,7 +684,7 @@ const Onboarding = () => {
             <motion.div
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1, duration: 0.6 }}
+              transition={{ delay: 0.1, duration: DURATION.content, ease: EASE_SOFT }}
               className="w-full text-center mb-10"
             >
               <h2 className="text-[15px] font-medium text-zinc-900 mb-1">
@@ -729,7 +701,7 @@ const Onboarding = () => {
                   key={cat.id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 + (index * 0.1), duration: 0.5 }}
+                  transition={{ delay: 0.2 + (index * 0.1), duration: DURATION.content, ease: EASE_SOFT }}
                   onClick={() => {
                     setCategory(cat.id);
                     setTimeout(() => setStep(7), 200); 
@@ -754,7 +726,7 @@ const Onboarding = () => {
             className="w-full mt-auto flex justify-center"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.6 }}
+            transition={{ delay: 0.6, duration: DURATION.content, ease: EASE_SOFT }}
           >
             <button 
               onClick={() => setStep(5)}
@@ -789,7 +761,7 @@ const Onboarding = () => {
         initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, x: -20 }}
-        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: DURATION.screen, ease: EASE_SOFT }}
         className="relative flex flex-col w-full h-full min-h-screen bg-white overflow-hidden text-black"
       >
         <div className="relative z-10 flex flex-col items-center flex-1 w-full max-w-md p-6 mx-auto">
@@ -797,7 +769,7 @@ const Onboarding = () => {
           <motion.div
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1, duration: 0.6 }}
+            transition={{ delay: 0.1, duration: DURATION.content, ease: EASE_SOFT }}
             className="w-full text-center mb-6 mt-[2vh]"
           >
             <h2 className="text-[15px] font-medium text-zinc-900 mb-1">
@@ -817,7 +789,7 @@ const Onboarding = () => {
                     key={brand}
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.1 + (index * 0.02), duration: 0.3 }}
+                    transition={{ delay: 0.1 + (index * 0.02), duration: DURATION.control, ease: EASE_SOFT }}
                     onClick={() => toggleBrand(brand)}
                     className={`px-4 py-2 rounded-full border text-sm transition-all duration-300 ${
                       isSelected 
@@ -836,7 +808,7 @@ const Onboarding = () => {
             className="absolute bottom-6 left-6 right-6 flex flex-col gap-4 bg-white pt-4 pb-2"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.6 }}
+            transition={{ delay: 0.6, duration: DURATION.content, ease: EASE_SOFT }}
           >
             <button 
               onClick={() => setStep(8)}
@@ -878,7 +850,7 @@ const Onboarding = () => {
         initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, filter: "blur(10px)" }}
-        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: DURATION.screen, ease: EASE_SOFT }}
         className="relative flex flex-col w-full h-full min-h-screen bg-white overflow-hidden text-black"
       >
         <div className="relative z-10 flex flex-col items-center flex-1 w-full max-w-md p-8 pb-10 mx-auto">
@@ -887,7 +859,7 @@ const Onboarding = () => {
             <motion.div
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1, duration: 0.6 }}
+              transition={{ delay: 0.1, duration: DURATION.content, ease: EASE_SOFT }}
               className="w-full text-center"
             >
               <h2 className="text-[15px] font-medium text-zinc-900 mb-1">
@@ -926,7 +898,7 @@ const Onboarding = () => {
             className="w-full mt-auto flex flex-col gap-6"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.6 }}
+            transition={{ delay: 0.3, duration: DURATION.content, ease: EASE_SOFT }}
           >
             <button 
               onClick={() => {
@@ -1005,13 +977,13 @@ const Onboarding = () => {
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 1.05 }}
-        transition={{ duration: 0.5, ease: "easeOut" }}
+        transition={{ duration: DURATION.screen, ease: EASE_SOFT }}
         className="relative flex flex-col items-center justify-center w-full h-full min-h-screen bg-white overflow-hidden text-black"
       >
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.6 }}
+          transition={{ delay: 0.2, duration: DURATION.content, ease: EASE_SOFT }}
           className="flex flex-col items-center text-center"
         >
           <motion.div 
@@ -1042,13 +1014,13 @@ const Onboarding = () => {
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 1.05 }}
-        transition={{ duration: 0.5, ease: "easeOut" }}
+        transition={{ duration: DURATION.screen, ease: EASE_SOFT }}
         className="relative flex flex-col items-center justify-center w-full h-full min-h-screen bg-white overflow-hidden text-black"
       >
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.6 }}
+          transition={{ delay: 0.2, duration: DURATION.content, ease: EASE_SOFT }}
           className="flex flex-col items-center text-center p-8 max-w-md mx-auto"
         >
           <div className="w-16 h-16 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center mb-6">
@@ -1073,7 +1045,11 @@ const Onboarding = () => {
   };
 
   return (
-    <AnimatePresence mode="wait">
+    // The scroll is reset the moment the outgoing screen has left, not when
+    // the step changes: every screen after the hero is a single viewport, and
+    // arriving at one with the page still scrolled down the tour would open it
+    // halfway down.
+    <AnimatePresence mode="wait" onExitComplete={jumpPageToTop}>
       {step === 0 && renderStep0()}
       {step === 2 && renderStep2()}
       {step === 4 && renderStep4()}

@@ -6,8 +6,11 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { toast } from 'sonner';
+import { DURATION, EASE_SOFT } from '@/lib/motion';
 
 const isValidEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+
+const messageOf = (err: unknown) => (err instanceof Error ? err.message : String(err ?? ''));
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -57,8 +60,8 @@ const Login = () => {
 
       toast.success(t('login_success'));
       navigate(redirectTo, { replace: true });
-    } catch (err: any) {
-      const raw = String(err?.message ?? '');
+    } catch (err: unknown) {
+      const raw = messageOf(err);
       // Supabase returns English, untranslated strings — map the two the user
       // will actually hit onto the site's own languages.
       if (/invalid login credentials/i.test(raw)) {
@@ -87,8 +90,8 @@ const Login = () => {
       });
       if (resetError) throw resetError;
       toast.success(t('login_reset_sent'));
-    } catch (err: any) {
-      showError(err?.message || t('login_error_generic'));
+    } catch (err: unknown) {
+      showError(messageOf(err) || t('login_error_generic'));
     } finally {
       setSendingReset(false);
     }
@@ -99,7 +102,7 @@ const Login = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0, scale: 1.02 }}
-      transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: DURATION.screen, ease: EASE_SOFT }}
       className="relative flex flex-col w-full h-full min-h-screen bg-[#FDFDFD] overflow-hidden text-black select-none"
     >
       <div className="flex flex-col items-center justify-center flex-1 w-full max-w-md mx-auto px-6 pt-12">
@@ -108,7 +111,7 @@ const Login = () => {
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.15, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ delay: 0.15, duration: DURATION.content, ease: EASE_SOFT }}
           className="mb-6"
         >
           <div
@@ -125,7 +128,7 @@ const Login = () => {
         <motion.h1
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ delay: 0.3, duration: DURATION.content, ease: EASE_SOFT }}
           className="text-[24px] font-semibold text-zinc-900 tracking-tight text-center mb-2.5"
         >
           {t('login_title')}
@@ -134,7 +137,7 @@ const Login = () => {
         <motion.p
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ delay: 0.4, duration: DURATION.content, ease: EASE_SOFT }}
           className="text-[15px] text-zinc-500 font-light text-center leading-relaxed mb-8 max-w-[300px]"
         >
           {t('login_subtitle')}
@@ -153,8 +156,8 @@ const Login = () => {
             }
             transition={
               errorNonce > 0
-                ? { x: { duration: 0.4, ease: 'easeInOut' }, duration: 0.5 }
-                : { delay: 0.5, duration: 0.7, ease: [0.16, 1, 0.3, 1] }
+                ? { x: { duration: 0.4, ease: 'easeInOut' }, duration: DURATION.content }
+                : { delay: 0.5, duration: DURATION.content, ease: EASE_SOFT }
             }
             className="w-full bg-white rounded-3xl px-5 shadow-[0_2px_20px_rgba(0,0,0,0.04)] border border-zinc-100"
           >
@@ -228,7 +231,7 @@ const Login = () => {
                 initial={{ opacity: 0, y: -4 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -4 }}
-                transition={{ duration: 0.25 }}
+                transition={{ duration: DURATION.control, ease: EASE_SOFT }}
                 className="text-[13px] text-red-500 text-center mt-3 px-2 leading-relaxed"
                 role="alert"
               >
@@ -240,7 +243,7 @@ const Login = () => {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.6, duration: 0.5 }}
+            transition={{ delay: 0.6, duration: DURATION.content, ease: EASE_SOFT }}
             className="flex justify-end mt-3 mb-1"
           >
             <button
@@ -256,7 +259,7 @@ const Login = () => {
           <motion.button
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.65, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ delay: 0.65, duration: DURATION.content, ease: EASE_SOFT }}
             type="submit"
             disabled={!canSubmit}
             className={`mt-5 w-full h-[56px] flex items-center justify-center rounded-[20px] font-medium tracking-wide text-[16px] transition-all duration-300 ${
@@ -274,7 +277,7 @@ const Login = () => {
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.75, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ delay: 0.75, duration: DURATION.content, ease: EASE_SOFT }}
         className="w-full max-w-md mx-auto px-6 pt-4 pb-[calc(2.5rem+env(safe-area-inset-bottom))] flex flex-col items-center gap-3"
       >
         <p className="text-[14px] text-zinc-500 font-light">
