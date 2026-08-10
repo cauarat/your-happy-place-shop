@@ -9,6 +9,8 @@ import { supabase } from '../lib/supabase';
 import { getDesigners } from '../lib/store';
 import { Component as LanguageSelectorDropdown, LanguageOption } from '@/components/ui/language-selector-dropdown';
 import { ScrollMorphHero } from '@/components/ui/scroll-morph-hero';
+import { ContainerScroll } from '@/components/ui/container-scroll-animation';
+import CatalogPreview from '@/components/CatalogPreview';
 import { Footprints, Shirt, Glasses } from 'lucide-react';
 import { BagIcon, CapIcon, PantsIcon, JacketIcon, HoodieIcon, SweaterIcon, PufferJacketIcon } from '@/components/Icons';
 
@@ -51,6 +53,55 @@ const LanguageSegmentedControl = ({
   </div>
 );
 
+// The quick tour: the page scrolls out of the hero into a device frame that
+// unfolds as you keep scrolling, showing the real catalogue home screen —
+// what someone gets access to, before being asked for a name and an email.
+const CatalogTourSection = React.forwardRef<HTMLElement, { onContinue: () => void }>(
+  ({ onContinue }, ref) => {
+    const { t } = useLanguage();
+
+    return (
+      <section ref={ref} className="relative w-full bg-white">
+        <ContainerScroll
+          titleComponent={
+            <div className="flex flex-col items-center gap-3 px-6">
+              <span className="text-[10px] md:text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-400">
+                {t('tour_preview_eyebrow')}
+              </span>
+              <h2 className="text-[26px] md:text-[42px] font-semibold tracking-tight text-black leading-none">
+                {t('tour_preview_title')}
+              </h2>
+              <p className="max-w-sm text-[14px] md:text-[15px] font-light text-zinc-500 leading-relaxed">
+                {t('tour_preview_subtitle')}
+              </p>
+            </div>
+          }
+        >
+          <CatalogPreview />
+        </ContainerScroll>
+
+        {/* Pulled up under the flattened device — by the time the frame is
+            lying flat, this is the next thing in view. */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.6 }}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          className="w-full max-w-md mx-auto px-6 -mt-24 md:-mt-48 pb-16 flex justify-center"
+        >
+          <button
+            onClick={onContinue}
+            className="w-full h-[56px] rounded-[20px] bg-zinc-900 text-white font-medium tracking-wide text-[16px] transition-all duration-300 hover:bg-black hover:shadow-xl hover:shadow-black/20 active:scale-[0.98]"
+          >
+            {t('install_app_continue')}
+          </button>
+        </motion.div>
+      </section>
+    );
+  }
+);
+CatalogTourSection.displayName = 'CatalogTourSection';
+
 const onboardingHeroIcons = [
   { id: 1, icon: HoodieIcon, className: 'top-[8%] left-[8%]' },
   { id: 2, icon: JacketIcon, className: 'top-[15%] right-[10%]' },
@@ -75,6 +126,11 @@ const Onboarding = () => {
   const [password, setPassword] = useState('');
   const [loadingText, setLoadingText] = useState('');
   const [authError, setAuthError] = useState('');
+  // The quick tour lives directly below the hero in the same scrolling
+  // document, so choosing it scrolls the page down rather than swapping
+  // screens — the hero stays where it was, just above.
+  const [tourStarted, setTourStarted] = useState(false);
+  const tourSectionRef = React.useRef<HTMLElement>(null);
   const { language, setLanguage, t } = useLanguage();
   const navigate = useNavigate();
 
@@ -177,6 +233,47 @@ const Onboarding = () => {
     }
   };
 
+  // Mounts the tour below the hero (if it isn't already there) and glides the
+  // page down onto it. Two frames of delay so the section has been laid out
+  // before we ask the browser to scroll to it.
+  const startTour = () => {
+    const scrollToTour = () => {
+      const el = tourSectionRef.current;
+      if (!el) return;
+      const targetY = el.getBoundingClientRect().top + window.scrollY;
+      const startY = window.scrollY;
+      const distance = targetY - startY;
+      const duration = 1200; // ms — slower, smoother glide
+      let startTime: number | null = null;
+
+      const easeInOutCubic = (t: number) =>
+        t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+      const step = (timestamp: number) => {
+        if (!startTime) startTime = timestamp;
+        const elapsed = timestamp - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        window.scrollTo(0, startY + distance * easeInOutCubic(progress));
+        if (progress < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    };
+
+    if (tourStarted) {
+      scrollToTour();
+      return;
+    }
+    setTourStarted(true);
+    requestAnimationFrame(() => requestAnimationFrame(scrollToTour));
+  };
+
+  // Leaving the tour: glide back up while it fades out, so the install screen
+  // takes over from a clean scroll position.
+  const finishTour = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setStep(2);
+  };
+
   // Roulette index state for Step 1
   const [greetingIndex, setGreetingIndex] = useState(0);
   // Starts on the auto-detected language so both language pickers below show
@@ -238,6 +335,8 @@ const Onboarding = () => {
       >
         <ScrollMorphHero
           icons={onboardingHeroIcons}
+          scrollLocked={!tourStarted}
+          onScrollPastEnd={startTour}
           scrollHint={t('scroll_to_explore')}
           introTitle={greetingRoulette}
           introSubtitle={
@@ -272,22 +371,28 @@ const Onboarding = () => {
               </span>
             </button>
             <button
-              onClick={() => setStep(2)}
+              onClick={startTour}
               className="w-full flex items-center justify-center h-[52px] bg-background text-foreground border border-border/30 rounded-full hover:bg-black/5 hover:scale-[1.02] transition-all active:scale-95 shadow-sm"
             >
               <span className="font-medium tracking-wide text-[15px]">
                 {t('onboarding_take_quick_tour')}
               </span>
             </button>
-            <motion.div
+            {/* Same destination as the tour button — the arrow is the one
+                people reach for when they've read "scroll to explore". */}
+            <motion.button
+              onClick={startTour}
               animate={{ y: [0, 4, 0] }}
               transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-              className="-mt-3 text-muted-foreground opacity-70"
+              className="-mt-3 p-1 text-muted-foreground opacity-70 hover:opacity-100 transition-opacity"
+              aria-label={t('onboarding_take_quick_tour')}
             >
               <ChevronDown className="w-5 h-5" />
-            </motion.div>
+            </motion.button>
           </div>
         </ScrollMorphHero>
+
+        {tourStarted && <CatalogTourSection ref={tourSectionRef} onContinue={finishTour} />}
       </motion.div>
     );
   };
@@ -489,8 +594,10 @@ const Onboarding = () => {
           </button>
           
           <div className="flex justify-center">
-            <button 
-              onClick={() => setStep(3)}
+            {/* Back to the install screen — step 3 no longer exists, and
+                pointing here at it rendered a blank page. */}
+            <button
+              onClick={() => setStep(2)}
               className="p-3 rounded-full hover:bg-zinc-50 text-zinc-400 transition-colors"
               aria-label="Back"
             >
