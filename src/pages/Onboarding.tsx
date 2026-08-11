@@ -103,17 +103,34 @@ const CatalogTourSection = React.forwardRef<HTMLElement, { onContinue: () => voi
 );
 CatalogTourSection.displayName = 'CatalogTourSection';
 
+// The scattered resting layout for the hero icons. Two rules shape it:
+//
+// 1. The middle third of the screen is left completely empty. The greeting and
+//    the language segmented control sit there, and on a phone that stack is as
+//    wide as the screen — anything placed at mid-height (the shoes and glasses
+//    used to be) lands on top of it. So the rows go 6% / 21% above it and
+//    24% / 10% from the bottom below it, and nothing is placed between.
+// 2. Rows alternate three icons and two, each offset into the gaps of the row
+//    before it, so it reads as a scatter rather than a grid — and the empty
+//    middle already has the shape of the ring the icons gather into on scroll.
+//
+// Top to bottom it also runs head to toe: cap and glasses highest, outerwear on
+// the shoulder line, tops, then trousers, shoes and bag along the floor.
+// Positions with no left/right are centered exactly (see the hero's parser),
+// which a percentage can't do. The order of the array is the clockwise order of
+// these spots around the center, which is also the order of the ring slots, so
+// the icons gather without flying across each other.
 const onboardingHeroIcons = [
-  { id: 1, icon: HoodieIcon, className: 'top-[8%] left-[8%]' },
-  { id: 2, icon: JacketIcon, className: 'top-[15%] right-[10%]' },
-  { id: 3, icon: BagIcon, className: 'bottom-[12%] left-[12%]' },
-  { id: 4, icon: PantsIcon, className: 'bottom-[10%] right-[10%]' },
-  { id: 5, icon: CapIcon, className: 'top-[5%] left-[42%]' },
-  { id: 6, icon: Footprints, className: 'top-[45%] left-[6%]' },
-  { id: 7, icon: Glasses, className: 'top-[42%] right-[7%]' },
-  { id: 8, icon: SweaterIcon, className: 'bottom-[6%] left-[42%]' },
-  { id: 9, icon: Shirt, className: 'top-[70%] left-[20%]' },
-  { id: 10, icon: PufferJacketIcon, className: 'top-[68%] right-[22%]' },
+  { id: 1, icon: HoodieIcon, className: 'bottom-[24%] right-[9%]' },
+  { id: 2, icon: BagIcon, className: 'bottom-[10%] right-[5%]' },
+  { id: 3, icon: Footprints, className: 'bottom-[10%]' },
+  { id: 4, icon: PantsIcon, className: 'bottom-[10%] left-[5%]' },
+  { id: 5, icon: Shirt, className: 'bottom-[24%] left-[9%]' },
+  { id: 6, icon: JacketIcon, className: 'top-[21%] left-[18%]' },
+  { id: 7, icon: CapIcon, className: 'top-[6%] left-[4%]' },
+  { id: 8, icon: Glasses, className: 'top-[6%]' },
+  { id: 9, icon: SweaterIcon, className: 'top-[6%] right-[4%]' },
+  { id: 10, icon: PufferJacketIcon, className: 'top-[21%] right-[18%]' },
 ];
 
 const Onboarding = () => {
@@ -243,7 +260,7 @@ const Onboarding = () => {
   // Leaving the tour: it fades out where it is, and the scroll is reset once
   // it's gone (see the AnimatePresence below). Scrolling the page back up
   // first would mean watching a screen you've already left travel past.
-  const finishTour = () => setStep(2);
+  const finishTour = () => setStep(4);
 
   // Roulette index state for Step 1
   const [greetingIndex, setGreetingIndex] = useState(0);
@@ -566,10 +583,9 @@ const Onboarding = () => {
           </button>
           
           <div className="flex justify-center">
-            {/* Back to the install screen — step 3 no longer exists, and
-                pointing here at it rendered a blank page. */}
+            {/* Back to the tour screen — steps 2 & 3 are skipped/removed. */}
             <button
-              onClick={() => setStep(2)}
+              onClick={() => setStep(0)}
               className="p-3 rounded-full hover:bg-zinc-50 text-zinc-400 transition-colors"
               aria-label="Back"
             >
