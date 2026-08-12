@@ -260,7 +260,7 @@ const Onboarding = () => {
   // Leaving the tour: it fades out where it is, and the scroll is reset once
   // it's gone (see the AnimatePresence below). Scrolling the page back up
   // first would mean watching a screen you've already left travel past.
-  const finishTour = () => setStep(4);
+  const finishTour = () => setStep(2);
 
   // Roulette index state for Step 1
   const [greetingIndex, setGreetingIndex] = useState(0);
@@ -583,9 +583,8 @@ const Onboarding = () => {
           </button>
           
           <div className="flex justify-center">
-            {/* Back to the tour screen — steps 2 & 3 are skipped/removed. */}
             <button
-              onClick={() => setStep(0)}
+              onClick={() => setStep(2)}
               className="p-3 rounded-full hover:bg-zinc-50 text-zinc-400 transition-colors"
               aria-label="Back"
             >
