@@ -223,7 +223,7 @@ const AboutSection = ({ onExplore }: { onExplore: () => void }) => {
           </motion.div>
 
           {/* The number, set the way the statement is: label, rule, figure. */}
-          <motion.div {...reveal(0.2)} className="mt-12 lg:mt-16">
+          <motion.div {...reveal(0.2)} className="mt-16 lg:mt-32">
             <p className="text-[14px] text-zinc-500 transition-colors duration-500">
               {t('about_stat_label')}
             </p>
