@@ -67,9 +67,9 @@ const LanguageSegmentedControl = ({
 // what someone gets access to, before being asked for a name and an email.
 const CatalogTourSection = React.forwardRef<
   HTMLElement,
-  { onContinue: () => void; isDark: boolean }
+  { onContinue: () => void }
 >(
-  ({ onContinue, isDark }, ref) => {
+  ({ onContinue }, ref) => {
     const { t } = useLanguage();
 
     // No background of its own: the page paints the surface underneath, and an
@@ -80,23 +80,17 @@ const CatalogTourSection = React.forwardRef<
           titleComponent={
             <div className="flex flex-col items-center gap-3 px-6">
               <span
-                className={`text-[10px] md:text-[11px] font-semibold uppercase tracking-[0.2em] transition-colors duration-500 ${
-                  isDark ? 'text-white/40' : 'text-zinc-400'
-                }`}
+                className="text-[10px] md:text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-400 transition-colors duration-500"
               >
                 {t('tour_preview_eyebrow')}
               </span>
               <h2
-                className={`text-[26px] md:text-[42px] font-semibold tracking-tight leading-none transition-colors duration-500 ${
-                  isDark ? 'text-white' : 'text-black'
-                }`}
+                className="text-[26px] md:text-[42px] font-semibold tracking-tight leading-none text-black transition-colors duration-500"
               >
                 {t('tour_preview_title')}
               </h2>
               <p
-                className={`max-w-sm text-[14px] md:text-[15px] font-light leading-relaxed transition-colors duration-500 ${
-                  isDark ? 'text-white/60' : 'text-zinc-500'
-                }`}
+                className="max-w-sm text-[14px] md:text-[15px] font-light leading-relaxed text-zinc-500 transition-colors duration-500"
               >
                 {t('tour_preview_subtitle')}
               </p>
@@ -117,11 +111,7 @@ const CatalogTourSection = React.forwardRef<
         >
           <button
             onClick={onContinue}
-            className={`w-full h-[56px] rounded-[20px] font-medium tracking-wide text-[16px] transition-all duration-500 hover:shadow-xl active:scale-[0.98] ${
-              isDark
-                ? 'bg-white text-zinc-900 hover:bg-zinc-100 hover:shadow-white/10'
-                : 'bg-zinc-900 text-white hover:bg-black hover:shadow-black/20'
-            }`}
+            className="w-full h-[56px] rounded-[20px] font-medium tracking-wide text-[16px] transition-all duration-500 hover:shadow-xl active:scale-[0.98] bg-zinc-900 text-white hover:bg-black hover:shadow-black/20"
           >
             {t('install_app_continue')}
           </button>
@@ -210,38 +200,6 @@ const Onboarding = () => {
   // document, so reaching it is scrolling the page — never a screen swap.
   const tourSectionRef = React.useRef<HTMLElement>(null);
   const { language, setLanguage, t } = useLanguage();
-
-  // --- Nightfall ---
-  // Leaving the welcome screen, the page itself goes dark. The window is the
-  // half-screen of scroll between the tour section first appearing at the
-  // bottom edge and its top reaching the middle of the viewport: by the time
-  // the tablet is properly in view the surface behind it is black, so the lit
-  // screen inside the frame is the brightest thing on the page — which is the
-  // whole point of showing it.
-  //
-  // Driven off the tour section rather than the hero because that is the
-  // element actually arriving; anchoring to the hero's runway would tie the
-  // fade to a scroll distance that changes with the viewport's height.
-  const { scrollYProgress: nightfall } = useScroll({
-    target: tourSectionRef,
-    offset: ['start end', 'start center'],
-  });
-  const surface = useTransform(nightfall, [0, 1], ['#ffffff', '#000000']);
-
-  // The colour of the surface is continuous, but the copy on top of it can
-  // only be one thing or the other, so it swaps once at the halfway point and
-  // rides its own CSS transition across. Kept as state rather than read from
-  // the motion value during render so the swap doesn't re-render every frame.
-  const [isDark, setIsDark] = useState(false);
-  useMotionValueEvent(nightfall, 'change', (v) => {
-    setIsDark((was) => {
-      // A dead band around the threshold: without it, resting the scroll exactly
-      // on 0.5 flickers the whole page between black and white.
-      if (!was && v > 0.55) return true;
-      if (was && v < 0.45) return false;
-      return was;
-    });
-  });
 
   // The names are resolved once per language rather than on every render. The
   // hero derives each icon's entrance geometry from this array and recomputes
@@ -428,14 +386,8 @@ const Onboarding = () => {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0, scale: 1.02 }}
         transition={{ duration: DURATION.screen, ease: EASE_SOFT }}
-        className="relative w-full h-full min-h-screen text-black select-none"
+        className="relative w-full h-full min-h-screen bg-white text-black select-none"
       >
-        {/* The surface. Absolute rather than fixed: it spans the whole of this
-            screen's scroll, so it needs no viewport pinning, and staying in the
-            normal stacking order keeps it behind the positioned hero and tour
-            sections without a z-index arms race. */}
-        <motion.div className="absolute inset-0" style={{ backgroundColor: surface }} />
-
         <ScrollMorphHero
           icons={heroIcons}
           // The stage has to let the surface through, or the page would stay
@@ -462,9 +414,7 @@ const Onboarding = () => {
           }
           revealTitle={
             <div
-              className={`font-serif text-[48px] md:text-[56px] leading-none flex items-center justify-center tracking-tight select-none font-light transition-colors duration-500 ${
-                isDark ? 'text-white' : 'text-foreground'
-              }`}
+              className="font-serif text-[48px] md:text-[56px] leading-none flex items-center justify-center tracking-tight select-none font-light transition-colors duration-500 text-foreground"
             >
               <span>V</span>
               <motion.span
@@ -482,11 +432,7 @@ const Onboarding = () => {
               onClick={() => {
                 navigate('/login');
               }}
-              className={`w-full flex items-center justify-center h-[52px] rounded-full hover:scale-[1.02] transition-all duration-500 active:scale-95 shadow-xl ${
-                isDark
-                  ? 'bg-white text-black shadow-white/10'
-                  : 'bg-foreground text-background shadow-black/10'
-              }`}
+              className="w-full flex items-center justify-center h-[52px] rounded-full hover:scale-[1.02] transition-all duration-500 active:scale-95 shadow-xl bg-foreground text-background shadow-black/10"
             >
               <span className="font-medium tracking-wide text-[15px]">
                 {t('onboarding_already_member')}
@@ -494,11 +440,7 @@ const Onboarding = () => {
             </button>
             <button
               onClick={startTour}
-              className={`w-full flex items-center justify-center h-[52px] backdrop-blur-md border rounded-full hover:scale-[1.02] transition-all duration-500 active:scale-95 ${
-                isDark
-                  ? 'bg-white/10 text-white border-white/20 hover:bg-white/20'
-                  : 'bg-black/5 text-foreground border-black/10 hover:bg-black/10'
-              }`}
+              className="w-full flex items-center justify-center h-[52px] backdrop-blur-md border rounded-full hover:scale-[1.02] transition-all duration-500 active:scale-95 bg-black/5 text-foreground border-black/10 hover:bg-black/10"
             >
               <span className="font-medium tracking-wide text-[15px]">
                 {t('onboarding_take_quick_tour')}
@@ -510,9 +452,7 @@ const Onboarding = () => {
               onClick={startTour}
               animate={{ y: [0, 4, 0] }}
               transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-              className={`-mt-3 p-1 opacity-70 hover:opacity-100 transition-all duration-500 ${
-                isDark ? 'text-white' : 'text-muted-foreground'
-              }`}
+              className="-mt-3 p-1 opacity-70 hover:opacity-100 transition-all duration-500 text-muted-foreground"
               aria-label={t('onboarding_take_quick_tour')}
             >
               <ChevronDown className="w-5 h-5" />
@@ -523,7 +463,7 @@ const Onboarding = () => {
         {/* Always in the document, directly below the hero's runway: carrying
             on scrolling arrives here with nothing to trigger or wait for, and
             scrolling back up unwinds the ring exactly as it was built. */}
-        <CatalogTourSection ref={tourSectionRef} onContinue={finishTour} isDark={isDark} />
+        <CatalogTourSection ref={tourSectionRef} onContinue={finishTour} />
       </motion.div>
     );
   };
