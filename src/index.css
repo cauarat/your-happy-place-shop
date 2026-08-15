@@ -139,3 +139,15 @@
     @apply border-t border-border;
   }
 }
+
+/* PROJECT RULE — do not remove. The "Edit with Lovable" badge is injected into
+   the served page by the host, not by this app, and Villaoro ships without it.
+   index.html carries the same rule (it lands earlier, so it's the one that
+   prevents any flash); this copy travels with the bundle in case a Lovable sync
+   ever rewrites index.html. Deliberately outside @layer so nothing in Tailwind
+   can order itself after it. See CLAUDE.md. */
+html body #lovable-badge,
+#lovable-badge {
+  display: none !important;
+  pointer-events: none !important;
+}

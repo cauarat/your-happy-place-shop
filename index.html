@@ -31,7 +31,54 @@
   <meta name="twitter:title" content="Villaoro">
   <meta property="og:description" content="Villaoro: curated luxury footwear, clothing, bags and jewelry from Brunello, Zegna, Hermes and more. Timeless pieces, considered design.">
   <meta name="twitter:description" content="Villaoro: curated luxury footwear, clothing, bags and jewelry from Brunello, Zegna, Hermes and more. Timeless pieces, considered design.">
-<script src="/error-logger.js"></script></head>
+<script src="/error-logger.js"></script>
+
+  <!-- PROJECT RULE — do not remove.
+       Lovable's host layer injects an "Edit with Lovable" badge (an
+       <aside id="lovable-badge">) into the page it serves. It isn't part of
+       this repo, so it can't be deleted from source; Villaoro ships without
+       it, so the two blocks below hold it permanently in the state its own
+       Dismiss button produces. See CLAUDE.md. -->
+  <style>
+    /* `html body` rather than a bare id: if the injected stylesheet ever ships
+       its own `!important` display rule, the higher specificity wins whichever
+       of the two lands in the document last. */
+    html body #lovable-badge,
+    #lovable-badge {
+      display: none !important;
+      pointer-events: none !important;
+    }
+  </style>
+  <script>
+    // The CSS above is what actually hides it, from the first paint, with no
+    // flash. This puts the element itself into the dismissed state as well —
+    // same class and inline style the Dismiss button sets — so the badge is
+    // out of the layout and untabbable even if the stylesheet is overridden.
+    (function () {
+      var dismiss = function () {
+        var badge = document.getElementById('lovable-badge');
+        if (!badge) return false;
+        badge.classList.add('closing');
+        badge.style.display = 'none';
+        badge.setAttribute('aria-hidden', 'true');
+        return true;
+      };
+      var start = function () {
+        if (dismiss()) return;
+        // The badge is served in the HTML, so it's normally already there by
+        // now. This only covers it being injected a beat later, and stops
+        // watching once it has been — nothing re-creates it after that.
+        var observer = new MutationObserver(function () {
+          if (dismiss()) observer.disconnect();
+        });
+        observer.observe(document.body, { childList: true });
+        setTimeout(function () { observer.disconnect(); }, 20000);
+      };
+      if (document.body) start();
+      else document.addEventListener('DOMContentLoaded', start);
+    })();
+  </script>
+</head>
 
   <body>
     <div id="root"></div>
