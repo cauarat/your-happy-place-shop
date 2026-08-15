@@ -14,18 +14,20 @@ const SortBar = ({ sort, setSort, showTitle = true }: { sort: SortKey; setSort: 
 
   return (
     <aside>
-      {showTitle && (
-        <p className="text-[10px] lowercase font-bold tracking-[0.2em] mb-4 text-black border-b border-black pb-1 inline-block">
-          {t('sort')}
-        </p>
-      )}
-      <ul className="space-y-1.5">
+      {showTitle && <p className="eyebrow mb-4">{t('sort')}</p>}
+      {/* The selected option is marked by a rule under it rather than by
+          weight — swapping font-weight on selection shifts the width of every
+          label and makes the whole list twitch as you move between them. */}
+      <ul className="space-y-2">
         {options.map((o) => (
           <li key={o.key}>
             <button
               onClick={() => setSort(o.key)}
-              className={`text-[11px] tracking-wide transition-colors text-left whitespace-nowrap pb-0.5 border-b ${
-                sort === o.key ? "text-black font-medium border-black" : "text-[#888] hover:text-black border-transparent"
+              aria-pressed={sort === o.key}
+              className={`type-label whitespace-nowrap border-b-hairline pb-1 text-left transition-colors duration-base ease-sine ${
+                sort === o.key
+                  ? "border-ink text-ink"
+                  : "border-transparent text-ink/45 hover:text-ink"
               }`}
             >
               {o.label}

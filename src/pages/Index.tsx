@@ -22,6 +22,7 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from "framer-motion";
+import { Reveal, Eyebrow } from "@/components/system";
 import { X, Newspaper, ChevronDown, ChevronUp, SlidersHorizontal, Package, MessageSquare, Send, CheckCircle } from "lucide-react";
 
 /* Shared slide-down animation config — mirrors LanguageSwitcher */
@@ -412,37 +413,37 @@ const Index = () => {
     <div className="min-h-screen flex flex-col bg-white">
       <Header />
 
-      <main className="flex-1 w-full px-0 md:px-0 pb-[96px] xl:pb-0">
+      {/* The category dock is fixed at every width, so the clearance under the
+          content has to be too — `xl:pb-0` was letting the dock sit on top of
+          the last row of products on large screens. */}
+      <main className="w-full flex-1 pb-24">
 
-        {/* Active Filter Label & Count */}
+        {/* The catalogue bar. Pinned directly under the masthead, it answers
+            the two questions someone scrolling a filtered grid actually has:
+            what am I looking at, and how many are there. The count is the
+            piece the old bar was missing entirely. */}
         <div
-          className={cn(
-            "sticky top-[env(safe-area-inset-top)] z-40 w-full pb-6 -mb-6 pointer-events-none transition-all duration-300",
-            isScrolled ? "pt-5 sm:pt-6" : "pt-0"
-          )}
-          style={{
-            background: 'linear-gradient(to bottom, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0) 100%)',
-            backdropFilter: 'blur(40px) saturate(180%)',
-            WebkitBackdropFilter: 'blur(40px) saturate(180%)',
-            maskImage: 'linear-gradient(to bottom, black 0%, black 22px, transparent 100%)',
-            WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 22px, transparent 100%)',
-          }}
+          className="sticky z-40 w-full bg-paper/90 backdrop-blur-xl backdrop-saturate-150 hairline-b"
+          style={{ top: 'calc(var(--masthead-h) + env(safe-area-inset-top))' }}
         >
-          <div className="relative flex items-center justify-center px-3 sm:px-6 lg:px-10 py-1 w-full pointer-events-auto">
-            <button 
+          <div className="shell-wide flex h-11 items-center justify-between gap-4">
+            <button
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-              className="flex items-center justify-center gap-1.5 overflow-hidden w-full max-w-[75%] sm:max-w-[85%] mx-auto hover:opacity-70 transition-opacity cursor-pointer group"
+              className="group flex min-w-0 items-center gap-2 transition-opacity duration-base ease-sine hover:opacity-60"
             >
-              <span className="text-[11px] sm:text-xs font-semibold tracking-widest uppercase truncate text-black text-center">
-                {topBarLabel}
+              <span className="type-label truncate text-ink">{topBarLabel}</span>
+              <span className="type-label shrink-0 text-ink/35 tabular-nums">
+                {filtered.length}
               </span>
-              <motion.div
-                animate={{ rotate: isScrolled ? 0 : 90 }}
-                transition={{ duration: 0.35, ease: "easeInOut" }}
+              <motion.span
+                animate={{ rotate: isScrolled ? 0 : 90, opacity: isScrolled ? 1 : 0.35 }}
+                transition={{ duration: 0.4, ease: [0.445, 0.05, 0.55, 0.95] }}
+                className="shrink-0"
               >
-                <ChevronUp size={14} strokeWidth={2.5} className="text-black/60 group-hover:text-black transition-colors" />
-              </motion.div>
+                <ChevronUp size={13} strokeWidth={2} className="text-ink/60" />
+              </motion.span>
             </button>
+
             {/* Clear Filters Button (only if filters are active) */}
             {(category !== "All" || designer !== "All" || showSaleOnly || searchQuery.trim() || selectedColor || selectedDesigner) && (
               <button
@@ -454,10 +455,10 @@ const Index = () => {
                   setSelectedColor(null);
                   setSelectedDesigner(null);
                 }}
-                className="absolute right-3 sm:right-6 lg:right-10 text-[10px] sm:text-[11px] uppercase tracking-widest font-semibold text-[#666] hover:text-black transition-colors shrink-0 flex items-center gap-1"
+                className="type-label flex shrink-0 items-center gap-1.5 text-ink/45 transition-colors duration-base ease-sine hover:text-ink"
               >
-                <span className="hidden sm:inline">{t('clear') || 'Clear'}</span>
-                <X size={12} />
+                <span>{t('clear') || 'Clear'}</span>
+                <X size={11} strokeWidth={2} />
               </button>
             )}
           </div>
@@ -465,38 +466,40 @@ const Index = () => {
 
         <div className="min-h-[calc(100vh-200px)] flex">
           {/* Product Grid (Full Width) */}
-          <div className="flex-1 px-2.5 sm:px-4 pb-3 lg:pb-6 pt-0 w-full">
+          <div className="shell-wide flex-1 pb-3 pt-6 sm:pt-8 lg:pb-6">
             {isLoading ?
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-1 sm:gap-x-2 lg:gap-x-4 gap-y-4 sm:gap-y-5 lg:gap-y-8">
-                {Array(12).fill(0).map((_, i) =>
-                  <div key={i} className="animate-pulse">
-                    <div className="aspect-[4/5] bg-[#f0efed]" />
-                    <div className="mt-3 space-y-2">
-                      <div className="h-2.5 bg-[#e8e8e8] rounded w-1/3" />
-                      <div className="h-3 bg-[#e8e8e8] rounded w-3/4" />
-                      <div className="h-3 bg-[#e8e8e8] rounded w-1/4" />
+              // The skeleton is the grid, at the grid's real proportions, so
+              // nothing reflows when the products land.
+              <div className="grid grid-cols-2 gap-x-[var(--grid-gap)] gap-y-8 sm:grid-cols-3 lg:grid-cols-4 lg:gap-y-12 xl:grid-cols-5">
+                {Array(15).fill(0).map((_, i) =>
+                  <div key={i}>
+                    <div className="skeleton aspect-square" />
+                    <div className="mt-3.5 space-y-2">
+                      <div className="skeleton h-2.5 w-1/3" />
+                      <div className="skeleton h-2.5 w-3/4" />
+                      <div className="skeleton h-2.5 w-1/4" />
                     </div>
                   </div>
                 )}
               </div> :
               filtered.length === 0 ?
-                <div className="flex flex-col items-center justify-center py-20 sm:py-32 px-4 text-center w-full max-w-2xl mx-auto font-sans">
+                <div className="mx-auto flex w-full max-w-2xl flex-col items-center justify-center px-4 py-20 text-center sm:py-32">
                   <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
+                    initial={{ opacity: 0, scale: 0.94 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
-                    className="w-20 h-20 mb-8 rounded-full bg-gradient-to-b from-[#f7f7f7] to-[#ececec] flex items-center justify-center shadow-[0_2px_12px_rgba(0,0,0,0.06)]"
+                    transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                    className="mb-7 flex h-14 w-14 items-center justify-center rounded-full border-hairline border-ink/15"
                   >
-                    <ShoppingBag className="w-8 h-8 text-[#555] stroke-[1.5]" />
+                    <ShoppingBag className="h-5 w-5 text-ink/40" strokeWidth={1.5} />
                   </motion.div>
 
                   <motion.h3
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4, delay: 0.1 }}
-                    className="text-lg sm:text-xl md:text-2xl font-semibold mb-4 leading-snug tracking-tight text-[#111]"
+                    className="type-h3 mb-3 max-w-md"
                   >
-                    {(user?.user_metadata?.first_name?.split(' ')[0] || 'Usuário').replace(/,/g, '')}, {t('we_dont_have_yet')} "{activeFilters.length > 0 ? activeFilters.join(" ") : t("products").toLowerCase()}"
+                    {(user?.user_metadata?.first_name?.split(' ')[0] || 'Usuário').replace(/,/g, '')}, {t('we_dont_have_yet')} “{activeFilters.length > 0 ? activeFilters.join(" ") : t("products").toLowerCase()}”
                   </motion.h3>
 
                   {/* Action buttons row */}
@@ -504,9 +507,9 @@ const Index = () => {
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4, delay: 0.2 }}
-                    className="flex justify-center mb-10"
+                    className="mb-12 mt-5 flex justify-center"
                   >
-                    <button 
+                    <button
                       onClick={() => {
                         setSearchQuery("");
                         setCategory("All");
@@ -514,7 +517,7 @@ const Index = () => {
                         setShowSaleOnly(false);
                         setSelectedColor(null);
                       }}
-                      className="px-8 py-2.5 bg-black text-white text-sm font-bold rounded-full hover:bg-black/90 transition-all active:scale-[0.97]"
+                      className="btn btn-solid"
                     >
                       {t('clear_all_filters')}
                     </button>
@@ -530,20 +533,17 @@ const Index = () => {
                     {/* Request a Product Card */}
                     <button
                       onClick={() => setSuggestionCard('product')}
-                      className={`group relative text-left p-5 rounded-2xl border transition-all duration-300 ${
+                      aria-pressed={suggestionCard === 'product'}
+                      className={`group relative border-hairline p-5 text-left transition-colors duration-base ease-sine ${
                         suggestionCard === 'product'
-                          ? 'border-black bg-black text-white shadow-lg scale-[1.02]'
-                          : 'border-border/80 bg-white/80 backdrop-blur-sm hover:border-black/30 hover:shadow-md hover:scale-[1.01]'
+                          ? 'border-ink bg-ink text-paper'
+                          : 'border-ink/15 bg-paper hover:border-ink/40'
                       }`}
                     >
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 transition-colors ${
-                        suggestionCard === 'product' ? 'bg-white/15' : 'bg-[#f5f5f5] group-hover:bg-[#eee]'
-                      }`}>
-                        <Package className="w-5 h-5" strokeWidth={1.5} />
-                      </div>
-                      <h4 className="text-[14px] font-semibold mb-1 tracking-tight">{t('suggest_product')}</h4>
+                      <Package className="mb-4 h-4 w-4" strokeWidth={1.5} />
+                      <h4 className="type-label mb-2">{t('suggest_product')}</h4>
                       <p className={`text-[12px] leading-relaxed ${
-                        suggestionCard === 'product' ? 'text-white/70' : 'text-[#888]'
+                        suggestionCard === 'product' ? 'text-paper/60' : 'text-ink/50'
                       }`}>
                         {t('suggest_product_desc')}
                       </p>
@@ -552,20 +552,17 @@ const Index = () => {
                     {/* Send Feedback Card */}
                     <button
                       onClick={() => setSuggestionCard('feedback')}
-                      className={`group relative text-left p-5 rounded-2xl border transition-all duration-300 ${
+                      aria-pressed={suggestionCard === 'feedback'}
+                      className={`group relative border-hairline p-5 text-left transition-colors duration-base ease-sine ${
                         suggestionCard === 'feedback'
-                          ? 'border-black bg-black text-white shadow-lg scale-[1.02]'
-                          : 'border-border/80 bg-white/80 backdrop-blur-sm hover:border-black/30 hover:shadow-md hover:scale-[1.01]'
+                          ? 'border-ink bg-ink text-paper'
+                          : 'border-ink/15 bg-paper hover:border-ink/40'
                       }`}
                     >
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 transition-colors ${
-                        suggestionCard === 'feedback' ? 'bg-white/15' : 'bg-[#f5f5f5] group-hover:bg-[#eee]'
-                      }`}>
-                        <MessageSquare className="w-5 h-5" strokeWidth={1.5} />
-                      </div>
-                      <h4 className="text-[14px] font-semibold mb-1 tracking-tight">{t('suggest_site')}</h4>
+                      <MessageSquare className="mb-4 h-4 w-4" strokeWidth={1.5} />
+                      <h4 className="type-label mb-2">{t('suggest_site')}</h4>
                       <p className={`text-[12px] leading-relaxed ${
-                        suggestionCard === 'feedback' ? 'text-white/70' : 'text-[#888]'
+                        suggestionCard === 'feedback' ? 'text-paper/60' : 'text-ink/50'
                       }`}>
                         {t('suggest_site_desc')}
                       </p>
@@ -605,7 +602,7 @@ const Index = () => {
                           }, 3000);
                         }}
                       >
-                        <div className="rounded-2xl border border-border/80 bg-white p-5 space-y-3 shadow-sm">
+                        <div className="space-y-3 border-hairline border-ink/15 bg-paper p-5">
                           {suggestionCard === 'product' ? (
                             <>
                               <div className="grid grid-cols-2 gap-3">
@@ -614,20 +611,20 @@ const Index = () => {
                                   type="text"
                                   required
                                   placeholder={t('product_name_placeholder')}
-                                  className="w-full px-4 py-3 bg-[#f8f8f8] border-none rounded-xl text-sm placeholder:text-[#bbb] focus:outline-none focus:ring-2 focus:ring-black/10 transition-shadow"
+                                  className="w-full border-hairline border-ink/15 bg-surface-sunken px-4 py-3 text-sm text-ink placeholder:text-ink/35 transition-colors duration-base ease-sine focus:border-ink focus:outline-none"
                                 />
                                 <input
                                   name="productBrand"
                                   type="text"
                                   placeholder={t('product_brand_placeholder')}
-                                  className="w-full px-4 py-3 bg-[#f8f8f8] border-none rounded-xl text-sm placeholder:text-[#bbb] focus:outline-none focus:ring-2 focus:ring-black/10 transition-shadow"
+                                  className="w-full border-hairline border-ink/15 bg-surface-sunken px-4 py-3 text-sm text-ink placeholder:text-ink/35 transition-colors duration-base ease-sine focus:border-ink focus:outline-none"
                                 />
                               </div>
                               <input
                                 name="email"
                                 type="email"
                                 placeholder={t('your_email_placeholder')}
-                                className="w-full px-4 py-3 bg-[#f8f8f8] border-none rounded-xl text-sm placeholder:text-[#bbb] focus:outline-none focus:ring-2 focus:ring-black/10 transition-shadow"
+                                className="w-full border-hairline border-ink/15 bg-surface-sunken px-4 py-3 text-sm text-ink placeholder:text-ink/35 transition-colors duration-base ease-sine focus:border-ink focus:outline-none"
                               />
                             </>
                           ) : (
@@ -637,19 +634,19 @@ const Index = () => {
                                 required
                                 rows={3}
                                 placeholder={t('your_suggestion_placeholder')}
-                                className="w-full px-4 py-3 bg-[#f8f8f8] border-none rounded-xl text-sm placeholder:text-[#bbb] focus:outline-none focus:ring-2 focus:ring-black/10 transition-shadow resize-none"
+                                className="w-full resize-none border-hairline border-ink/15 bg-surface-sunken px-4 py-3 text-sm text-ink placeholder:text-ink/35 transition-colors duration-base ease-sine focus:border-ink focus:outline-none"
                               />
                               <input
                                 name="email"
                                 type="email"
                                 placeholder={t('your_email_placeholder')}
-                                className="w-full px-4 py-3 bg-[#f8f8f8] border-none rounded-xl text-sm placeholder:text-[#bbb] focus:outline-none focus:ring-2 focus:ring-black/10 transition-shadow"
+                                className="w-full border-hairline border-ink/15 bg-surface-sunken px-4 py-3 text-sm text-ink placeholder:text-ink/35 transition-colors duration-base ease-sine focus:border-ink focus:outline-none"
                               />
                             </>
                           )}
                           <button
                             type="submit"
-                            className="w-full py-3 bg-black text-white text-sm font-semibold rounded-xl hover:bg-black/90 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+                            className="btn btn-solid btn-block"
                           >
                             <Send className="w-4 h-4" />
                             {t('send_suggestion')}
@@ -667,9 +664,9 @@ const Index = () => {
                         transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
                         className="mt-4 w-full max-w-lg"
                       >
-                        <div className="rounded-2xl bg-[#f0fdf4] border border-[#bbf7d0] p-6 flex flex-col items-center gap-2">
-                          <CheckCircle className="w-8 h-8 text-[#16a34a]" strokeWidth={1.5} />
-                          <p className="text-sm font-medium text-[#15803d]">
+                        <div className="flex flex-col items-center gap-3 border-hairline border-ink/15 bg-surface-sunken p-6">
+                          <CheckCircle className="h-6 w-6 text-ink" strokeWidth={1.5} />
+                          <p className="type-label text-ink/70">
                             {suggestionCard === 'product' ? t('suggestion_sent_product') : t('suggestion_sent')}
                           </p>
                         </div>
@@ -686,32 +683,39 @@ const Index = () => {
                   className="flex flex-col w-full"
                 >
                   {filteredByDesigner.map(({ designer: brandName, products: brandProducts }, sectionIndex) => (
-                    <section key={brandName}>
-                      {/* Big brand name header */}
-                      <div className={`flex flex-col items-center justify-center pb-5 sm:pb-7 md:pb-9 ${sectionIndex === 0 ? "pt-1 sm:pt-2" : "pt-10 sm:pt-14 md:pt-16"}`}>
-                        <motion.button
+                    <section key={brandName} className={sectionIndex === 0 ? "pt-1" : "pt-14 sm:pt-20 lg:pt-24"}>
+                      {/* House header. Left-aligned and numbered: a run of
+                          these reads as a contents page rather than a stack of
+                          unrelated centred titles, and the rule underneath
+                          gives each section a floor to sit on.
+
+                          Revealed on scroll rather than on mount — the old
+                          mount animation fired for every section at once,
+                          including the ones four screens below the fold, so by
+                          the time you got there they had already played. */}
+                      <Reveal className="mb-6 flex items-end justify-between gap-6 pb-5 hairline-b sm:mb-8 sm:pb-6">
+                        <button
                           onClick={() => { setDesigner(designer === brandName ? "All" : brandName); setIsDesignersOpen(false); }}
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.4, delay: sectionIndex * 0.08 }}
-                          className="flex flex-col items-center gap-1.5 hover:opacity-60 transition-opacity cursor-pointer group"
+                          className="group flex min-w-0 flex-col items-start gap-2.5 text-left"
+                          aria-pressed={designer === brandName}
                         >
-                          <span className="text-[1.6rem] sm:text-[2rem] md:text-[2.6rem] font-black uppercase leading-none tracking-tight text-black text-center">
+                          <Eyebrow index={String(sectionIndex + 1).padStart(2, "0")}>
+                            {designer === brandName ? (t('clear') || 'Clear') : (t('brands') || 'House')}
+                          </Eyebrow>
+                          <span className="type-h1 block truncate uppercase transition-opacity duration-base ease-sine group-hover:opacity-55">
                             {brandName}
                           </span>
-                          <span className="text-[11px] sm:text-xs font-semibold tracking-widest text-[#888] group-hover:text-black transition-colors">
-                            ({brandProducts.length})
-                          </span>
-                        </motion.button>
-                      </div>
+                        </button>
+                        <span className="type-label shrink-0 pb-1.5 text-ink/40 tabular-nums">
+                          {brandProducts.length}
+                        </span>
+                      </Reveal>
 
-                      {/* Product Carousel */}
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ duration: 0.4, delay: sectionIndex * 0.08 + 0.12 }}
-                        className="w-full mb-0 relative group"
-                      >
+                      {/* Product rail. Cards are revealed as a group rather
+                          than one by one — a per-card stagger inside a
+                          horizontally scrolling rail animates items that are
+                          off to the right and never seen. */}
+                      <Reveal delay={0.05} className="relative w-full">
                         <Carousel
                           opts={{
                             align: "start",
@@ -719,22 +723,18 @@ const Index = () => {
                           }}
                           className="w-full"
                         >
-                          <CarouselContent className="-ml-1 sm:-ml-2 lg:-ml-4">
+                          <CarouselContent className="-ml-[var(--grid-gap)]">
                             {brandProducts.map((product, i) => (
-                              <CarouselItem key={product.id} className="pl-1 sm:pl-2 lg:pl-4 basis-1/2 md:basis-1/4">
-                                <motion.div
-                                  initial={{ opacity: 0, y: 15 }}
-                                  animate={{ opacity: 1, y: 0 }}
-                                  transition={{ duration: 0.35, delay: i * 0.04 }}
-                                  className="h-full"
-                                >
-                                  <ProductCard product={product} index={sectionIndex * 10 + i} isFeatured={false} />
-                                </motion.div>
+                              <CarouselItem
+                                key={product.id}
+                                className="basis-1/2 pl-[var(--grid-gap)] sm:basis-1/3 lg:basis-1/4 xl:basis-1/5"
+                              >
+                                <ProductCard product={product} index={sectionIndex * 10 + i} isFeatured={false} />
                               </CarouselItem>
                             ))}
                           </CarouselContent>
                         </Carousel>
-                      </motion.div>
+                      </Reveal>
                     </section>
                   ))}
                 </motion.div>
@@ -749,7 +749,7 @@ const Index = () => {
         style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)' }}
       >
         {/* Outer frosted-glass pill */}
-        <div className="bg-[#f2f2f6]/70 backdrop-blur-[32px] saturate-[180%] rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.12),0_2px_8px_rgba(0,0,0,0.06),inset_0_1px_1px_rgba(255,255,255,0.8)] overflow-hidden pointer-events-auto border border-white/20 mx-3 max-w-[100vw]">
+        <div className="pointer-events-auto mx-3 max-w-[100vw] overflow-hidden rounded-full border-hairline border-ink/10 bg-paper/85 shadow-pop backdrop-blur-2xl backdrop-saturate-150">
           <div
             ref={bottomScrollRef}
             data-tour="category-scroll"
@@ -768,17 +768,17 @@ const Index = () => {
                   {isAllActive && (
                     <motion.div
                       layoutId="active-dock-bg"
-                      className="absolute inset-0 rounded-full bg-black z-0 shadow-[inset_0_1px_2px_rgba(255,255,255,0.15)]"
-                      transition={{ type: 'spring', stiffness: 120, damping: 20, mass: 1 }}
+                      className="absolute inset-0 z-0 rounded-full bg-ink"
+                      transition={{ type: 'spring', stiffness: 220, damping: 28, mass: 0.7 }}
                     />
                   )}
                   <motion.span 
                     className="relative z-10 flex flex-col items-center gap-0.5"
-                    animate={{ color: isAllActive ? '#ffffff' : '#4a4a4d' }}
+                    animate={{ color: isAllActive ? '#ffffff' : 'rgba(17,17,17,0.55)' }}
                     transition={{ duration: 0.15, ease: "linear" }}
                   >
                     <SlidersHorizontal size={20} strokeWidth={isAllActive ? 2 : 1.7} />
-                    <span className="text-[9px] font-semibold tracking-wide">All</span>
+                    <span className="font-mono text-[8.5px] uppercase tracking-[0.1em]">All</span>
                   </motion.span>
                 </motion.button>
               );
@@ -799,7 +799,7 @@ const Index = () => {
                   animate={{ color: '#4a4a4d' }}
                 >
                   <Newspaper size={20} strokeWidth={1.7} />
-                  <span className="text-[9px] font-semibold tracking-wide">{t('news') || 'News'}</span>
+                  <span className="font-mono text-[8.5px] uppercase tracking-[0.1em]">{t('news') || 'News'}</span>
                 </motion.span>
               </motion.button>
             )}
@@ -819,8 +819,8 @@ const Index = () => {
                   {isSaleActive && (
                     <motion.div
                       layoutId="active-dock-bg"
-                      className="absolute inset-0 rounded-full bg-black z-0 shadow-[inset_0_1px_2px_rgba(255,255,255,0.15)]"
-                      transition={{ type: 'spring', stiffness: 120, damping: 20, mass: 1 }}
+                      className="absolute inset-0 z-0 rounded-full bg-ink"
+                      transition={{ type: 'spring', stiffness: 220, damping: 28, mass: 0.7 }}
                     />
                   )}
                   <motion.span 
@@ -829,7 +829,7 @@ const Index = () => {
                     transition={{ duration: 0.15, ease: "linear" }}
                   >
                     <span className="text-[18px] leading-none font-light">%</span>
-                    <span className="text-[9px] font-semibold tracking-wide">{t('sale')}</span>
+                    <span className="font-mono text-[8.5px] uppercase tracking-[0.1em]">{t('sale')}</span>
                   </motion.span>
                 </motion.button>
               );
@@ -859,19 +859,19 @@ const Index = () => {
                     {isActive && (
                       <motion.div
                         layoutId="active-dock-bg"
-                        className="absolute inset-0 rounded-full bg-black z-0 shadow-[inset_0_1px_2px_rgba(255,255,255,0.15)]"
+                        className="absolute inset-0 z-0 rounded-full bg-ink"
                         transition={{ type: 'spring', stiffness: 120, damping: 20, mass: 1 }}
                       />
                     )}
                     <motion.span 
                       className="relative z-10 flex flex-col items-center gap-0.5"
-                      animate={{ color: isActive ? '#ffffff' : '#4a4a4d' }}
+                      animate={{ color: isActive ? '#ffffff' : 'rgba(17,17,17,0.55)' }}
                       transition={{ duration: 0.15, ease: "linear" }}
                     >
                       {Icon
                         ? <Icon size={20} strokeWidth={isActive ? 2 : 1.7} />
                         : <span className="w-5 h-5" />}
-                      <span className="text-[9px] font-semibold tracking-wide leading-tight max-w-[48px] text-center">
+                      <span className="font-mono text-[8.5px] uppercase leading-tight tracking-[0.1em] max-w-[52px] text-center">
                         {t(c.toLowerCase()) === c.toLowerCase() ? c : t(c.toLowerCase())}
                       </span>
                     </motion.span>

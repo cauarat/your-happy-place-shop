@@ -30,6 +30,17 @@ const Header = () => {
   const colorFilterRef = useRef<HTMLDivElement>(null);
   const [isBrandFilterOpen, setIsBrandFilterOpen] = useState(false);
   const [isColorFilterOpen, setIsColorFilterOpen] = useState(false);
+  // Drives the masthead's collapse. Read straight off the scroll position with
+  // a passive listener rather than a motion value — this is a boolean that
+  // flips once, not a value that animates.
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setIsScrolled(window.scrollY > 24);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   const getGreetingKey = () => {
     const hour = new Date().getHours();
@@ -140,15 +151,53 @@ const Header = () => {
   ];
 
 
+  const navItems = [
+    { label: t('shop') || 'Shop', to: '/' },
+    ...(enableNews ? [{ label: t('news') || 'News', to: '/news' }] : []),
+    { label: t('community_looks') || 'Community', to: '/community' },
+  ];
+
   return (
     <>
-      {/* Right Nav - Floating outside header so it stays fixed on scroll */}
-      <div className="fixed top-[env(safe-area-inset-top)] right-0 h-14 sm:h-16 px-5 sm:px-6 lg:px-8 flex items-center justify-end gap-3 sm:gap-4 lg:gap-5 shrink-0 z-[100] pointer-events-none">
-        <div className="flex items-center justify-end gap-3 sm:gap-4 lg:gap-5 pointer-events-auto">
-          <Link to="/cart" className="relative hover:opacity-70 transition-opacity flex items-center p-0.5">
-            <Heart size={20} strokeWidth={1.5} className="sm:w-[22px] sm:h-[22px]" />
+      {/* Masthead. One sticky bar carrying identity, navigation and utilities —
+          replacing the fixed, transparent icon cluster that used to float over
+          the catalogue with nothing behind it. The greeting and search below
+          collapse away on scroll, so what stays pinned is only ever a 56px
+          bar, not a 200px block. */}
+      <header className="sticky top-0 z-50 bg-paper/85 pt-[env(safe-area-inset-top)] backdrop-blur-xl backdrop-saturate-150 hairline-b">
+        <div className="shell-wide relative flex h-14 items-center justify-between gap-6 md:h-[68px]">
+          <Link
+            to="/"
+            aria-label="Villaoro — home"
+            className="font-display shrink-0 text-[27px] leading-none tracking-[-0.02em] text-ink transition-opacity duration-base ease-sine hover:opacity-60 md:text-[31px]"
+          >
+            Villaoro
+          </Link>
+
+          {/* Centre nav, optically centred on the bar rather than on whatever
+              space the wordmark leaves over. */}
+          <nav className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-9 md:flex">
+            {navItems.map((item) => (
+              <Link
+                key={item.to + item.label}
+                to={item.to}
+                aria-current={location.pathname === item.to ? 'page' : undefined}
+                className="nav-link"
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+
+          <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+          <Link
+            to="/cart"
+            aria-label={`${t('bag') || 'Bag'}${itemCount > 0 ? ` (${itemCount})` : ''}`}
+            className="relative flex h-10 w-10 items-center justify-center transition-opacity duration-base ease-sine hover:opacity-60"
+          >
+            <Heart size={19} strokeWidth={1.5} />
             {itemCount > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 bg-[#FF3B30] text-white text-[10px] font-bold w-[18px] h-[18px] rounded-full flex items-center justify-center shadow-sm border border-white/20">
+              <span className="absolute right-1 top-1 flex h-[17px] min-w-[17px] items-center justify-center rounded-full bg-ink px-1 font-mono text-[9px] tabular-nums leading-none text-paper">
                 {itemCount}
               </span>
             )}
@@ -158,23 +207,39 @@ const Header = () => {
           <div className="flex items-center">
             <Sheet>
               <SheetTrigger asChild>
-                <button className="hover:opacity-75 transition-opacity p-1" aria-label="Menu">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="sm:w-[24px] sm:h-[24px]">
+                <button className="flex h-10 w-10 items-center justify-center transition-opacity duration-base ease-sine hover:opacity-60" aria-label="Menu">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                     <line x1="8" y1="8" x2="20" y2="8" />
                     <line x1="4" y1="12" x2="20" y2="12" />
                     <line x1="4" y1="16" x2="16" y2="16" />
                   </svg>
                 </button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-[80%] max-w-[300px] p-6 bg-white z-[100]">
+              <SheetContent side="right" className="z-[100] w-[86%] max-w-[340px] border-l-hairline border-ink/15 bg-paper p-0">
                 <SheetTitle className="sr-only">Menu</SheetTitle>
-                <div className="flex flex-col gap-6 mt-8">
+                <div className="flex h-full flex-col px-6 pb-8 pt-16">
+                  {/* Primary destinations, set large — a menu that opens over
+                      the page should answer "where can I go" before anything
+                      else, at a size you can hit with a thumb. */}
+                  <nav className="flex flex-col md:hidden">
+                    {navItems.map((item) => (
+                      <Link
+                        key={`sheet-${item.to}-${item.label}`}
+                        to={item.to}
+                        className="type-h3 py-3.5 transition-opacity duration-base ease-sine hairline-b hover:opacity-55"
+                      >
+                        {item.label}
+                      </Link>
+                    ))}
+                  </nav>
+
+                  <div className="mt-8 flex flex-col gap-6">
                   <div className="flex flex-col gap-4 w-full">
-                    <div className="flex items-center gap-4 justify-between border-b border-border pb-4">
-                      <span className="text-sm font-medium">Background Music</span>
+                    <div className="flex items-center justify-between gap-4 pb-4 hairline-b">
+                      <span className="type-label text-ink/60">Background Music</span>
                       <VinylButton isPlaying={isPlaying} isVisible={isVisible} onToggle={togglePlay} />
                     </div>
-                    <Link to="/community" className="flex items-center gap-3 text-sm font-medium hover:text-[#555] transition-colors border-b border-border pb-4">
+                    <Link to="/community" className="type-label flex items-center gap-3 pb-4 text-ink/60 transition-colors duration-base ease-sine hairline-b hover:text-ink md:hidden">
                       <svg width="20" height="14" viewBox="0 0 48 32" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
                         <circle cx="10" cy="8" r="3.8" strokeWidth="2.2" />
                         <path d="M3.5 23c0-3.6 2.9-6.5 6.5-6.5s6.5 2.9 6.5 6.5" strokeWidth="2.2" />
@@ -187,51 +252,52 @@ const Header = () => {
                     </Link>
                     <LanguageSwitcher />
                   </div>
-                  <div className="space-y-4 border-t border-border pt-6">
+                  {/* Account sits at the bottom of the sheet, pushed there by
+                      mt-auto: it's the least-used thing in here and shouldn't
+                      compete with navigation for the top of the panel. */}
+                  <div className="mt-auto space-y-4 pt-8">
                     {session ? (
                       <div className="flex flex-col gap-4">
-                        <div className="text-sm font-medium text-black">
-                          Hello, {user?.user_metadata?.first_name || user?.email}
+                        <div className="text-[13px] text-ink/60">
+                          {user?.user_metadata?.first_name || user?.email}
                         </div>
-                        <button 
+                        <button
                           onClick={async () => await signOut()}
-                          className="flex items-center gap-2 text-left text-xs uppercase tracking-widest font-bold hover:text-red-600 transition-colors text-red-500"
+                          className="type-label flex items-center gap-2 text-left text-ink/50 transition-colors duration-base ease-sine hover:text-critical"
                         >
-                          <UserPlus size={18} strokeWidth={2} />
+                          <UserPlus size={15} strokeWidth={1.8} />
                           Log Out
                         </button>
                       </div>
                     ) : (
-                      <Link to="/login" className="flex items-center gap-2 text-left text-xs uppercase tracking-widest font-bold hover:text-[#555] transition-colors">
-                        <UserPlus size={18} strokeWidth={2} />
+                      <Link to="/login" className="type-label flex items-center gap-2 text-left transition-opacity duration-base ease-sine hover:opacity-60">
+                        <UserPlus size={15} strokeWidth={1.8} />
                         {t('login')}
                       </Link>
                     )}
+                  </div>
                   </div>
                 </div>
               </SheetContent>
             </Sheet>
           </div>
         </div>
-      </div>
+        </div>
 
-    <header 
-      className="relative z-50 pt-[env(safe-area-inset-top)]"
-      style={{
-        background: 'linear-gradient(to bottom, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.7) 100%)',
-        backdropFilter: 'blur(40px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(40px) saturate(180%)',
-      }}
-    >
-      <div className="flex items-center justify-between px-5 sm:px-6 lg:px-8 h-14 sm:h-16 w-full gap-2 sm:gap-4">
-
-      </div>
-
-      {/* Search Bar Row — Liquid Glass */}
-      <div
+      {/* Greeting + search. Collapses to nothing once the catalogue is moving
+          — a personal greeting is worth a third of the screen when you arrive
+          and worth none of it once you're shopping. */}
+      <motion.div
         data-tour="search-bar"
-        className="px-[8%] sm:px-6 lg:px-8 w-full pb-3 flex flex-col items-center gap-4"
+        animate={{
+          height: isScrolled ? 0 : 'auto',
+          opacity: isScrolled ? 0 : 1,
+        }}
+        initial={false}
+        transition={{ duration: 0.4, ease: [0.445, 0.05, 0.55, 0.95] }}
+        className="overflow-hidden"
       >
+        <div className="shell-wide flex w-full flex-col items-center gap-4 pb-5 pt-1">
         <div className="flex flex-col items-center gap-2">
           <div className="relative inline-block">
             <motion.div
@@ -247,13 +313,12 @@ const Header = () => {
             spread={3}
             angle={105}
             pauseBetween={2000}
-            className="text-xl sm:text-3xl font-semibold tracking-tighter text-black/90 text-center"
-            style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}
+            className="font-display text-center text-[30px] font-light leading-none tracking-[-0.02em] text-ink sm:text-[42px]"
           >
             {t(getGreetingKey()).replace('{name}', user?.user_metadata?.first_name || 'Cauã')}
           </GradientShimmer>
             </motion.div>
-            
+
             {/* Blinking Cursor that tracks with the wipe */}
             <motion.span
               initial={{ left: '0%', opacity: 0 }}
@@ -262,8 +327,7 @@ const Header = () => {
                 left: { duration: 2, ease: [0.45, 0, 0.55, 1] },
                 opacity: { duration: 1, repeat: Infinity, times: [0, 0.5, 0.5, 1] }
               }}
-              className="absolute top-0 bottom-0 flex items-center text-black/60 font-light text-xl sm:text-3xl"
-              style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}
+              className="font-display absolute bottom-0 top-0 flex items-center text-[30px] font-extralight text-ink/40 sm:text-[42px]"
             >
               |
             </motion.span>
@@ -297,51 +361,28 @@ const Header = () => {
         <div className="relative" ref={brandFilterRef}>
           <button
             onClick={() => setIsBrandFilterOpen(!isBrandFilterOpen)}
-            className="flex items-center justify-center w-8 h-8 shrink-0 rounded-full transition-all duration-300 outline-none border border-border shadow-sm hover:border-border/80"
-            style={selectedDesigner ? {
-              background: 'rgba(0,0,0,0.85)',
-              color: 'white',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-              borderColor: 'transparent'
-            } : {
-              background: 'white',
-              color: 'rgba(60, 60, 67, 0.6)',
-            }}
+            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-hairline outline-none transition-colors duration-base ease-sine ${
+              selectedDesigner
+                ? 'border-transparent bg-ink text-paper'
+                : 'border-ink/15 bg-paper text-ink/50 hover:border-ink/30 hover:text-ink'
+            }`}
+            aria-pressed={!!selectedDesigner}
             title="Filter by brand"
           >
             <SlidersHorizontal size={13} />
           </button>
 
-          {/* iOS 27 Liquid Glass popup (Brand) */}
+          {/* A panel, not a pane of glass: opaque, square, hairlined, with the
+              one shadow the system allows for something that genuinely floats
+              above the page. */}
           {isBrandFilterOpen && (
-            <div
-              className="absolute top-full left-0 mt-2 w-60 rounded-[22px] z-[100] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200"
-              style={{
-                background: 'linear-gradient(135deg, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.75) 50%, rgba(240,240,245,0.85) 100%)',
-                backdropFilter: 'blur(60px) saturate(180%)',
-                WebkitBackdropFilter: 'blur(60px) saturate(180%)',
-                boxShadow: `
-                  0 8px 48px rgba(0,0,0,0.10),
-                  0 2px 16px rgba(0,0,0,0.06),
-                  inset 0 1px 0 rgba(255,255,255,0.7),
-                  inset 0 -1px 0 rgba(255,255,255,0.15)
-                `,
-                border: '0.5px solid rgba(255,255,255,0.55)',
-              }}
-            >
-              {/* Specular highlight overlay */}
-              <div
-                className="absolute inset-0 rounded-[22px] pointer-events-none"
-                style={{
-                  background: 'linear-gradient(180deg, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0) 40%, rgba(255,255,255,0.05) 100%)',
-                }}
-              />
+            <div className="absolute left-0 top-full z-[100] mt-2 w-60 overflow-hidden border-hairline border-ink/15 bg-paper shadow-pop animate-in fade-in slide-in-from-top-1 duration-200">
               {/* Header */}
-              <div className="relative px-4 pt-4 pb-2.5" style={{ borderBottom: '0.5px solid rgba(0,0,0,0.06)' }}>
-                <div className="flex items-center justify-between">
-                  <span className="text-[13px] font-semibold text-black/85">Filter</span>
+              <div className="relative px-4 pb-2.5 pt-3.5 hairline-b">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="eyebrow">{t('brands') || 'Brands'}</span>
                   {selectedDesigner && (
-                    <span className="text-[11px] text-black/40 truncate ml-2 max-w-[120px]">{selectedDesigner}</span>
+                    <span className="truncate text-[11px] text-ink/40">{selectedDesigner}</span>
                   )}
                 </div>
               </div>
@@ -351,13 +392,13 @@ const Header = () => {
                 {/* All Brands */}
                 <button
                   onClick={() => { setSelectedDesigner(null); setIsBrandFilterOpen(false); if (location.pathname !== '/') navigate('/'); }}
-                  className="relative flex items-center gap-2.5 px-3 py-2 rounded-full shrink-0 w-[calc(100%-16px)] mx-2 my-0.5 hover:bg-black/5"
+                  className="relative mx-1.5 my-px flex w-[calc(100%-12px)] shrink-0 items-center gap-2.5 px-2.5 py-2 hover:bg-ink/5"
                 >
                   {!selectedDesigner && (
                     <motion.div
                       layoutId="active-brand-bg"
-                      className="absolute inset-0 rounded-full bg-black z-0 shadow-[inset_0_1px_2px_rgba(255,255,255,0.15)]"
-                      transition={{ type: 'spring', stiffness: 120, damping: 20, mass: 1 }}
+                      className="absolute inset-0 z-0 bg-ink"
+                      transition={{ type: 'spring', stiffness: 220, damping: 28, mass: 0.7 }}
                     />
                   )}
                   <motion.span 
@@ -378,13 +419,13 @@ const Header = () => {
                     <button
                       key={d}
                       onClick={() => { setSelectedDesigner(d); setIsBrandFilterOpen(false); if (location.pathname !== '/') navigate('/'); }}
-                      className="relative flex items-center gap-2.5 px-3 py-2 rounded-full shrink-0 w-[calc(100%-16px)] mx-2 my-0.5 hover:bg-black/5"
+                      className="relative mx-1.5 my-px flex w-[calc(100%-12px)] shrink-0 items-center gap-2.5 px-2.5 py-2 hover:bg-ink/5"
                     >
                       {isActive && (
                         <motion.div
                           layoutId="active-brand-bg"
-                          className="absolute inset-0 rounded-full bg-black z-0 shadow-[inset_0_1px_2px_rgba(255,255,255,0.15)]"
-                          transition={{ type: 'spring', stiffness: 120, damping: 20, mass: 1 }}
+                          className="absolute inset-0 z-0 bg-ink"
+                          transition={{ type: 'spring', stiffness: 220, damping: 28, mass: 0.7 }}
                         />
                       )}
                       <motion.span 
@@ -408,18 +449,17 @@ const Header = () => {
         <div className="relative" ref={colorFilterRef}>
           <button
             onClick={() => setIsColorFilterOpen(!isColorFilterOpen)}
-            className="flex items-center justify-center w-8 h-8 shrink-0 rounded-full transition-all duration-300 outline-none border border-border shadow-sm hover:border-border/80"
-            style={selectedColor ? {
-              background: 'transparent',
-              borderColor: 'transparent'
-            } : {
-              background: 'white',
-            }}
+            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-hairline outline-none transition-colors duration-base ease-sine ${
+              selectedColor
+                ? 'border-ink/30 bg-paper'
+                : 'border-ink/15 bg-paper text-ink/50 hover:border-ink/30 hover:text-ink'
+            }`}
+            aria-pressed={!!selectedColor}
             title="Filter by color"
           >
             {selectedColor ? (
-              <div 
-                className="w-5 h-5 rounded-full border border-black/15 shadow-sm" 
+              <div
+                className="h-4 w-4 rounded-full border-hairline border-ink/20"
                 style={{ backgroundColor: colors.find(c => c.name === selectedColor)?.hex }}
               />
             ) : (
@@ -427,37 +467,14 @@ const Header = () => {
             )}
           </button>
 
-          {/* iOS 27 Liquid Glass popup (Color) */}
           {isColorFilterOpen && (
-            <div
-              className="absolute top-full right-0 mt-2 w-60 rounded-[22px] z-[100] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200"
-              style={{
-                background: 'linear-gradient(135deg, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.75) 50%, rgba(240,240,245,0.85) 100%)',
-                backdropFilter: 'blur(60px) saturate(180%)',
-                WebkitBackdropFilter: 'blur(60px) saturate(180%)',
-                boxShadow: `
-                  0 8px 48px rgba(0,0,0,0.10),
-                  0 2px 16px rgba(0,0,0,0.06),
-                  inset 0 1px 0 rgba(255,255,255,0.7),
-                  inset 0 -1px 0 rgba(255,255,255,0.15)
-                `,
-                border: '0.5px solid rgba(255,255,255,0.55)',
-              }}
-            >
-              {/* Specular highlight overlay */}
-              <div
-                className="absolute inset-0 rounded-[22px] pointer-events-none"
-                style={{
-                  background: 'linear-gradient(180deg, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0) 40%, rgba(255,255,255,0.05) 100%)',
-                }}
-              />
-
+            <div className="absolute right-0 top-full z-[100] mt-2 w-60 overflow-hidden border-hairline border-ink/15 bg-paper shadow-pop animate-in fade-in slide-in-from-top-1 duration-200">
               {/* Header */}
-              <div className="relative px-4 pt-4 pb-2.5" style={{ borderBottom: '0.5px solid rgba(0,0,0,0.06)' }}>
-                <div className="flex items-center justify-between">
-                  <span className="text-[13px] font-semibold text-black/85">Colors</span>
+              <div className="relative px-4 pb-2.5 pt-3.5 hairline-b">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="eyebrow">{t('colors') || 'Colours'}</span>
                   {selectedColor && (
-                    <span className="text-[11px] text-black/40 truncate ml-2 max-w-[120px]">{selectedColor}</span>
+                    <span className="truncate text-[11px] text-ink/40">{selectedColor}</span>
                   )}
                 </div>
               </div>
@@ -467,13 +484,13 @@ const Header = () => {
                 {/* All Colors */}
                 <button
                   onClick={() => { setSelectedColor(null); setIsColorFilterOpen(false); }}
-                  className="relative flex items-center gap-2.5 px-3 py-2 rounded-full shrink-0 w-[calc(100%-16px)] mx-2 my-0.5 hover:bg-black/5"
+                  className="relative mx-1.5 my-px flex w-[calc(100%-12px)] shrink-0 items-center gap-2.5 px-2.5 py-2 hover:bg-ink/5"
                 >
                   {!selectedColor && (
                     <motion.div
                       layoutId="active-color-bg"
-                      className="absolute inset-0 rounded-full bg-black z-0 shadow-[inset_0_1px_2px_rgba(255,255,255,0.15)]"
-                      transition={{ type: 'spring', stiffness: 120, damping: 20, mass: 1 }}
+                      className="absolute inset-0 z-0 bg-ink"
+                      transition={{ type: 'spring', stiffness: 220, damping: 28, mass: 0.7 }}
                     />
                   )}
                   <motion.span 
@@ -495,13 +512,13 @@ const Header = () => {
                     <button
                       key={color.name}
                       onClick={() => { setSelectedColor(color.name); setIsColorFilterOpen(false); }}
-                      className="relative flex items-center gap-2.5 px-3 py-2 rounded-full shrink-0 w-[calc(100%-16px)] mx-2 my-0.5 hover:bg-black/5"
+                      className="relative mx-1.5 my-px flex w-[calc(100%-12px)] shrink-0 items-center gap-2.5 px-2.5 py-2 hover:bg-ink/5"
                     >
                       {isActive && (
                         <motion.div
                           layoutId="active-color-bg"
-                          className="absolute inset-0 rounded-full bg-black z-0 shadow-[inset_0_1px_2px_rgba(255,255,255,0.15)]"
-                          transition={{ type: 'spring', stiffness: 120, damping: 20, mass: 1 }}
+                          className="absolute inset-0 z-0 bg-ink"
+                          transition={{ type: 'spring', stiffness: 220, damping: 28, mass: 0.7 }}
                         />
                       )}
                       <motion.span 
@@ -529,8 +546,8 @@ const Header = () => {
             }
           />
         </div>
-      </div>
-
+        </div>
+      </motion.div>
     </header>
     </>
   );
