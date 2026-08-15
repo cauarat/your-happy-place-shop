@@ -174,7 +174,7 @@ const AboutSection = ({ onExplore }: { onExplore: () => void }) => {
               // Square, not the landscape frame this shape usually gets: the
               // catalogue is shot on white in portrait, and a wide frame left
               // grey bars down both sides of every piece.
-              className="mb-12 w-full max-w-[300px] overflow-hidden rounded-2xl bg-zinc-100/80 md:mb-16"
+              className="mb-12 w-full max-w-[300px] overflow-hidden rounded-2xl md:mb-16"
             >
               <img
                 src={cover}
