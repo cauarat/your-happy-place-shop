@@ -222,10 +222,8 @@ const AboutSection = ({ onExplore }: { onExplore: () => void }) => {
             </button>
           </motion.div>
 
-          {/* The number, set the way the statement is: label, rule, figure.
-              `mt-auto` pins it to the bottom of the column on a wide screen so
-              it lines up with the foot of the statement opposite. */}
-          <motion.div {...reveal(0.2)} className="mt-16 lg:mt-auto lg:pt-24">
+          {/* The number, set the way the statement is: label, rule, figure. */}
+          <motion.div {...reveal(0.2)} className="mt-12 lg:mt-16">
             <p className="text-[14px] text-zinc-500 transition-colors duration-500">
               {t('about_stat_label')}
             </p>
