@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import {
+  motion,
+  AnimatePresence,
+  useReducedMotion,
+  useScroll,
+  useTransform,
+  useMotionValueEvent,
+} from 'framer-motion';
 import { Lock, ArrowLeft, Check, ChevronDown } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -58,22 +65,39 @@ const LanguageSegmentedControl = ({
 // The quick tour: the page scrolls out of the hero into a device frame that
 // unfolds as you keep scrolling, showing the real catalogue home screen —
 // what someone gets access to, before being asked for a name and an email.
-const CatalogTourSection = React.forwardRef<HTMLElement, { onContinue: () => void }>(
-  ({ onContinue }, ref) => {
+const CatalogTourSection = React.forwardRef<
+  HTMLElement,
+  { onContinue: () => void; isDark: boolean }
+>(
+  ({ onContinue, isDark }, ref) => {
     const { t } = useLanguage();
 
+    // No background of its own: the page paints the surface underneath, and an
+    // opaque section here would punch a white rectangle through the fade.
     return (
-      <section ref={ref} className="relative w-full bg-white">
+      <section ref={ref} className="relative w-full">
         <ContainerScroll
           titleComponent={
             <div className="flex flex-col items-center gap-3 px-6">
-              <span className="text-[10px] md:text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-400">
+              <span
+                className={`text-[10px] md:text-[11px] font-semibold uppercase tracking-[0.2em] transition-colors duration-500 ${
+                  isDark ? 'text-white/40' : 'text-zinc-400'
+                }`}
+              >
                 {t('tour_preview_eyebrow')}
               </span>
-              <h2 className="text-[26px] md:text-[42px] font-semibold tracking-tight text-black leading-none">
+              <h2
+                className={`text-[26px] md:text-[42px] font-semibold tracking-tight leading-none transition-colors duration-500 ${
+                  isDark ? 'text-white' : 'text-black'
+                }`}
+              >
                 {t('tour_preview_title')}
               </h2>
-              <p className="max-w-sm text-[14px] md:text-[15px] font-light text-zinc-500 leading-relaxed">
+              <p
+                className={`max-w-sm text-[14px] md:text-[15px] font-light leading-relaxed transition-colors duration-500 ${
+                  isDark ? 'text-white/60' : 'text-zinc-500'
+                }`}
+              >
                 {t('tour_preview_subtitle')}
               </p>
             </div>
@@ -93,7 +117,11 @@ const CatalogTourSection = React.forwardRef<HTMLElement, { onContinue: () => voi
         >
           <button
             onClick={onContinue}
-            className="w-full h-[56px] rounded-[20px] bg-zinc-900 text-white font-medium tracking-wide text-[16px] transition-all duration-300 hover:bg-black hover:shadow-xl hover:shadow-black/20 active:scale-[0.98]"
+            className={`w-full h-[56px] rounded-[20px] font-medium tracking-wide text-[16px] transition-all duration-500 hover:shadow-xl active:scale-[0.98] ${
+              isDark
+                ? 'bg-white text-zinc-900 hover:bg-zinc-100 hover:shadow-white/10'
+                : 'bg-zinc-900 text-white hover:bg-black hover:shadow-black/20'
+            }`}
           >
             {t('install_app_continue')}
           </button>
@@ -123,28 +151,37 @@ CatalogTourSection.displayName = 'CatalogTourSection';
 // which a percentage can't do. The order of the array is the clockwise order of
 // these spots around the center, which is also the order of the ring slots, so
 // the icons gather without flying across each other.
+//
+// `labelKey` is the catalogue's own category key, so tapping an icon names the
+// piece in whatever language the visitor has chosen — and names it with the
+// same word the shop uses for that department rather than a synonym invented
+// here.
 const onboardingHeroIcons = [
-  { id: 1, icon: HoodieIcon, className: 'bottom-[24%] right-[9%]' },
-  { id: 2, icon: BagIcon, className: 'bottom-[10%] right-[5%]' },
-  { id: 3, icon: PantsIcon, className: 'bottom-[10%] left-[5%]' },
-  { id: 4, icon: Shirt, className: 'bottom-[24%] left-[9%]' },
-  { id: 5, icon: JacketIcon, className: 'top-[21%] left-[18%]' },
-  { id: 6, icon: CapIcon, className: 'top-[6%] left-[4%]' },
-  { id: 7, icon: Glasses, className: 'top-[6%]' },
-  { id: 8, icon: SweaterIcon, className: 'top-[6%] right-[4%]' },
-  { id: 9, icon: PufferJacketIcon, className: 'top-[21%] right-[18%]' },
+  { id: 1, icon: HoodieIcon, className: 'bottom-[24%] right-[9%]', labelKey: 'hoodies' },
+  { id: 2, icon: BagIcon, className: 'bottom-[10%] right-[5%]', labelKey: 'bags' },
+  { id: 3, icon: PantsIcon, className: 'bottom-[10%] left-[5%]', labelKey: 'pants' },
+  { id: 4, icon: Shirt, className: 'bottom-[24%] left-[9%]', labelKey: 't-shirt' },
+  { id: 5, icon: JacketIcon, className: 'top-[21%] left-[18%]', labelKey: 'jackets' },
+  { id: 6, icon: CapIcon, className: 'top-[6%] left-[4%]', labelKey: 'caps' },
+  { id: 7, icon: Glasses, className: 'top-[6%]', labelKey: 'accessories' },
+  { id: 8, icon: SweaterIcon, className: 'top-[6%] right-[4%]', labelKey: 'sweater' },
+  { id: 9, icon: PufferJacketIcon, className: 'top-[21%] right-[18%]', labelKey: 'puffer jacket' },
 ];
 
 // The routes on the globe behind the hero. Villaoro's own map rather than the
 // component's default airports: the houses it carries, and São Paulo on the
 // receiving end of them. Module-level constants on purpose — the globe rebuilds
 // itself whenever these change identity, so they must not be rebuilt per render.
+// Each route carries a piece rather than a plane: the arcs are the catalogue
+// travelling, so the mark riding one is a garment from the same icon set as the
+// tiles scattered around the hero. Five routes, five different pieces, none of
+// them repeating one already sitting still on the screen edge nearby.
 const villaoroRoutes = [
-  { id: 'milan-paris', from: [45.46, 9.19] as [number, number], to: [48.86, 2.35] as [number, number] },
-  { id: 'paris-newyork', from: [48.86, 2.35] as [number, number], to: [40.64, -73.78] as [number, number] },
-  { id: 'newyork-saopaulo', from: [40.64, -73.78] as [number, number], to: [-23.55, -46.63] as [number, number] },
-  { id: 'tokyo-milan', from: [35.68, 139.76] as [number, number], to: [45.46, 9.19] as [number, number] },
-  { id: 'london-dubai', from: [51.51, -0.13] as [number, number], to: [25.2, 55.27] as [number, number] },
+  { id: 'milan-paris', from: [45.46, 9.19] as [number, number], to: [48.86, 2.35] as [number, number], icon: BagIcon },
+  { id: 'paris-newyork', from: [48.86, 2.35] as [number, number], to: [40.64, -73.78] as [number, number], icon: JacketIcon },
+  { id: 'newyork-saopaulo', from: [40.64, -73.78] as [number, number], to: [-23.55, -46.63] as [number, number], icon: SweaterIcon },
+  { id: 'tokyo-milan', from: [35.68, 139.76] as [number, number], to: [45.46, 9.19] as [number, number], icon: CapIcon },
+  { id: 'london-dubai', from: [51.51, -0.13] as [number, number], to: [25.2, 55.27] as [number, number], icon: PufferJacketIcon },
 ];
 
 const villaoroCities = [
@@ -173,6 +210,80 @@ const Onboarding = () => {
   // document, so reaching it is scrolling the page — never a screen swap.
   const tourSectionRef = React.useRef<HTMLElement>(null);
   const { language, setLanguage, t } = useLanguage();
+
+  // --- Nightfall ---
+  // Leaving the welcome screen, the page itself goes dark. The window is the
+  // half-screen of scroll between the tour section first appearing at the
+  // bottom edge and its top reaching the middle of the viewport: by the time
+  // the tablet is properly in view the surface behind it is black, so the lit
+  // screen inside the frame is the brightest thing on the page — which is the
+  // whole point of showing it.
+  //
+  // Driven off the tour section rather than the hero because that is the
+  // element actually arriving; anchoring to the hero's runway would tie the
+  // fade to a scroll distance that changes with the viewport's height.
+  const { scrollYProgress: nightfall } = useScroll({
+    target: tourSectionRef,
+    // Three quarters of a screen rather than half: the longer the window, the
+    // less of the change lands per pixel of scroll, and gentleness here is
+    // almost entirely a function of how much room it is given.
+    offset: ['start end', 'start 25%'],
+  });
+
+  // Everything below reads off an eased copy of the progress rather than the
+  // raw value. A linear fade has a hard start and a hard stop — the moment the
+  // window opens the page is already changing at full rate, and it stops dead.
+  // Sine in-out gives it a beginning and an end.
+  const dusk = useTransform(nightfall, [0, 1], [0, 1], {
+    ease: cubicBezier(0.445, 0.05, 0.55, 0.95),
+  });
+
+  // The surface passes through tones rather than interpolating straight to
+  // black. Two things come out of that: the long flat plateau of mid-grey is
+  // cut short, and the greys it does pass through are cooled slightly blue, so
+  // it reads as light leaving the room rather than as a screen dimming.
+  const surface = useTransform(
+    dusk,
+    [0, 0.3, 0.62, 0.85, 1],
+    ['#ffffff', '#d3d8e0', '#5c636f', '#232830', '#000000']
+  );
+
+  // ...and the darkness arrives as a horizon rather than a wash. A soft-edged
+  // band sweeps down the screen ahead of the surface colour, so at no point is
+  // the whole viewport one flat tone — there is always a gradient across it,
+  // which is what stops a white-to-black fade looking like a dirty screen.
+  // The feather is two thirds of a viewport tall, so the edge itself is never
+  // locatable.
+  const horizon = useTransform(dusk, (v) => {
+    const edge = -50 + v * 165;
+    return `linear-gradient(to bottom, #000000 ${edge - 55}%, rgba(0,0,0,0) ${edge + 30}%)`;
+  });
+
+  // The colour of the surface is continuous, but the copy on top of it can
+  // only be one thing or the other, so it swaps once at the halfway point and
+  // rides its own CSS transition across. Kept as state rather than read from
+  // the motion value during render so the swap doesn't re-render every frame.
+  const [isDark, setIsDark] = useState(false);
+  useMotionValueEvent(nightfall, 'change', (v) => {
+    setIsDark((was) => {
+      // A dead band around the threshold: without it, resting the scroll exactly
+      // on 0.5 flickers the whole page between black and white.
+      if (!was && v > 0.55) return true;
+      if (was && v < 0.45) return false;
+      return was;
+    });
+  });
+
+  // The names are resolved once per language rather than on every render. The
+  // hero derives each icon's entrance geometry from this array and recomputes
+  // whenever its identity changes, so handing it a freshly-built array each
+  // render would have it re-deriving the whole flight continuously.
+  const heroIcons = React.useMemo(
+    () => onboardingHeroIcons.map((item) => ({ ...item, label: t(item.labelKey) })),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [language]
+  );
+
   // The hero already drops its entrance flight for anyone who asked their OS
   // for less motion; the globe's idle spin is the same kind of thing, so it
   // stops too and the sphere simply sits there.
@@ -348,10 +459,20 @@ const Onboarding = () => {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0, scale: 1.02 }}
         transition={{ duration: DURATION.screen, ease: EASE_SOFT }}
-        className="relative w-full h-full min-h-screen bg-white text-black select-none"
+        className="relative w-full h-full min-h-screen text-black select-none"
       >
+        {/* The surface. Absolute rather than fixed: it spans the whole of this
+            screen's scroll, so it needs no viewport pinning, and staying in the
+            normal stacking order keeps it behind the positioned hero and tour
+            sections without a z-index arms race. */}
+        <motion.div className="absolute inset-0" style={{ backgroundColor: surface }} />
+
         <ScrollMorphHero
-          icons={onboardingHeroIcons}
+          icons={heroIcons}
+          // The stage has to let the surface through, or the page would stay
+          // white for the whole runway and only turn black once the hero had
+          // scrolled clear of the viewport.
+          stageClassName="bg-transparent"
           // Rises out of the bottom edge where the shoes icon used to sit: half
           // a globe at rest, the whole of it once the ring has closed.
           backdrop={
@@ -371,7 +492,11 @@ const Onboarding = () => {
             />
           }
           revealTitle={
-            <div className="font-serif text-[48px] md:text-[56px] leading-none flex items-center justify-center tracking-tight text-foreground select-none font-light">
+            <div
+              className={`font-serif text-[48px] md:text-[56px] leading-none flex items-center justify-center tracking-tight select-none font-light transition-colors duration-500 ${
+                isDark ? 'text-white' : 'text-foreground'
+              }`}
+            >
               <span>V</span>
               <motion.span
                 animate={{ opacity: [1, 0, 1] }}
@@ -388,7 +513,11 @@ const Onboarding = () => {
               onClick={() => {
                 navigate('/login');
               }}
-              className="w-full flex items-center justify-center h-[52px] bg-foreground text-background rounded-full hover:scale-[1.02] transition-transform active:scale-95 shadow-xl shadow-black/10"
+              className={`w-full flex items-center justify-center h-[52px] rounded-full hover:scale-[1.02] transition-all duration-500 active:scale-95 shadow-xl ${
+                isDark
+                  ? 'bg-white text-black shadow-white/10'
+                  : 'bg-foreground text-background shadow-black/10'
+              }`}
             >
               <span className="font-medium tracking-wide text-[15px]">
                 {t('onboarding_already_member')}
@@ -396,7 +525,11 @@ const Onboarding = () => {
             </button>
             <button
               onClick={startTour}
-              className="w-full flex items-center justify-center h-[52px] bg-background text-foreground border border-border/30 rounded-full hover:bg-black/5 hover:scale-[1.02] transition-all active:scale-95 shadow-sm"
+              className={`w-full flex items-center justify-center h-[52px] backdrop-blur-md border rounded-full hover:scale-[1.02] transition-all duration-500 active:scale-95 ${
+                isDark
+                  ? 'bg-white/10 text-white border-white/20 hover:bg-white/20'
+                  : 'bg-black/5 text-foreground border-black/10 hover:bg-black/10'
+              }`}
             >
               <span className="font-medium tracking-wide text-[15px]">
                 {t('onboarding_take_quick_tour')}
@@ -408,7 +541,9 @@ const Onboarding = () => {
               onClick={startTour}
               animate={{ y: [0, 4, 0] }}
               transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-              className="-mt-3 p-1 text-muted-foreground opacity-70 hover:opacity-100 transition-opacity"
+              className={`-mt-3 p-1 opacity-70 hover:opacity-100 transition-all duration-500 ${
+                isDark ? 'text-white' : 'text-muted-foreground'
+              }`}
               aria-label={t('onboarding_take_quick_tour')}
             >
               <ChevronDown className="w-5 h-5" />
@@ -419,7 +554,7 @@ const Onboarding = () => {
         {/* Always in the document, directly below the hero's runway: carrying
             on scrolling arrives here with nothing to trigger or wait for, and
             scrolling back up unwinds the ring exactly as it was built. */}
-        <CatalogTourSection ref={tourSectionRef} onContinue={finishTour} />
+        <CatalogTourSection ref={tourSectionRef} onContinue={finishTour} isDark={isDark} />
       </motion.div>
     );
   };

@@ -1,9 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { motion, useReducedMotion, useScroll, useSpring } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion, useScroll, useSpring } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { scrollPageTo } from "@/lib/motion";
+import { DURATION, EASE_SOFT, scrollPageTo } from "@/lib/motion";
 import { ChevronDown } from "lucide-react";
 
 export type ScrollMorphPhase = "entrance" | "resting";
@@ -15,6 +15,9 @@ export interface ScrollMorphIcon {
   // resting layout the icons fly into on load, and gather back out of as the
   // reveal content appears.
   className: string;
+  // What this icon is. Supplying it makes the icon pressable: tapping it names
+  // the piece. Leave it off and the icon stays purely decorative, as it was.
+  label?: string;
 }
 
 export interface ScrollMorphHeroProps {
@@ -36,6 +39,10 @@ export interface ScrollMorphHeroProps {
   // it and drives it with the scroll (see the globe choreography below), so
   // whatever is passed only has to fill the box it's handed.
   backdrop?: React.ReactNode;
+  // The sticky stage's own background. Pass a transparent one when the page
+  // behind is painting the surface itself — an opaque stage would sit on top
+  // of it for the whole runway and the page's colour would never show.
+  stageClassName?: string;
 }
 
 const lerp = (a: number, b: number, t: number) => a * (1 - t) + b * t;
@@ -114,12 +121,16 @@ export function ScrollMorphHero({
   children,
   className,
   backdrop,
+  stageClassName = "bg-background",
 }: ScrollMorphHeroProps) {
   // The runway is the tall element the page scrolls through; the stage is the
   // sticky screen inside it that everything is drawn on.
   const runwayRef = React.useRef<HTMLDivElement>(null);
   const containerRef = React.useRef<HTMLDivElement>(null);
   const [phase, setPhase] = React.useState<ScrollMorphPhase>("entrance");
+  // Which icon is currently naming itself. One at a time: tapping a second
+  // icon moves the name to it rather than leaving a trail of open labels.
+  const [namedIcon, setNamedIcon] = React.useState<number | null>(null);
   const [containerSize, setContainerSize] = React.useState({ width: 0, height: 0 });
 
   // --- Track container size (so positions stay correct on resize) ---
@@ -252,6 +263,28 @@ export function ScrollMorphHero({
   // the overlap (reveal starts before the morph finishes) is what makes the
   // hand-off read as one continuous motion instead of two separate beats.
   const iconMorph = Math.min(Math.max(scrollValue / ICON_MORPH_END, 0), 1);
+
+  // Scrolling puts the name away. Once the icons start gathering into the ring
+  // they are no longer where they were tapped, and a label travelling with one
+  // of them across the screen reads as something that got stuck.
+  React.useEffect(() => {
+    if (iconMorph > 0.02) setNamedIcon(null);
+  }, [iconMorph]);
+
+  // Tapping anywhere else puts it away too. Matching on the icon's own marker
+  // rather than doing this in the button's handler keeps the two out of each
+  // other's way — a bare document listener would clear the name on pointerdown
+  // and the button's click would then immediately re-open it, so tapping an
+  // open icon could never close it.
+  React.useEffect(() => {
+    if (namedIcon === null) return;
+    const dismiss = (e: PointerEvent) => {
+      if ((e.target as Element | null)?.closest("[data-morph-icon]")) return;
+      setNamedIcon(null);
+    };
+    document.addEventListener("pointerdown", dismiss);
+    return () => document.removeEventListener("pointerdown", dismiss);
+  }, [namedIcon]);
   const revealProgress = Math.min(
     Math.max((scrollValue - REVEAL_START) / (REVEAL_END - REVEAL_START), 0),
     1
@@ -311,7 +344,7 @@ export function ScrollMorphHero({
           while the page scrolls underneath it. */}
       <div
         ref={containerRef}
-        className="sticky top-0 h-screen w-full overflow-hidden bg-background"
+        className={cn("sticky top-0 h-screen w-full overflow-hidden", stageClassName)}
       >
         {/* Backdrop — first in the stage, so everything else paints over it.
             Held back until the container has been measured, for the same reason
@@ -346,7 +379,7 @@ export function ScrollMorphHero({
                 : { opacity: 0, y: 12, filter: "blur(8px)" }
             }
             transition={{ duration: 0.4 }}
-            className="text-3xl md:text-5xl font-semibold tracking-tight text-foreground"
+            className="text-3xl md:text-[58px] font-semibold tracking-tight text-foreground"
           >
             {introTitle}
           </motion.h1>
@@ -464,6 +497,9 @@ export function ScrollMorphHero({
             };
 
             const entrance = entrances[i];
+            const isNamed = namedIcon === item.id;
+            // Below the middle of the screen, the name goes above the tile.
+            const namesAbove = scatteredPos.y > 0;
 
             return (
               // Outer div: the resting/ring position, driven by scroll.
@@ -505,33 +541,92 @@ export function ScrollMorphHero({
                     },
                   }}
                 >
-                  <motion.div
-                    animate={
-                      phase === "resting"
-                        ? { y: [0, -7, 0], rotate: [0, i % 2 === 0 ? 2 : -2, 0] }
-                        : { y: 0, rotate: 0 }
-                    }
-                    transition={
-                      phase === "resting"
-                        ? {
-                            duration: 3.2 + (i % 4) * 0.4,
-                            repeat: Infinity,
-                            ease: "easeInOut",
-                            delay: i * 0.18,
-                          }
-                        : { duration: 0.3 }
-                    }
-                    whileHover={{
-                      scale: 1.14,
-                      y: -10,
-                      rotate: 0,
-                      transition: { type: "spring", stiffness: 300, damping: 14 },
-                    }}
-                    className="flex items-center justify-center w-16 h-16 md:w-20 md:h-20 p-3 rounded-3xl shadow-xl bg-card/80 backdrop-blur-md border border-border/10 cursor-pointer"
-                  >
-                    <item.icon className="w-8 h-8 md:w-10 md:h-10 text-foreground" />
-                  </motion.div>
+                  {(() => {
+                    const tile = (
+                      <motion.div
+                        animate={
+                          phase === "resting"
+                            ? { y: [0, -7, 0], rotate: [0, i % 2 === 0 ? 2 : -2, 0] }
+                            : { y: 0, rotate: 0 }
+                        }
+                        transition={
+                          phase === "resting"
+                            ? {
+                                duration: 3.2 + (i % 4) * 0.4,
+                                repeat: Infinity,
+                                ease: "easeInOut",
+                                delay: i * 0.18,
+                              }
+                            : { duration: 0.3 }
+                        }
+                        whileHover={{
+                          scale: 1.14,
+                          y: -10,
+                          rotate: 0,
+                          transition: { type: "spring", stiffness: 300, damping: 14 },
+                        }}
+                        // Pressing it settles rather than bounces: the name is
+                        // what the tap is for, so the tile itself stays quiet.
+                        whileTap={item.label ? { scale: 1.04 } : undefined}
+                        className="flex items-center justify-center w-16 h-16 md:w-20 md:h-20 p-3 rounded-3xl shadow-xl bg-card/80 backdrop-blur-md border border-border/10 cursor-pointer"
+                      >
+                        <item.icon className="w-8 h-8 md:w-10 md:h-10 text-foreground" />
+                      </motion.div>
+                    );
+
+                    // Without a label there is nothing to press for, so the
+                    // icon stays a plain decorative tile — no button, nothing
+                    // for a screen reader or the keyboard to stop on.
+                    if (!item.label) return tile;
+
+                    return (
+                      <button
+                        type="button"
+                        data-morph-icon
+                        aria-pressed={isNamed}
+                        aria-label={item.label}
+                        onClick={() =>
+                          setNamedIcon((current) => (current === item.id ? null : item.id))
+                        }
+                        className="block rounded-3xl outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-4 focus-visible:ring-offset-background"
+                      >
+                        {tile}
+                      </button>
+                    );
+                  })()}
                 </motion.div>
+
+                {/* The name. Anchored to the outer, un-floating box so it holds
+                    still while the tile bobs and grows under the cursor, and
+                    placed on whichever side has the room: icons resting in the
+                    lower half of the screen name themselves above, so the label
+                    never drops off the bottom edge or lands on the globe. */}
+                <AnimatePresence>
+                  {isNamed && item.label && (
+                    <motion.span
+                      key="icon-label"
+                      aria-hidden
+                      // The horizontal centring is carried in the animated
+                      // transform rather than a `-translate-x-1/2` class:
+                      // Framer writes the whole `transform` property itself, so
+                      // a Tailwind translate on the same element is overwritten
+                      // the moment the label animates, and the name drifts off
+                      // to the right of its icon.
+                      initial={{ opacity: 0, x: "-50%", y: reduceMotion ? 0 : namesAbove ? 6 : -6, scale: 0.96 }}
+                      animate={{ opacity: 1, x: "-50%", y: 0, scale: 1 }}
+                      exit={{ opacity: 0, x: "-50%", y: reduceMotion ? 0 : namesAbove ? 4 : -4, scale: 0.98 }}
+                      transition={{ duration: DURATION.control, ease: EASE_SOFT }}
+                      className={cn(
+                        "pointer-events-none absolute left-1/2 z-10 whitespace-nowrap",
+                        "rounded-full bg-foreground px-3 py-1.5 shadow-lg",
+                        "text-[10px] font-semibold uppercase tracking-[0.14em] text-background",
+                        namesAbove ? "bottom-full mb-2.5" : "top-full mt-2.5"
+                      )}
+                    >
+                      {item.label}
+                    </motion.span>
+                  )}
+                </AnimatePresence>
               </motion.div>
             );
           })}
