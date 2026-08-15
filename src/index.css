@@ -4,153 +4,46 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ============================================================================
-   VILLAORO DESIGN SYSTEM
-   ----------------------------------------------------------------------------
-   One ink, layered by opacity. One hairline. One curve. Everything below is
-   derived from those three ideas, and every component is expected to reach for
-   a token here rather than inventing a value.
-
-   The rules that hold it together:
-
-   1. There is no pure black. The ink is #111, and every "grey" in the product
-      is that same ink at a lower opacity — so text, borders and dividers all
-      sit on one tonal ladder instead of drifting apart (#555, #666, #999 as
-      they had).
-   2. Elevation is a border, not a shadow. A hairline at 10-30% ink separates
-      surfaces. Shadow is reserved for things that genuinely float above the
-      page (a sheet, a popover), never for a card in a grid.
-   3. Corners are square. The one exception is a control you press — buttons
-      and pills are fully round, which is what makes them read as pressable
-      without a shadow.
-   4. Micro-copy is mono, uppercase, tracked. Prices, sizes, labels, buttons,
-      eyebrows. It's the voice of the interface, as distinct from the voice of
-      the product (serif) and the voice of the reading text (sans).
-   5. One motion curve. Everything that changes state does it in .4s on
-      --ease-sine; content that arrives on scroll takes .7s on --ease-quint.
-      Nothing else.
-   ========================================================================= */
-
 @layer base {
   :root {
-    /* ---- Ink & surfaces ------------------------------------------------ */
-    /* Space-separated RGB so any token can be used at an arbitrary alpha:
-       rgb(var(--ink) / 0.72). */
-    --ink: 17 17 17;
-    --paper: 255 255 255;
-
-    --surface-page: 255 255 255;      /* the page itself */
-    --surface-raised: 250 250 250;    /* a panel lifted off the page */
-    --surface-sunken: 244 244 244;    /* a well: filters, thumbnails, inputs */
-    --surface-inverse: 17 17 17;      /* the dark counterpart */
-
-    /* ---- Content ladder ------------------------------------------------ */
-    --content-main: 1;                /* headings, prices, anything decisive */
-    --content-sub: 0.88;              /* body copy */
-    --content-soft: 0.6;              /* secondary copy, captions */
-    --content-note: 0.4;              /* metadata, placeholders */
-    --content-disabled: 0.24;
-
-    /* ---- Borders ------------------------------------------------------- */
-    --hairline: max(1px, 0.0625rem);
-    --border-light: 0.08;             /* barely there: internal dividers */
-    --border-main: 0.16;              /* the default */
-    --border-bold: 0.3;               /* an outlined control */
-
-    /* ---- Accent -------------------------------------------------------- */
-    /* Villaoro is monochrome by identity, so emphasis is carried by inversion
-       (black fill on hover) rather than by hue. Gold is the single exception,
-       kept for moments that are genuinely about value: a reduced price, a
-       selected state. Used more than that it stops meaning anything. */
-    --gold: 154 122 60;
-    --critical: 186 45 35;            /* destructive only — never decorative */
-
-    /* ---- Layout -------------------------------------------------------- */
-    /* The page gutter scales with the viewport instead of stepping at
-       breakpoints, so the margin looks deliberate at every width rather than
-       correct at three of them. */
-    --gutter: clamp(1.25rem, 4vw, 4rem);
-    --measure: 1600px;                /* full editorial width */
-    --measure-text: 68ch;             /* a comfortable line of reading text */
-    --grid-gap: clamp(0.5rem, 1.5vw, 1.5rem);
-
-    /* The masthead's height, so anything that pins below it (the catalogue
-       bar) can position itself without hard-coding a number that goes stale
-       the moment the header changes. */
-    --masthead-h: 56px;
-
-    /* Vertical rhythm. Sections are one of three sizes, nothing in between. */
-    --section-sm: clamp(2.5rem, 5vw, 4rem);
-    --section-md: clamp(4rem, 8vw, 7rem);
-    --section-lg: clamp(6rem, 12vw, 10rem);
-
-    /* ---- Motion -------------------------------------------------------- */
-    /* Sine in-out: the curve for a state change you're watching happen. */
-    --ease-sine: cubic-bezier(0.445, 0.05, 0.55, 0.95);
-    /* Quint out: the curve for something arriving from off-screen. */
-    --ease-quint: cubic-bezier(0.22, 1, 0.36, 1);
-    --dur-fast: 0.2s;
-    --dur-base: 0.4s;
-    --dur-slow: 0.7s;
-
-    /* ---- Elevation (used sparingly, see rule 2) ------------------------- */
-    --shadow-pop: 0 1px 2px rgb(var(--ink) / 0.04), 0 8px 24px rgb(var(--ink) / 0.08);
-    --shadow-sheet: 0 1px 3px rgb(var(--ink) / 0.06), 0 24px 64px rgb(var(--ink) / 0.16);
-
-    /* ---- shadcn/ui bridge ---------------------------------------------- */
-    /* Every ui/* primitive reads these. They're kept as HSL triples on purpose
-       — the whole component library depends on the names and the format — but
-       the values are now the ink ladder above, so shadcn components and native
-       ones can't drift apart. */
-    --background: 0 0% 100%;
-    --foreground: 0 0% 7%;               /* #111 */
+    /* Villaoro — minimalist editorial luxury */
+    --background: 0 0% 100%;          /* pure white */
+    --foreground: 0 0% 0%;               /* pure black */
 
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 7%;
+    --card-foreground: 0 0% 0%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 7%;
+    --popover-foreground: 0 0% 0%;
 
-    --primary: 0 0% 7%;
+    --primary: 0 0% 0%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 0 0% 96%;
-    --secondary-foreground: 0 0% 7%;
+    --secondary-foreground: 0 0% 0%;
 
-    --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 44%;        /* = ink at 60% on white */
+    --muted: 0 0% 98%;
+    --muted-foreground: 0 0% 40%;
 
-    --accent: 0 0% 7%;
+    --accent: 0 0% 0%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 3 68% 43%;
+    --destructive: 0 0% 0%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 86%;                  /* = ink at 16% on white */
-    --input: 0 0% 86%;
-    --ring: 0 0% 7%;
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 0 0% 0%;
 
-    --sale: 38 44% 42%;                  /* gold — a reduced price is the one
-                                            place colour carries meaning */
+    --sale: 0 0% 0%;
 
     --radius: 0;                        /* sharp editorial */
 
-    /* ---- Type ----------------------------------------------------------
-       Three voices, and a component picks exactly one:
-         serif  — the product. Names, editorial headlines, prices in detail.
-         sans   — the reading voice. Body copy, descriptions, form fields.
-         mono   — the interface voice. Buttons, labels, eyebrows, sizes, SKUs.
-       Mono is the system stack on purpose: it renders as SF Mono on the iOS
-       devices this ships to as a PWA, costs no extra font request, and stays
-       a neutral grotesque everywhere else. */
-    --font-display: 'Cormorant Garamond', 'Times New Roman', serif;
-    --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
-    --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, 'Segoe UI Mono',
-                 'Roboto Mono', monospace;
+    --font-display: 'Inter', system-ui, sans-serif;
+    --font-sans: 'Inter', system-ui, sans-serif;
 
     --tracking-wide: 0.05em;
     --tracking-tight: -0.02em;
-    --tracking-label: 0.12em;           /* the mono micro-label */
 
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 0 0% 0%;
@@ -160,10 +53,6 @@
     --sidebar-accent-foreground: 0 0% 0%;
     --sidebar-border: 0 0% 94%;
     --sidebar-ring: 0 0% 0%;
-  }
-
-  @media (min-width: 768px) {
-    :root { --masthead-h: 68px; }
   }
 }
 
@@ -177,30 +66,12 @@
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-sans);
-    /* 300 across the whole body was the single biggest legibility problem in
-       the old build: hairline text at 11-12px on white. Weight is now a
-       deliberate per-component decision starting from a readable 400. */
-    font-weight: 400;
-    font-size: 1rem;
-    line-height: 1.5;
+    font-weight: 300;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
   }
-
-  /* Anything that can be tabbed to gets the same focus ring — a square offset
-     outline in ink, which stays visible on white, on grey and on photography.
-     :focus-visible only, so a mouse press never draws it. */
-  :focus-visible {
-    outline: 2px solid rgb(var(--ink));
-    outline-offset: 2px;
-  }
-
-  ::selection {
-    background: rgb(var(--ink));
-    color: rgb(var(--paper));
-  }
-
+  
   /* Chrome/Safari paint autofilled fields with their own pale blue box, which
      breaks every transparent input on the onboarding and sign-in screens. */
   input:-webkit-autofill,
@@ -218,111 +89,9 @@
     backface-visibility: hidden;
   }
 
-  /* Headings stay in the sans by default — the serif is opt-in via .display or
-     font-display, so the admin area and other utilitarian screens don't
-     silently become editorial. What every heading does inherit is the tight
-     setting: display type is set tighter than body type, always. */
   h1, h2, h3, h4 {
-    font-family: var(--font-sans);
-    font-weight: 500;
-    letter-spacing: var(--tracking-tight);
-    line-height: 1.1;
-    text-wrap: balance;
-  }
-
-  /* Reduced motion is honoured globally rather than component by component:
-     transitions collapse to near-zero and scroll jumps instead of gliding. */
-  @media (prefers-reduced-motion: reduce) {
-    html { scroll-behavior: auto; }
-    *, *::before, *::after {
-      animation-duration: 0.01ms !important;
-      animation-iteration-count: 1 !important;
-      transition-duration: 0.01ms !important;
-      scroll-behavior: auto !important;
-    }
-  }
-}
-
-/* ============================================================================
-   TYPE SCALE
-   Fluid between a phone and a desktop rather than stepped at breakpoints, so
-   a headline is never momentarily too big for its container mid-range. Each
-   step carries its own leading and tracking — the two things that actually
-   make large type look set rather than scaled.
-   ========================================================================= */
-@layer components {
-  .type-display {
     font-family: var(--font-display);
-    font-size: clamp(2.75rem, 9vw, 6.5rem);
-    line-height: 0.98;
-    letter-spacing: -0.03em;
-    font-weight: 300;
-    text-wrap: balance;
-  }
-  .type-h1 {
-    font-size: clamp(2rem, 5.5vw, 3.75rem);
-    line-height: 1.04;
-    letter-spacing: -0.03em;
-    font-weight: 500;
-    text-wrap: balance;
-  }
-  .type-h2 {
-    font-size: clamp(1.5rem, 3.2vw, 2.5rem);
-    line-height: 1.1;
-    letter-spacing: -0.025em;
-    font-weight: 500;
-    text-wrap: balance;
-  }
-  .type-h3 {
-    font-size: clamp(1.125rem, 1.8vw, 1.5rem);
-    line-height: 1.2;
-    letter-spacing: -0.02em;
-    font-weight: 500;
-  }
-  .type-lead {
-    font-size: clamp(1rem, 1.4vw, 1.25rem);
-    line-height: 1.5;
-    letter-spacing: -0.01em;
-    color: rgb(var(--ink) / var(--content-soft));
-    text-wrap: pretty;
-  }
-  .type-body {
-    font-size: 0.9375rem;
-    line-height: 1.6;
-    color: rgb(var(--ink) / var(--content-sub));
-    text-wrap: pretty;
-  }
-  .type-small {
-    font-size: 0.8125rem;
-    line-height: 1.5;
-    color: rgb(var(--ink) / var(--content-soft));
-  }
-
-  /* The interface voice. One class, used for every eyebrow, button label,
-     size chip, price tag and table header in the product. */
-  .type-label {
-    font-family: var(--font-mono);
-    font-size: 0.6875rem;
-    line-height: 1.4;
-    letter-spacing: var(--tracking-label);
-    text-transform: uppercase;
-    font-weight: 500;
-    font-variant-numeric: tabular-nums;
-  }
-  .type-label-lg {
-    font-family: var(--font-mono);
-    font-size: 0.75rem;
-    line-height: 1.4;
-    letter-spacing: var(--tracking-label);
-    text-transform: uppercase;
-    font-weight: 500;
-    font-variant-numeric: tabular-nums;
-  }
-  /* Prices, quantities, counts: mono so digits line up column to column and
-     a total never shifts width as it counts up. */
-  .type-numeric {
-    font-family: var(--font-mono);
-    font-variant-numeric: tabular-nums;
+    font-weight: 400;
     letter-spacing: -0.01em;
   }
 }
@@ -341,247 +110,33 @@
 }
 
 @layer components {
-  /* ---- Layout -------------------------------------------------------- */
-  /* One container, one gutter, everywhere. Screens that were each inventing
-     their own px-2.5 sm:px-4 lg:px-10 now align to the same two edges, which
-     is most of what makes a set of pages feel like one product. */
-  .shell {
-    width: 100%;
-    max-width: var(--measure);
-    margin-inline: auto;
-    padding-inline: var(--gutter);
-  }
-  .shell-wide {
-    width: 100%;
-    margin-inline: auto;
-    padding-inline: var(--gutter);
-  }
-  .shell-text {
-    width: 100%;
-    max-width: var(--measure-text);
-  }
-  .section-sm { padding-block: var(--section-sm); }
-  .section-md { padding-block: var(--section-md); }
-  .section-lg { padding-block: var(--section-lg); }
-
-  /* ---- Rules --------------------------------------------------------- */
-  .hairline   { border-color: rgb(var(--ink) / var(--border-main)); }
-  .hairline-t { border-top: var(--hairline) solid rgb(var(--ink) / var(--border-main)); }
-  .hairline-b { border-bottom: var(--hairline) solid rgb(var(--ink) / var(--border-main)); }
-  .hairline-l { border-left: var(--hairline) solid rgb(var(--ink) / var(--border-main)); }
-  .hairline-r { border-right: var(--hairline) solid rgb(var(--ink) / var(--border-main)); }
-  .hairline-all { border: var(--hairline) solid rgb(var(--ink) / var(--border-main)); }
-  .hairline-soft { border-color: rgb(var(--ink) / var(--border-light)); }
-
-  /* ---- Controls ------------------------------------------------------ */
-  /* The pill. Pressable things are round; everything else is square. The
-     vertical padding is deliberately asymmetric (1px more on top) because
-     uppercase mono sits high in its box and optically centres low. */
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    border-radius: 100vmax;
-    padding: 0.9375rem 1.75rem 0.875rem;
-    white-space: nowrap;
-    cursor: pointer;
-    font-family: var(--font-mono);
-    font-size: 0.6875rem;
-    line-height: 1;
-    letter-spacing: var(--tracking-label);
-    text-transform: uppercase;
-    font-weight: 500;
-    border: var(--hairline) solid transparent;
-    transition: background-color var(--dur-base) var(--ease-sine),
-                border-color var(--dur-base) var(--ease-sine),
-                color var(--dur-base) var(--ease-sine),
-                opacity var(--dur-base) var(--ease-sine);
-  }
-  .btn:active { transform: translateY(0.5px); }
-  .btn[disabled],
-  .btn[aria-disabled="true"] {
-    cursor: not-allowed;
-    background: rgb(var(--ink) / 0.04);
-    border-color: transparent;
-    color: rgb(var(--ink) / var(--content-disabled));
-  }
-
-  /* Solid: the one action a screen most wants you to take. */
-  .btn-solid {
-    background: rgb(var(--ink));
-    color: rgb(var(--paper));
-  }
-  .btn-solid:not([disabled]):hover { background: rgb(var(--ink) / 0.82); }
-
-  /* Outline: everything else. Hover resolves the hairline to full ink rather
-     than filling — the fill is what distinguishes the primary action. */
-  .btn-outline {
-    background: transparent;
-    color: rgb(var(--ink));
-    border-color: rgb(var(--ink) / var(--border-bold));
-  }
-  .btn-outline:not([disabled]):hover { border-color: rgb(var(--ink)); }
-
-  /* Ghost: inline actions inside dense UI. */
-  .btn-ghost {
-    background: transparent;
-    color: rgb(var(--ink) / var(--content-soft));
-  }
-  .btn-ghost:not([disabled]):hover {
-    background: rgb(var(--ink) / 0.05);
-    color: rgb(var(--ink));
-  }
-
-  /* On a dark surface the whole thing inverts. */
-  .btn-inverse {
-    background: rgb(var(--paper));
-    color: rgb(var(--ink));
-  }
-  .btn-inverse:not([disabled]):hover { background: rgb(var(--paper) / 0.85); }
-
-  .btn-sm { padding: 0.6875rem 1.125rem 0.625rem; font-size: 0.625rem; }
-  .btn-lg { padding: 1.1875rem 2.25rem 1.125rem; font-size: 0.75rem; }
-  .btn-block { display: flex; width: 100%; }
-
-  /* ---- Links --------------------------------------------------------- */
-  /* The underline grows from the left on hover rather than appearing: it
-     reads as the link responding, not as a style swap. */
-  .link-underline {
-    position: relative;
-    display: inline-block;
-    color: inherit;
-  }
-  .link-underline::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    bottom: -0.125rem;
-    width: 100%;
-    height: var(--hairline);
-    background: currentColor;
-    transform: scaleX(0);
-    transform-origin: left;
-    transition: transform var(--dur-base) var(--ease-sine);
-  }
-  .link-underline:hover::after { transform: scaleX(1); }
-
-  /* ---- Field --------------------------------------------------------- */
-  .field {
-    width: 100%;
-    background: transparent;
-    border: 0;
-    border-bottom: var(--hairline) solid rgb(var(--ink) / var(--border-main));
-    padding: 0.75rem 0;
-    font-size: 1rem;
-    color: rgb(var(--ink));
-    transition: border-color var(--dur-base) var(--ease-sine);
-  }
-  .field::placeholder { color: rgb(var(--ink) / var(--content-note)); }
-  .field:focus {
-    outline: none;
-    border-bottom-color: rgb(var(--ink));
-  }
-  .field:focus-visible { outline: none; }
-  .field[aria-invalid="true"] { border-bottom-color: rgb(var(--critical)); }
-
   .eyebrow {
-    font-family: var(--font-mono);
-    font-size: 0.6875rem;
-    line-height: 1.4;
-    letter-spacing: var(--tracking-label);
-    text-transform: uppercase;
-    font-weight: 500;
-    color: rgb(var(--ink) / var(--content-note));
+    @apply text-xs uppercase text-muted-foreground;
+    letter-spacing: var(--tracking-wide);
   }
   .nav-link {
-    font-family: var(--font-mono);
-    font-size: 0.6875rem;
-    letter-spacing: var(--tracking-label);
-    text-transform: uppercase;
-    color: rgb(var(--ink) / var(--content-soft));
-    transition: color var(--dur-base) var(--ease-sine);
+    @apply text-sm uppercase transition-colors hover:text-accent;
+    letter-spacing: var(--tracking-wide);
   }
-  .nav-link:hover,
-  .nav-link[aria-current="page"] { color: rgb(var(--ink)); }
   .product-card {
     @apply bg-transparent relative flex flex-col;
   }
-  /* The well behind a product shot. Square, sunken, hairlined — the image sits
-     *in* the page rather than on a floating white tile. */
   .product-card-image {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    aspect-ratio: 1 / 1;
-    background: rgb(var(--surface-sunken));
-    border: var(--hairline) solid rgb(var(--ink) / var(--border-light));
+    @apply relative overflow-hidden bg-transparent aspect-square flex items-center justify-center;
   }
   .product-card-image img {
-    @apply w-full h-full object-contain;
-    transition: transform var(--dur-slow) var(--ease-quint);
+    @apply w-full h-full object-contain transition-transform duration-700 ease-out;
   }
-  .product-card:hover .product-card-image img,
-  .group:hover .product-card-image img {
-    transform: scale(1.04);
+  .product-card:hover .product-card-image img {
+    transform: scale(1.05);
   }
   .sale-badge {
+    @apply absolute top-4 left-4 text-xs;
     color: hsl(var(--sale));
-    font-family: var(--font-mono);
-    font-size: 0.625rem;
-    letter-spacing: var(--tracking-label);
-    text-transform: uppercase;
+    letter-spacing: var(--tracking-wide);
   }
   .divider {
-    border-top: var(--hairline) solid rgb(var(--ink) / var(--border-main));
-  }
-
-  /* ---- Loading ------------------------------------------------------- */
-  /* A skeleton is the shape of the thing that's coming, in the sunken
-     surface, with a sheen that crosses once per 1.6s. Not a spinner: the
-     grid's layout is known before the data is, so it shouldn't reflow. */
-  .skeleton {
-    position: relative;
-    overflow: hidden;
-    background: rgb(var(--ink) / 0.055);
-  }
-  .skeleton::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    transform: translateX(-100%);
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgb(var(--paper) / 0.65),
-      transparent
-    );
-    animation: skeleton-sheen 1.6s var(--ease-sine) infinite;
-  }
-  @keyframes skeleton-sheen {
-    100% { transform: translateX(100%); }
-  }
-
-  /* ---- Marquee ------------------------------------------------------- */
-  /* Two identical tracks side by side, the pair translated by exactly half its
-     width, so the loop is seamless at any content length. Pauses on hover and
-     for reduced-motion. */
-  .marquee { display: flex; overflow: hidden; user-select: none; }
-  .marquee-track {
-    display: flex;
-    flex-shrink: 0;
-    align-items: center;
-    gap: var(--marquee-gap, 3rem);
-    padding-right: var(--marquee-gap, 3rem);
-    min-width: 100%;
-    animation: marquee-scroll var(--marquee-duration, 40s) linear infinite;
-  }
-  .marquee:hover .marquee-track { animation-play-state: paused; }
-  @keyframes marquee-scroll {
-    from { transform: translateX(0); }
-    to   { transform: translateX(-100%); }
+    @apply border-t border-border;
   }
 }
 

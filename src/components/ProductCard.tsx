@@ -51,104 +51,78 @@ const ProductCard = ({ product, index, isFeatured }: { product: Product, index?:
       {(() => {
         const cropData = product.displayCrops?.[0];
         const hasCrop = !!cropData;
-        // Square, not 4:5. The catalogue is mostly wide product shots on
-        // white; in a portrait well they scaled to the width and left a third
-        // of the card empty above and below. Must stay in step with the
-        // aspect-square on the well below — the crop maths derives from it.
-        const containerAspect = 1;
+        const containerAspect = 4 / 5;
         // Skip crop styles if this is a featured card without a fixed aspect container
         const cropStyles = (hasCrop && imgAspect && !isFeatured) 
           ? computeCropStyles(imgAspect, containerAspect, cropData) 
           : undefined;
 
-        const onSale = !!product.oldPrice && product.oldPrice > product.price;
-
         return (
-          // The well: square, sunken, hairlined. A product shot now sits *in*
-          // the page instead of on a floating rounded white tile, which is
-          // what let the old grid read as a pile of cards rather than a
-          // catalogue.
-          <div
-            className={`relative overflow-hidden bg-surface-sunken border-hairline border-ink/[0.08] ${
-              cropStyles ? "" : "flex items-center justify-center"
-            } ${isFeatured ? "w-full h-auto aspect-auto" : "aspect-square"}`}
-          >
-            <img
-              src={product.image}
-              alt={product.name}
+          <div className={`relative bg-white overflow-hidden rounded-2xl ${cropStyles ? '' : 'flex items-center justify-center'} ${isFeatured ? 'w-full h-auto aspect-auto' : 'aspect-[4/5]'}`}>
+
+            <img 
+              src={product.image} 
+              alt={product.name} 
               onLoad={handleImageLoad}
               loading={(index !== undefined && index < 8) || isFeatured ? "eager" : "lazy"}
               {...(((index !== undefined && index < 4) || isFeatured) ? { fetchPriority: "high" } as any : {})}
               decoding="async"
-              className={
-                cropStyles
-                  ? `transition-transform duration-slow ease-quint group-hover:scale-[1.04]`
-                  : `w-full ${isFeatured ? "h-auto object-contain" : "h-full object-contain"} transition-transform duration-slow ease-quint group-hover:scale-[1.04]`
-              }
+              className={cropStyles ? `transition-transform duration-700 ease-out group-hover:scale-[1.02]` : `w-full ${isFeatured ? 'h-auto object-contain' : 'h-full object-contain'} transition-transform duration-700 ease-out group-hover:scale-[1.02]`}
               style={cropStyles || undefined}
             />
-
-            {onSale && (
-              <span className="sale-badge absolute left-3 top-3 z-10 bg-paper/90 px-2 py-1 backdrop-blur-sm">
-                {t('sale') || 'Sale'}
-              </span>
-            )}
-
-            {/* Save. Always visible on touch, where there is no hover to
-                reveal it; on a pointer device it fades in with the card so the
-                grid stays quiet until you engage with it. */}
-            <button
-              onClick={handleFavoriteClick}
-              aria-label={isFavorite ? "Remove from bag" : "Add to bag"}
-              aria-pressed={isFavorite}
-              className="absolute right-2.5 top-2.5 z-10 flex h-9 w-9 items-center justify-center rounded-full border-hairline border-ink/10 bg-paper/85 backdrop-blur-sm transition-[opacity,border-color,background-color] duration-base ease-sine hover:border-ink/30 focus-visible:opacity-100 md:opacity-0 md:group-hover:opacity-100"
+            
+            {/* Interactive Favorite Heart */}
+        <button
+          onClick={handleFavoriteClick}
+          className="absolute top-2.5 right-2.5 z-10 p-2 hover:bg-black/5 rounded-full transition-colors focus:outline-none flex items-center justify-center"
+          aria-label="Add to favorites"
+        >
+          <div className="relative">
+            <motion.div
+              key={isFavorite ? 'favorited' : 'unfavorited'}
+              animate={
+                isFavorite 
+                  ? { scale: [1, 1.3, 0.9, 1.1, 1] } 
+                  : { scale: 1 }
+              }
+              transition={{ duration: 0.4 }}
             >
-              <div className="relative">
-                <motion.div
-                  key={isFavorite ? 'favorited' : 'unfavorited'}
-                  animate={isFavorite ? { scale: [1, 1.28, 0.92, 1.08, 1] } : { scale: 1 }}
-                  transition={{ duration: 0.4, ease: [0.445, 0.05, 0.55, 0.95] }}
+              <Heart 
+                size={22} 
+                strokeWidth={isFavorite ? 0 : 1.2} 
+                fill={isFavorite ? "#FF3B30" : "transparent"}
+                className={isFavorite ? "text-[#FF3B30]" : "text-black drop-shadow-sm"} 
+              />
+            </motion.div>
+            
+            <AnimatePresence>
+              {totalQuantity > 0 && (
+                <motion.div 
+                  initial={{ scale: 0, opacity: 0 }} 
+                  animate={{ scale: 1, opacity: 1 }} 
+                  exit={{ scale: 0, opacity: 0 }}
+                  className="absolute -top-1.5 -right-1.5 bg-[#FF3B30] text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-white shadow-sm"
                 >
-                  <Heart
-                    size={16}
-                    strokeWidth={isFavorite ? 0 : 1.5}
-                    fill={isFavorite ? "currentColor" : "transparent"}
-                    className={isFavorite ? "text-ink" : "text-ink/70"}
-                  />
+                  {totalQuantity}
                 </motion.div>
-
-                <AnimatePresence>
-                  {totalQuantity > 1 && (
-                    <motion.div
-                      initial={{ scale: 0, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      exit={{ scale: 0, opacity: 0 }}
-                      transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-                      className="absolute -right-2.5 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-ink px-1 font-mono text-[9px] tabular-nums text-paper"
-                    >
-                      {totalQuantity}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            </button>
+              )}
+            </AnimatePresence>
           </div>
+        </button>
+      </div>
       );})()}
-
-      {/* Caption. Three lines, three voices: mono for the house, sans for the
-          piece, mono tabular for the price so figures align down the column. */}
-      <div className="mt-3.5 flex w-full flex-col gap-1.5 text-left">
-        <p className="type-label text-ink transition-opacity duration-base ease-sine group-hover:opacity-60">
+      <div className="flex flex-col mt-3 space-y-1 w-full text-left">
+        <p className="text-[11px] md:text-[12px] text-black font-semibold uppercase tracking-widest leading-none">
           {product.designer}
         </p>
-        <p className="line-clamp-2 min-h-[2.4em] text-[13px] leading-snug text-ink/60">
+        <p className="text-[11px] md:text-[12px] text-[#555] font-normal leading-tight line-clamp-2 min-h-[2.2em]">
           {t(product.name)}
         </p>
         {getDesignSettings().showPrices !== false && (
-          <p className="type-numeric flex items-baseline gap-2 pt-0.5 text-[13px] text-ink">
+          <p className="text-[11px] md:text-[12px] text-black pt-1 font-medium tracking-wide flex items-center gap-1.5 leading-none">
             <span>{formatPrice(product.price)}</span>
             {product.oldPrice && (
-              <span className="text-[11px] text-ink/35 line-through">
+              <span className="text-[#999] line-through text-[10px] md:text-[11px]">
                 {formatPrice(product.oldPrice)}
               </span>
             )}

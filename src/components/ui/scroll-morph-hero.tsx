@@ -32,6 +32,10 @@ export interface ScrollMorphHeroProps {
   revealSubtitle?: React.ReactNode;
   children?: React.ReactNode;
   className?: string;
+  // Decorative layer behind the whole scene. Given as a square: the hero sizes
+  // it and drives it with the scroll (see the globe choreography below), so
+  // whatever is passed only has to fill the box it's handed.
+  backdrop?: React.ReactNode;
 }
 
 const lerp = (a: number, b: number, t: number) => a * (1 - t) + b * t;
@@ -109,6 +113,7 @@ export function ScrollMorphHero({
   revealSubtitle,
   children,
   className,
+  backdrop,
 }: ScrollMorphHeroProps) {
   // The runway is the tall element the page scrolls through; the stage is the
   // sticky screen inside it that everything is drawn on.
@@ -260,6 +265,39 @@ export function ScrollMorphHero({
   // buttons drop just below it rather than colliding with the icons.
   const tightRing = 2 * circleRadius - iconSize < 320;
 
+  // --- The backdrop's choreography ---
+  // At rest its center sits on the bottom edge of the stage, so only its top
+  // half is in view: a horizon under the scattered icons, as wide as the
+  // screen. The same scroll that gathers the icons lifts it to the middle of
+  // the stage and shrinks it to the opening the ring closes around — the second
+  // half of it arrives as the ring does, and the two land as one movement.
+
+  // Tangent to the inner edge of the icons on the ring: they orbit it, and at
+  // rest it is the thing they are scattered around.
+  const backdropRingSize = Math.max(2 * circleRadius - iconSize, 0);
+  const backdropRestSize = Math.max(
+    Math.min(
+      containerSize.width * 0.92,
+      // Height matters as much as width: on a short laptop window a dome sized
+      // off the width alone rises far enough to reach the greeting.
+      containerSize.height * 0.85,
+      1024
+    ),
+    // Never smaller than where it's headed, so the scale below only ever shrinks.
+    backdropRingSize
+  );
+  // Rendered at its largest and scaled *down*, never up, so it stays crisp —
+  // a canvas backdrop is rasterised once at the size of the box it's given.
+  const backdropScale =
+    backdropRestSize > 0 ? lerp(1, backdropRingSize / backdropRestSize, iconMorph) : 1;
+  const backdropCenterY = lerp(
+    // A touch above the very edge, so a phone's bottom browser chrome doesn't
+    // eat the horizon.
+    containerSize.height - 24,
+    containerSize.height / 2,
+    iconMorph
+  );
+
   return (
     // Runway: pure scroll distance, nothing drawn on it. Its height is what
     // decides how much scrolling the sequence is spread across.
@@ -275,6 +313,30 @@ export function ScrollMorphHero({
         ref={containerRef}
         className="sticky top-0 h-screen w-full overflow-hidden bg-background"
       >
+        {/* Backdrop — first in the stage, so everything else paints over it.
+            Held back until the container has been measured, for the same reason
+            the icons are: its whole position is derived from that size.
+            Deliberately inert to pointer events — the canvas it usually holds
+            would otherwise claim the touch that is meant to scroll the page. */}
+        {backdrop && containerSize.width > 0 && (
+          <div className="absolute inset-0 z-0 pointer-events-none" aria-hidden="true">
+            <div
+              className="absolute left-1/2"
+              style={{
+                width: backdropRestSize,
+                height: backdropRestSize,
+                top: backdropCenterY,
+                transform: `translate(-50%, -50%) scale(${backdropScale})`,
+                // Recedes a little as it comes fully into view, so the reveal
+                // content that lands on top of it stays the thing you read.
+                opacity: lerp(1, 0.8, iconMorph),
+              }}
+            >
+              {backdrop}
+            </div>
+          </div>
+        )}
+
         {/* Intro copy — visible while the icons rest scattered, fades as scrolling begins */}
         <div className="absolute inset-0 z-0 flex flex-col items-center justify-center text-center px-6 pointer-events-none">
           <motion.h1

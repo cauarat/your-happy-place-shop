@@ -13,61 +13,7 @@ export default {
       },
     },
     extend: {
-      // The design system's own scales, exposed as utilities so a component
-      // can reach for `text-ink/60` or `border-hairline` instead of
-      // hand-writing an rgba(). Source of truth is src/index.css.
-      fontFamily: {
-        sans: ["Inter", "system-ui", "-apple-system", "sans-serif"],
-        display: ["Cormorant Garamond", "Times New Roman", "serif"],
-        serif: ["Cormorant Garamond", "Times New Roman", "serif"],
-        mono: [
-          "ui-monospace",
-          "SFMono-Regular",
-          "SF Mono",
-          "Menlo",
-          "Segoe UI Mono",
-          "Roboto Mono",
-          "monospace",
-        ],
-      },
-      borderWidth: {
-        hairline: "max(1px, 0.0625rem)",
-      },
-      transitionTimingFunction: {
-        sine: "cubic-bezier(0.445, 0.05, 0.55, 0.95)",
-        quint: "cubic-bezier(0.22, 1, 0.36, 1)",
-      },
-      transitionDuration: {
-        base: "400ms",
-        slow: "700ms",
-      },
-      maxWidth: {
-        measure: "1600px",
-        text: "68ch",
-      },
-      spacing: {
-        gutter: "var(--gutter)",
-        "section-sm": "var(--section-sm)",
-        "section-md": "var(--section-md)",
-        "section-lg": "var(--section-lg)",
-      },
-      boxShadow: {
-        pop: "0 1px 2px rgb(17 17 17 / 0.04), 0 8px 24px rgb(17 17 17 / 0.08)",
-        sheet: "0 1px 3px rgb(17 17 17 / 0.06), 0 24px 64px rgb(17 17 17 / 0.16)",
-      },
       colors: {
-        // `ink` is the whole greyscale: ink/60, ink/16, ink/8 replace the
-        // scattered #555 / #999 / black/5 literals the app had.
-        ink: "rgb(var(--ink) / <alpha-value>)",
-        paper: "rgb(var(--paper) / <alpha-value>)",
-        surface: {
-          page: "rgb(var(--surface-page) / <alpha-value>)",
-          raised: "rgb(var(--surface-raised) / <alpha-value>)",
-          sunken: "rgb(var(--surface-sunken) / <alpha-value>)",
-          inverse: "rgb(var(--surface-inverse) / <alpha-value>)",
-        },
-        gold: "rgb(var(--gold) / <alpha-value>)",
-        critical: "rgb(var(--critical) / <alpha-value>)",
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",

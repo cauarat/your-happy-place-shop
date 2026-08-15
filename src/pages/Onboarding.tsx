@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { Lock, ArrowLeft, Check, ChevronDown } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -12,8 +12,9 @@ import { ScrollMorphHero } from '@/components/ui/scroll-morph-hero';
 import { ContainerScroll } from '@/components/ui/container-scroll-animation';
 import CatalogPreview from '@/components/CatalogPreview';
 import { DURATION, EASE_SOFT, jumpPageToTop, scrollPageToElement } from '@/lib/motion';
-import { Footprints, Shirt, Glasses } from 'lucide-react';
+import { Shirt, Glasses } from 'lucide-react';
 import { BagIcon, CapIcon, PantsIcon, JacketIcon, HoodieIcon, SweaterIcon, PufferJacketIcon } from '@/components/Icons';
+import { GlobeFlights } from '@/components/ui/cobe-globe-flights';
 
 // iOS-style segmented control: a shared layoutId pill glides between options,
 // spring-driven, so switching languages feels native rather than a plain fade.
@@ -115,7 +116,9 @@ CatalogTourSection.displayName = 'CatalogTourSection';
 //    middle already has the shape of the ring the icons gather into on scroll.
 //
 // Top to bottom it also runs head to toe: cap and glasses highest, outerwear on
-// the shoulder line, tops, then trousers, shoes and bag along the floor.
+// the shoulder line, tops, then trousers and bag along the floor. The bottom
+// row's middle slot is left open on purpose — that's where the globe rises,
+// so the two floor icons flank it rather than sitting on it.
 // Positions with no left/right are centered exactly (see the hero's parser),
 // which a percentage can't do. The order of the array is the clockwise order of
 // these spots around the center, which is also the order of the ring slots, so
@@ -123,14 +126,36 @@ CatalogTourSection.displayName = 'CatalogTourSection';
 const onboardingHeroIcons = [
   { id: 1, icon: HoodieIcon, className: 'bottom-[24%] right-[9%]' },
   { id: 2, icon: BagIcon, className: 'bottom-[10%] right-[5%]' },
-  { id: 3, icon: Footprints, className: 'bottom-[10%]' },
-  { id: 4, icon: PantsIcon, className: 'bottom-[10%] left-[5%]' },
-  { id: 5, icon: Shirt, className: 'bottom-[24%] left-[9%]' },
-  { id: 6, icon: JacketIcon, className: 'top-[21%] left-[18%]' },
-  { id: 7, icon: CapIcon, className: 'top-[6%] left-[4%]' },
-  { id: 8, icon: Glasses, className: 'top-[6%]' },
-  { id: 9, icon: SweaterIcon, className: 'top-[6%] right-[4%]' },
-  { id: 10, icon: PufferJacketIcon, className: 'top-[21%] right-[18%]' },
+  { id: 3, icon: PantsIcon, className: 'bottom-[10%] left-[5%]' },
+  { id: 4, icon: Shirt, className: 'bottom-[24%] left-[9%]' },
+  { id: 5, icon: JacketIcon, className: 'top-[21%] left-[18%]' },
+  { id: 6, icon: CapIcon, className: 'top-[6%] left-[4%]' },
+  { id: 7, icon: Glasses, className: 'top-[6%]' },
+  { id: 8, icon: SweaterIcon, className: 'top-[6%] right-[4%]' },
+  { id: 9, icon: PufferJacketIcon, className: 'top-[21%] right-[18%]' },
+];
+
+// The routes on the globe behind the hero. Villaoro's own map rather than the
+// component's default airports: the houses it carries, and São Paulo on the
+// receiving end of them. Module-level constants on purpose — the globe rebuilds
+// itself whenever these change identity, so they must not be rebuilt per render.
+const villaoroRoutes = [
+  { id: 'milan-paris', from: [45.46, 9.19] as [number, number], to: [48.86, 2.35] as [number, number] },
+  { id: 'paris-newyork', from: [48.86, 2.35] as [number, number], to: [40.64, -73.78] as [number, number] },
+  { id: 'newyork-saopaulo', from: [40.64, -73.78] as [number, number], to: [-23.55, -46.63] as [number, number] },
+  { id: 'tokyo-milan', from: [35.68, 139.76] as [number, number], to: [45.46, 9.19] as [number, number] },
+  { id: 'london-dubai', from: [51.51, -0.13] as [number, number], to: [25.2, 55.27] as [number, number] },
+];
+
+const villaoroCities = [
+  { id: 'city-milan', location: [45.46, 9.19] as [number, number] },
+  { id: 'city-paris', location: [48.86, 2.35] as [number, number] },
+  { id: 'city-newyork', location: [40.64, -73.78] as [number, number] },
+  { id: 'city-saopaulo', location: [-23.55, -46.63] as [number, number] },
+  { id: 'city-tokyo', location: [35.68, 139.76] as [number, number] },
+  { id: 'city-london', location: [51.51, -0.13] as [number, number] },
+  { id: 'city-dubai', location: [25.2, 55.27] as [number, number] },
+  { id: 'city-losangeles', location: [34.05, -118.24] as [number, number] },
 ];
 
 const Onboarding = () => {
@@ -148,6 +173,10 @@ const Onboarding = () => {
   // document, so reaching it is scrolling the page — never a screen swap.
   const tourSectionRef = React.useRef<HTMLElement>(null);
   const { language, setLanguage, t } = useLanguage();
+  // The hero already drops its entrance flight for anyone who asked their OS
+  // for less motion; the globe's idle spin is the same kind of thing, so it
+  // stops too and the sphere simply sits there.
+  const reduceMotion = useReducedMotion();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -323,6 +352,15 @@ const Onboarding = () => {
       >
         <ScrollMorphHero
           icons={onboardingHeroIcons}
+          // Rises out of the bottom edge where the shoes icon used to sit: half
+          // a globe at rest, the whole of it once the ring has closed.
+          backdrop={
+            <GlobeFlights
+              arcs={villaoroRoutes}
+              markers={villaoroCities}
+              speed={reduceMotion ? 0 : 0.0025}
+            />
+          }
           scrollHint={t('scroll_to_explore')}
           introTitle={greetingRoulette}
           introSubtitle={
