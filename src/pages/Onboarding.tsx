@@ -13,7 +13,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { useOnboarding } from '../contexts/OnboardingContext';
 import { designers as staticDesigners } from '../data/products';
 import { supabase } from '../lib/supabase';
-import { getDesigners } from '../lib/store';
+import { getDesigners, getProducts } from '../lib/store';
 import { Component as LanguageSelectorDropdown, LanguageOption } from '@/components/ui/language-selector-dropdown';
 import { ScrollMorphHero } from '@/components/ui/scroll-morph-hero';
 import { ContainerScroll } from '@/components/ui/container-scroll-animation';
@@ -121,6 +121,127 @@ const CatalogTourSection = React.forwardRef<
   }
 );
 CatalogTourSection.displayName = 'CatalogTourSection';
+
+// What this place actually is, between the hero's buttons and the device tour.
+// Someone who has scrolled past "I'm already a member" has been shown a ring of
+// clothing icons and a globe and told nothing; the tour that follows shows the
+// catalogue without ever saying why it is small or who chose what is in it.
+// This is that missing paragraph, and it earns its place by being the only
+// section on the page that makes a claim.
+//
+// The shape is the page's own: a statement carrying the weight on the left, the
+// reasoning and the single number worth quoting on the right. The statement is
+// split across two tones so the first half reads as the setup and the second as
+// the point — one sentence that happens to be typeset as two. On a phone it
+// stacks in reading order (picture, statement, reasoning, number) so nothing
+// has to be scanned sideways.
+//
+// No background of its own, for the same reason CatalogTourSection has none.
+const AboutSection = ({ onExplore }: { onExplore: () => void }) => {
+  const { t, language } = useLanguage();
+
+  // Both the picture and the count come from the live catalogue: the piece
+  // shown is one that is actually for sale, and the figure moves when the shop
+  // does. A number typed in by hand here would be a claim we'd have to keep
+  // remembering to true up.
+  const { cover, pieceCount } = React.useMemo(() => {
+    const products = getProducts();
+    return {
+      cover: products.find((p) => p.image)?.image ?? null,
+      pieceCount: products.length,
+    };
+  }, []);
+
+  const locale = language === 'PT' ? 'pt-BR' : language === 'ES' ? 'es-ES' : 'en-GB';
+
+  // One reveal, reused: everything here arrives on the same curve as the rest
+  // of the page rather than each block inventing its own.
+  const reveal = (delay = 0) => ({
+    initial: { opacity: 0, y: 24 },
+    whileInView: { opacity: 1, y: 0 },
+    viewport: { once: true, amount: 0.35 },
+    transition: { duration: DURATION.content, ease: EASE_SOFT, delay },
+  });
+
+  return (
+    <section className="relative w-full px-6 py-24 md:px-10 md:py-32 lg:py-40">
+      <div className="mx-auto grid w-full max-w-6xl gap-14 lg:grid-cols-2 lg:gap-16">
+        {/* Left: a piece, then the statement */}
+        <div>
+          {cover && (
+            <motion.div
+              {...reveal()}
+              // Square, not the landscape frame this shape usually gets: the
+              // catalogue is shot on white in portrait, and a wide frame left
+              // grey bars down both sides of every piece.
+              className="mb-12 w-full max-w-[300px] overflow-hidden rounded-2xl bg-zinc-100/80 md:mb-16"
+            >
+              <img
+                src={cover}
+                alt=""
+                loading="lazy"
+                decoding="async"
+                className="aspect-square w-full object-contain"
+              />
+            </motion.div>
+          )}
+
+          <motion.h2
+            {...reveal(0.05)}
+            className="text-[clamp(2rem,6.4vw,4rem)] font-semibold uppercase leading-[0.95] tracking-[-0.03em]"
+          >
+            {/* The setup is greyed to hand the emphasis to the second half,
+                but it is still a sentence someone has to read — zinc-400, not
+                the near-invisible tint a decorative first line would take. */}
+            <span className="block text-zinc-400 transition-colors duration-500">
+              {t('about_title_muted')}
+            </span>
+            <span className="block text-black transition-colors duration-500">
+              {t('about_title_strong')}
+            </span>
+          </motion.h2>
+        </div>
+
+        {/* Right: the reasoning, the way in, and the number */}
+        <div className="flex flex-col">
+          <motion.div {...reveal(0.1)} className="flex flex-col gap-5">
+            <p className="max-w-md text-[16px] leading-relaxed text-zinc-600 transition-colors duration-500 md:text-[18px]">
+              {t('about_body_1')}
+            </p>
+            <p className="max-w-md text-[16px] leading-relaxed text-zinc-600 transition-colors duration-500 md:text-[18px]">
+              {t('about_body_2')}
+            </p>
+          </motion.div>
+
+          <motion.div {...reveal(0.15)} className="mt-10">
+            <button
+              onClick={onExplore}
+              className="inline-flex h-[52px] items-center justify-center rounded-full border border-black/15 px-8 text-[13px] font-medium uppercase tracking-[0.08em] transition-all duration-500 hover:border-black/40 hover:bg-black/[0.03] active:scale-[0.98]"
+            >
+              {t('about_cta')}
+            </button>
+          </motion.div>
+
+          {/* The number, set the way the statement is: label, rule, figure.
+              `mt-auto` pins it to the bottom of the column on a wide screen so
+              it lines up with the foot of the statement opposite. */}
+          <motion.div {...reveal(0.2)} className="mt-16 lg:mt-auto lg:pt-24">
+            <p className="text-[14px] text-zinc-500 transition-colors duration-500">
+              {t('about_stat_label')}
+            </p>
+            <div className="mt-4 border-t border-black/10 transition-colors duration-500" />
+            <p className="mt-8 text-[clamp(3rem,8vw,5.5rem)] font-semibold leading-none tracking-[-0.04em] tabular-nums text-black transition-colors duration-500">
+              {pieceCount.toLocaleString(locale)}
+            </p>
+            <p className="mt-3 text-[15px] text-zinc-500 transition-colors duration-500">
+              {t('about_stat_caption')}
+            </p>
+          </motion.div>
+        </div>
+      </div>
+    </section>
+  );
+};
 
 // The scattered resting layout for the hero icons. Two rules shape it:
 //
@@ -459,6 +580,12 @@ const Onboarding = () => {
             </motion.button>
           </div>
         </ScrollMorphHero>
+
+        {/* Between the hero and the tour: the ring closes, and the next thing
+            you meet says what this is before the device shows it to you. Its
+            own button carries on to the tour, so the section is a step in the
+            same journey rather than a detour off it. */}
+        <AboutSection onExplore={startTour} />
 
         {/* Always in the document, directly below the hero's runway: carrying
             on scrolling arrives here with nothing to trigger or wait for, and
