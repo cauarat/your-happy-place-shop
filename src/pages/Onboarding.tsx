@@ -224,40 +224,9 @@ const Onboarding = () => {
   // fade to a scroll distance that changes with the viewport's height.
   const { scrollYProgress: nightfall } = useScroll({
     target: tourSectionRef,
-    // Three quarters of a screen rather than half: the longer the window, the
-    // less of the change lands per pixel of scroll, and gentleness here is
-    // almost entirely a function of how much room it is given.
-    offset: ['start end', 'start 25%'],
+    offset: ['start end', 'start center'],
   });
-
-  // Everything below reads off an eased copy of the progress rather than the
-  // raw value. A linear fade has a hard start and a hard stop — the moment the
-  // window opens the page is already changing at full rate, and it stops dead.
-  // Sine in-out gives it a beginning and an end.
-  const dusk = useTransform(nightfall, [0, 1], [0, 1], {
-    ease: cubicBezier(0.445, 0.05, 0.55, 0.95),
-  });
-
-  // The surface passes through tones rather than interpolating straight to
-  // black. Two things come out of that: the long flat plateau of mid-grey is
-  // cut short, and the greys it does pass through are cooled slightly blue, so
-  // it reads as light leaving the room rather than as a screen dimming.
-  const surface = useTransform(
-    dusk,
-    [0, 0.3, 0.62, 0.85, 1],
-    ['#ffffff', '#d3d8e0', '#5c636f', '#232830', '#000000']
-  );
-
-  // ...and the darkness arrives as a horizon rather than a wash. A soft-edged
-  // band sweeps down the screen ahead of the surface colour, so at no point is
-  // the whole viewport one flat tone — there is always a gradient across it,
-  // which is what stops a white-to-black fade looking like a dirty screen.
-  // The feather is two thirds of a viewport tall, so the edge itself is never
-  // locatable.
-  const horizon = useTransform(dusk, (v) => {
-    const edge = -50 + v * 165;
-    return `linear-gradient(to bottom, #000000 ${edge - 55}%, rgba(0,0,0,0) ${edge + 30}%)`;
-  });
+  const surface = useTransform(nightfall, [0, 1], ['#ffffff', '#000000']);
 
   // The colour of the surface is continuous, but the copy on top of it can
   // only be one thing or the other, so it swaps once at the halfway point and

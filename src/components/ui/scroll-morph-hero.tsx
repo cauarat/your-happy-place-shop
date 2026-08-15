@@ -238,9 +238,9 @@ export function ScrollMorphHero({
   // A light spring only: enough to round off the discrete steps a mouse wheel
   // produces, not enough to lag behind a finger.
   const smoothProgress = useSpring(scrollYProgress, {
-    stiffness: 220,
-    damping: 40,
-    mass: 0.3,
+    stiffness: 160,
+    damping: 38,
+    mass: 0.5,
     restDelta: 0.0005,
   });
   const [scrollValue, setScrollValue] = React.useState(0);
@@ -379,7 +379,7 @@ export function ScrollMorphHero({
                 : { opacity: 0, y: 12, filter: "blur(8px)" }
             }
             transition={{ duration: 0.4 }}
-            className="text-3xl md:text-[58px] font-semibold tracking-tight text-foreground"
+            className="text-3xl md:text-5xl font-semibold tracking-tight text-foreground"
           >
             {introTitle}
           </motion.h1>
