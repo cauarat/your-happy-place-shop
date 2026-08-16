@@ -201,7 +201,7 @@ const AboutSection = React.forwardRef<HTMLElement, { onExplore: () => void }>(
         <div className="flex flex-col h-full">
           <motion.h2
             {...reveal(0.05)}
-            className="text-[clamp(2rem,6.4vw,4rem)] font-semibold uppercase leading-[0.95] tracking-[-0.03em] mb-8 md:mb-12 lg:-mt-2"
+            className="text-[clamp(2rem,6.4vw,4rem)] font-semibold uppercase leading-[0.95] tracking-[-0.03em] mb-8 md:mb-12"
           >
             <span className="block text-black transition-colors duration-500">
               {t('about_title_strong')}
