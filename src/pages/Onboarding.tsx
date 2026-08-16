@@ -533,7 +533,7 @@ const Onboarding = () => {
           }
           revealTitle={
             <div
-              className="font-serif text-[64px] md:text-[80px] lg:text-[96px] leading-none flex items-center justify-center tracking-tight select-none font-light transition-colors duration-500 text-foreground"
+              className="font-serif text-[48px] md:text-[56px] leading-none flex items-center justify-center tracking-tight select-none font-light transition-colors duration-500 text-foreground"
             >
               <span>V</span>
               <motion.span
@@ -565,14 +565,14 @@ const Onboarding = () => {
             </button>
           }
         >
-          <div className="flex flex-col items-center gap-4 w-[280px] sm:w-[320px] max-w-full mt-10 md:mt-16">
+          <div className="flex flex-col items-center justify-center">
             <button
               onClick={() => {
                 navigate('/login');
               }}
-              className="w-full flex items-center justify-center h-[52px] rounded-full hover:scale-[1.02] transition-all duration-500 active:scale-95 shadow-xl bg-foreground text-background shadow-black/10"
+              className="px-8 flex items-center justify-center h-[46px] rounded-full hover:scale-[1.02] transition-all duration-500 active:scale-95 shadow-xl bg-foreground text-background shadow-black/10"
             >
-              <span className="font-medium tracking-wide text-[15px]">
+              <span className="font-medium tracking-wide text-[14px]">
                 {t('onboarding_already_member')}
               </span>
             </button>
