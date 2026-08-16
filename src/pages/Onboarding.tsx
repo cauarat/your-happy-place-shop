@@ -181,7 +181,7 @@ const AboutSection = ({ onExplore }: { onExplore: () => void }) => {
                 alt=""
                 loading="lazy"
                 decoding="async"
-                className="aspect-square w-full object-contain mix-blend-multiply"
+                className="w-full object-contain mix-blend-multiply"
               />
             </motion.div>
           )}
