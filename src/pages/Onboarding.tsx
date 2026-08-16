@@ -253,9 +253,9 @@ const AboutSection = React.forwardRef<HTMLElement, { onExplore: () => void }>(
               hidden: {},
               visible: { transition: { staggerChildren: 0.08, delayChildren: 0.15 } },
             }}
-            className="mt-10"
+            className="mt-12"
           >
-            <div className="bg-[#f2f2f6]/70 backdrop-blur-[32px] saturate-[180%] rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.12),0_2px_8px_rgba(0,0,0,0.06),inset_0_1px_1px_rgba(255,255,255,0.8)] overflow-hidden pointer-events-auto border border-white/20 w-full">
+            <div className="bg-[#f2f2f6]/70 backdrop-blur-[32px] saturate-[180%] rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.12),0_2px_8px_rgba(0,0,0,0.06),inset_0_1px_1px_rgba(255,255,255,0.8)] overflow-hidden pointer-events-auto border border-white/20 w-full max-w-md">
               <div className="overflow-x-auto no-scrollbar flex items-center px-1.5 py-1.5 gap-0">
                 {/* The "Filter" mock button */}
                 <motion.button
