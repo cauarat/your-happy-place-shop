@@ -431,7 +431,7 @@ const AboutSection = React.forwardRef<HTMLElement, { onExplore: () => void }>(
             </p>
           </motion.div>
 
-          <motion.div {...reveal(0.2)} className="mt-16 lg:mt-auto self-start">
+          <motion.div {...reveal(0.2)} className="mt-16 lg:mt-auto w-full flex justify-center">
             <button
               onClick={onExplore}
               className="flex flex-col items-center justify-center gap-2 group"
