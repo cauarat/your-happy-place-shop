@@ -167,20 +167,14 @@ const AboutSection = React.forwardRef<HTMLElement, { onExplore: () => void }>(
   return (
     <section ref={ref} className="relative w-full px-6 py-24 md:px-10 md:py-32 lg:py-40">
       <div className="mx-auto grid w-full max-w-6xl gap-14 lg:grid-cols-2 lg:gap-16">
-        {/* Left: the statement, then a piece */}
+        {/* Left: the statement split around a piece */}
         <div className="flex flex-col">
           <motion.h2
             {...reveal(0.05)}
             className="text-[clamp(2rem,6.4vw,4rem)] font-semibold uppercase leading-[0.95] tracking-[-0.03em] mb-12 md:mb-16"
           >
-            {/* The setup is greyed to hand the emphasis to the second half,
-                but it is still a sentence someone has to read — zinc-400, not
-                the near-invisible tint a decorative first line would take. */}
             <span className="block text-zinc-400 transition-colors duration-500">
               {t('about_title_muted')}
-            </span>
-            <span className="block text-black transition-colors duration-500 mt-3 md:mt-4">
-              {t('about_title_strong')}
             </span>
           </motion.h2>
 
@@ -190,7 +184,7 @@ const AboutSection = React.forwardRef<HTMLElement, { onExplore: () => void }>(
               // Square, not the landscape frame this shape usually gets: the
               // catalogue is shot on white in portrait, and a wide frame left
               // grey bars down both sides of every piece.
-              className="w-full max-w-[380px] mx-auto overflow-hidden rounded-2xl"
+              className="w-full max-w-[380px] mx-auto overflow-hidden rounded-2xl mb-12 md:mb-16"
             >
               <img
                 src={cover}
@@ -201,6 +195,15 @@ const AboutSection = React.forwardRef<HTMLElement, { onExplore: () => void }>(
               />
             </motion.div>
           )}
+
+          <motion.h2
+            {...reveal(0.05)}
+            className="text-[clamp(2rem,6.4vw,4rem)] font-semibold uppercase leading-[0.95] tracking-[-0.03em]"
+          >
+            <span className="block text-black transition-colors duration-500">
+              {t('about_title_strong')}
+            </span>
+          </motion.h2>
         </div>
 
         {/* Right: the reasoning, the way in, and the number */}
