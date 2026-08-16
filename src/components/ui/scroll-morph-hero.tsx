@@ -599,6 +599,8 @@ export function ScrollMorphHero({
                         onClick={() =>
                           setNamedIcon((current) => (current === item.id ? null : item.id))
                         }
+                        onMouseEnter={() => setNamedIcon(item.id)}
+                        onMouseLeave={() => setNamedIcon((current) => (current === item.id ? null : current))}
                         className="block rounded-3xl outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-4 focus-visible:ring-offset-background"
                       >
                         {tile}
