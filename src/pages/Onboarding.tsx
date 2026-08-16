@@ -174,14 +174,14 @@ const AboutSection = ({ onExplore }: { onExplore: () => void }) => {
               // Square, not the landscape frame this shape usually gets: the
               // catalogue is shot on white in portrait, and a wide frame left
               // grey bars down both sides of every piece.
-              className="mb-12 w-full max-w-[300px] mx-auto overflow-hidden rounded-2xl md:mb-16"
+              className="mb-12 w-full max-w-[380px] mx-auto overflow-hidden rounded-2xl md:mb-16"
             >
               <img
                 src={cover}
                 alt=""
                 loading="lazy"
                 decoding="async"
-                className="aspect-square w-full object-contain p-6 mix-blend-multiply"
+                className="aspect-square w-full object-contain mix-blend-multiply"
               />
             </motion.div>
           )}
@@ -203,7 +203,7 @@ const AboutSection = ({ onExplore }: { onExplore: () => void }) => {
         </div>
 
         {/* Right: the reasoning, the way in, and the number */}
-        <div className="flex flex-col">
+        <div className="flex flex-col h-full">
           <motion.div {...reveal(0.1)} className="flex flex-col gap-5">
             <p className="max-w-md text-[16px] leading-relaxed text-zinc-600 transition-colors duration-500 md:text-[18px]">
               {t('about_body_1')}
@@ -223,7 +223,7 @@ const AboutSection = ({ onExplore }: { onExplore: () => void }) => {
           </motion.div>
 
           {/* The number, set the way the statement is: label, rule, figure. */}
-          <motion.div {...reveal(0.2)} className="mt-20 lg:mt-48">
+          <motion.div {...reveal(0.2)} className="mt-20 lg:mt-auto">
             <p className="text-[14px] text-zinc-500 transition-colors duration-500">
               {t('about_stat_label')}
             </p>
