@@ -214,6 +214,45 @@ const AboutSection = React.forwardRef<HTMLElement, { onExplore: () => void }>(
             </p>
           </motion.div>
 
+          {/* Category icons — cascade in one by one as they scroll into view,
+              each with a gentle spring drop like Disney's anticipation principle */}
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.5 }}
+            variants={{
+              hidden: {},
+              visible: { transition: { staggerChildren: 0.08, delayChildren: 0.15 } },
+            }}
+            className="mt-10 flex flex-wrap items-center gap-3"
+          >
+            {[HoodieIcon, BagIcon, PantsIcon, Shirt, JacketIcon, CapIcon, Glasses, SweaterIcon, PufferJacketIcon].map(
+              (Icon, i) => (
+                <motion.div
+                  key={i}
+                  variants={{
+                    hidden: { opacity: 0, y: -28, scale: 0.7, rotate: i % 2 === 0 ? -6 : 6 },
+                    visible: {
+                      opacity: 1,
+                      y: 0,
+                      scale: 1,
+                      rotate: 0,
+                      transition: {
+                        type: 'spring',
+                        stiffness: 260,
+                        damping: 18,
+                        mass: 0.6,
+                      },
+                    },
+                  }}
+                  className="flex items-center justify-center w-11 h-11 rounded-2xl bg-zinc-100/80 border border-zinc-200/60 shadow-sm"
+                >
+                  <Icon className="w-5 h-5 text-zinc-700" />
+                </motion.div>
+              )
+            )}
+          </motion.div>
+
           {/* The number, set the way the statement is: label, rule, figure. */}
           <motion.div {...reveal(0.15)} className="mt-16 lg:mt-24">
             <p className="text-[14px] text-zinc-500 transition-colors duration-500">
