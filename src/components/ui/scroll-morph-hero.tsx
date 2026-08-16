@@ -78,6 +78,14 @@ const REVEAL_END = 800; // icon morph's tail, so the two read as one motion)
 const REST_SCROLL = 420;
 const SCROLL_RANGE = MORPH_SCROLL + REST_SCROLL;
 
+/**
+ * How far into the runway the revealed state is fully in place — the point
+ * anything wanting to *send* someone to the revealed hero should scroll to.
+ * Exported so callers don't have to guess at the number, and so changing the
+ * morph's length moves them with it.
+ */
+export const SCROLL_MORPH_REVEAL_OFFSET = MORPH_SCROLL;
+
 // Converts a `top-[x%] left-[x%]` (or bottom/right) className into a pixel
 // offset from the container's center, i.e. what an absolutely-positioned
 // element with those classes would resolve to. Lets us animate an icon onto

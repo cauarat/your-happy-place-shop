@@ -15,15 +15,16 @@ import { designers as staticDesigners } from '../data/products';
 import { supabase } from '../lib/supabase';
 import { getDesigners, getProducts, getDesignSettings } from '../lib/store';
 import { Component as LanguageSelectorDropdown, LanguageOption } from '@/components/ui/language-selector-dropdown';
-import { ScrollMorphHero } from '@/components/ui/scroll-morph-hero';
+import { ScrollMorphHero, SCROLL_MORPH_REVEAL_OFFSET } from '@/components/ui/scroll-morph-hero';
 import { ContainerScroll } from '@/components/ui/container-scroll-animation';
 import CatalogPreview from '@/components/CatalogPreview';
-import { DURATION, EASE_SOFT, jumpPageToTop, scrollPageToElement } from '@/lib/motion';
+import { DURATION, EASE_SOFT, jumpPageToTop, scrollPageTo, scrollPageToElement } from '@/lib/motion';
 import { Shirt, Footprints, ShoppingBag, Gem, Glasses, Box, Layers, Search } from "lucide-react";
 import { CapIcon, PantsIcon, ShortsIcon, JacketIcon, HoodieIcon, VestIcon, PoloIcon, TankTopIcon, BagIcon, PufferJacketIcon, SweaterIcon } from "@/components/Icons";
 import { GlobeFlights } from '@/components/ui/cobe-globe-flights';
 import { AdmitOneTicket, TicketPrinter } from '@/components/ui/admit-one-ticket';
 import TestimonialMarquee from '@/components/ui/marquee-01';
+import { ChapterScrubber, type Chapter } from '@/components/ui/chapter-scrubber';
 
 const getCategoryIcon = (cat: string) => {
   switch (cat.toUpperCase()) {
@@ -472,7 +473,7 @@ const TESTIMONIAL_NAMES = [
 // saying the same thing in their own words. It travels on its own rather than
 // waiting to be scrolled through, so it reads as a strip of voices instead of
 // a list to get past.
-const TestimonialsSection = () => {
+const TestimonialsSection = React.forwardRef<HTMLElement>(function TestimonialsSection(_props, ref) {
   const { t, language } = useLanguage();
 
   const testimonials = React.useMemo(
@@ -494,7 +495,7 @@ const TestimonialsSection = () => {
   });
 
   return (
-    <section className="relative w-full py-24 md:py-32">
+    <section ref={ref} className="relative w-full py-24 md:py-32">
       <div className="mx-auto w-full max-w-6xl px-6 md:px-10">
         <motion.p
           {...reveal()}
@@ -515,7 +516,8 @@ const TestimonialsSection = () => {
       </motion.div>
     </section>
   );
-};
+});
+TestimonialsSection.displayName = 'TestimonialsSection';
 
 // The scattered resting layout for the hero icons. Two rules shape it:
 //
@@ -644,6 +646,80 @@ const Onboarding = () => {
   // stops too and the sphere simply sits there.
   const reduceMotion = useReducedMotion();
   const navigate = useNavigate();
+
+  // ─── Chapter rail ───────────────────────────────────────────────────────
+  // Five places on this page, in the order they are met. The rail says which
+  // one you are in and carries you to any of the others on the site's own
+  // scroll curve, so using it feels like the page moving rather than a jump.
+  const heroTopRef = React.useRef<HTMLDivElement>(null);
+  const testimonialsRef = React.useRef<HTMLElement>(null);
+  const [currentChapter, setCurrentChapter] = useState(0);
+
+  // Measured on demand rather than stored: the sections' positions move as
+  // images load and later sections are revealed, and a cached number would
+  // send someone to where a section used to be.
+  const chapterTargets = React.useCallback(() => {
+    const topOf = (el: Element | null) =>
+      el ? el.getBoundingClientRect().top + window.scrollY : 0;
+    const heroTop = topOf(heroTopRef.current);
+    return [
+      heroTop,
+      // The hero is a runway with a sticky stage: the revealed state — the one
+      // holding the "already a member" button — lives at a scroll offset into
+      // it, not at an element you can aim at.
+      heroTop + SCROLL_MORPH_REVEAL_OFFSET,
+      topOf(aboutSectionRef.current),
+      topOf(testimonialsRef.current),
+      topOf(tourSectionRef.current),
+    ];
+  }, []);
+
+  useEffect(() => {
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      // A chapter counts as the one you're in once its top has passed a third
+      // of the way up the screen — where the eye is when a section arrives.
+      const probe = window.scrollY + window.innerHeight * 0.34;
+      const targets = chapterTargets();
+      let next = 0;
+      targets.forEach((y, i) => {
+        if (probe >= y) next = i;
+      });
+      setCurrentChapter(next);
+    };
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(update);
+    };
+    update();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    return () => {
+      if (frame) cancelAnimationFrame(frame);
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+    };
+  }, [chapterTargets]);
+
+  const chapters: Chapter[] = React.useMemo(
+    () =>
+      (['welcome', 'member', 'about', 'reviews', 'catalog'] as const).map((key, i) => ({
+        id: key,
+        meta: String(i + 1).padStart(2, '0'),
+        title: t(`chapter_${key}_title`),
+        description: t(`chapter_${key}_desc`),
+      })),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [language]
+  );
+
+  const goToChapter = React.useCallback(
+    (_chapter: Chapter, index: number) => {
+      const targets = chapterTargets();
+      scrollPageTo(targets[index] ?? 0);
+    },
+    [chapterTargets]
+  );
 
   // What gets printed on the pass. Resolved once per language rather than on
   // every render, so the ticket never re-renders mid-feed.
@@ -850,6 +926,11 @@ const Onboarding = () => {
         transition={{ duration: DURATION.screen, ease: EASE_SOFT }}
         className="relative w-full h-full min-h-screen bg-white text-black select-none"
       >
+        {/* Zero-size marker for where the hero runway begins, so the chapter
+            rail can aim at a scroll offset into it without assuming the hero
+            starts at the very top of the document. */}
+        <div ref={heroTopRef} aria-hidden="true" className="absolute left-0 top-0 h-0 w-0" />
+
         <ScrollMorphHero
           icons={heroIcons}
           // The stage has to let the surface through, or the page would stay
@@ -927,7 +1008,7 @@ const Onboarding = () => {
         <AboutSection ref={aboutSectionRef} onExplore={startTour} />
 
         {/* The same claim, from the people it was made to. */}
-        <TestimonialsSection />
+        <TestimonialsSection ref={testimonialsRef} />
 
         {/* Always in the document, directly below the hero's runway: carrying
             on scrolling arrives here with nothing to trigger or wait for, and
@@ -1546,6 +1627,32 @@ const Onboarding = () => {
     <>
       {/* The continuous scroll page — always rendered */}
       {renderStep0()}
+
+      {/* Where you are on this page, and the way to anywhere else on it. Kept
+          out of the way at the bottom-left, and stood down entirely once a
+          terminal overlay has taken the screen. */}
+      <AnimatePresence>
+        {terminalStep === null && (
+          <motion.div
+            initial={{ opacity: 0, x: -8 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -8 }}
+            transition={{ duration: DURATION.content, ease: EASE_SOFT, delay: 0.4 }}
+            className="fixed top-1/2 -translate-y-1/2 left-6 z-40 hidden md:block lg:left-10"
+          >
+            <ChapterScrubber
+              chapters={chapters}
+              currentIndex={currentChapter}
+              onSelect={goToChapter}
+              label={t('chapters_label')}
+              rowHeight={26}
+              restLength={16}
+              peakLength={64}
+              radius={2.4}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Terminal state overlays */}
       <AnimatePresence mode="wait">
