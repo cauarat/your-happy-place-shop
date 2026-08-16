@@ -533,7 +533,7 @@ const Onboarding = () => {
           }
           revealTitle={
             <div
-              className="font-serif text-[48px] md:text-[56px] leading-none flex items-center justify-center tracking-tight select-none font-light transition-colors duration-500 text-foreground"
+              className="font-serif text-[64px] md:text-[72px] leading-none flex items-center justify-center tracking-tight select-none font-light transition-colors duration-500 text-foreground"
             >
               <span>V</span>
               <motion.span
@@ -570,9 +570,9 @@ const Onboarding = () => {
               onClick={() => {
                 navigate('/login');
               }}
-              className="w-[220px] sm:w-[240px] flex items-center justify-center h-[50px] rounded-full hover:scale-[1.02] transition-all duration-500 active:scale-95 shadow-xl bg-foreground text-background shadow-black/10"
+              className="w-[240px] sm:w-[260px] flex items-center justify-center h-[54px] rounded-full hover:scale-[1.02] transition-all duration-500 active:scale-95 shadow-xl bg-foreground text-background shadow-black/10"
             >
-              <span className="font-medium tracking-wide text-[15px]">
+              <span className="font-medium tracking-wide text-[16px] md:text-[17px]">
                 {t('onboarding_already_member')}
               </span>
             </button>
