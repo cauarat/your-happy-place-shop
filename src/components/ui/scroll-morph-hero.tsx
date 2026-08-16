@@ -335,7 +335,7 @@ export function ScrollMorphHero({
   const scrollToMorphEnd = () => {
     const runway = runwayRef.current;
     if (!runway) return;
-    scrollPageTo(runway.getBoundingClientRect().top + window.scrollY + MORPH_SCROLL);
+    scrollPageTo(runway.getBoundingClientRect().top + window.scrollY + SCROLL_RANGE);
   };
 
   // Two overlapping progress values derived from the same scroll position —
