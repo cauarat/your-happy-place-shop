@@ -25,6 +25,7 @@ import { GlobeFlights } from '@/components/ui/cobe-globe-flights';
 import { AdmitOneTicket, TicketPrinter } from '@/components/ui/admit-one-ticket';
 import TestimonialMarquee from '@/components/ui/marquee-01';
 import { ChapterScrubber, type Chapter } from '@/components/ui/chapter-scrubber';
+import HowItWorks, { type Step as HowItWorksStep } from '@/components/ui/how-it-works';
 
 const getCategoryIcon = (cat: string) => {
   switch (cat.toUpperCase()) {
@@ -227,7 +228,7 @@ const AboutSection = React.forwardRef<HTMLElement, { onExplore: () => void }>(
   const reveal = (delay = 0) => ({
     initial: { opacity: 0, y: 24 },
     whileInView: { opacity: 1, y: 0 },
-    viewport: { once: true, amount: 0.35 },
+    viewport: { once: true, margin: "100px" },
     transition: { duration: DURATION.content, ease: EASE_SOFT, delay },
   });
 
@@ -490,7 +491,7 @@ const TestimonialsSection = React.forwardRef<HTMLElement>(function TestimonialsS
   const reveal = (delay = 0) => ({
     initial: { opacity: 0, y: 24 },
     whileInView: { opacity: 1, y: 0 },
-    viewport: { once: true, amount: 0.35 },
+    viewport: { once: true, margin: "100px" },
     transition: { duration: DURATION.content, ease: EASE_SOFT, delay },
   });
 
@@ -518,6 +519,93 @@ const TestimonialsSection = React.forwardRef<HTMLElement>(function TestimonialsS
   );
 });
 TestimonialsSection.displayName = 'TestimonialsSection';
+
+// What is left of the onboarding, laid out as a board of pinned notes at the
+// point the tour hands over. Two jobs at once: it says how much is left (five
+// short steps, not an open-ended form), and every note is the way into its own
+// step — pressing one opens that part of the flow and takes you there.
+/** Every gated section of the flow, in the order someone meets them. */
+const ONBOARDING_SECTION_ORDER = [
+  'install',
+  'name',
+  'gender',
+  'category',
+  'brands',
+  'email',
+] as const;
+
+const STEPS_BOARD: { key: string; theme: 'orange' | 'blue' | 'purple' }[] = [
+  { key: 'install', theme: 'orange' },
+  { key: 'name', theme: 'blue' },
+  { key: 'style', theme: 'purple' },
+  { key: 'brands', theme: 'orange' },
+  { key: 'access', theme: 'blue' },
+];
+
+const StepsBoardSection = React.forwardRef<HTMLElement, { onSelectStep: (index: number) => void }>(
+  function StepsBoardSection({ onSelectStep }, ref) {
+    const { t, language } = useLanguage();
+
+    const steps: HowItWorksStep[] = React.useMemo(
+      () =>
+        STEPS_BOARD.map(({ key, theme }) => ({
+          title: t(`step_${key}_title`),
+          description: t(`step_${key}_desc`),
+          colorTheme: theme,
+        })),
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      [language]
+    );
+
+    return (
+      <motion.section
+        ref={ref}
+        initial={{ opacity: 0, y: 60 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ type: 'spring', stiffness: 120, damping: 22, mass: 1 }}
+        className="relative w-full bg-white pt-24 md:pt-32"
+      >
+        <div className="mx-auto w-full max-w-6xl px-6 text-center md:px-10">
+          <motion.p
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.5 }}
+            transition={{ duration: DURATION.content, ease: EASE_SOFT }}
+            className="text-xs font-bold uppercase tracking-[0.2em] text-zinc-400"
+          >
+            {t('how_it_works_eyebrow')}
+          </motion.p>
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.5 }}
+            transition={{ duration: DURATION.content, ease: EASE_SOFT, delay: 0.05 }}
+            className="mx-auto mt-4 max-w-2xl text-[clamp(1.75rem,4.6vw,3rem)] font-semibold uppercase leading-[0.98] tracking-[-0.03em]"
+          >
+            {t('how_it_works_title')}
+          </motion.h2>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.5 }}
+            transition={{ duration: DURATION.content, ease: EASE_SOFT, delay: 0.1 }}
+            className="mx-auto mt-5 max-w-md text-[15px] leading-relaxed text-zinc-500"
+          >
+            {t('how_it_works_lead')}
+          </motion.p>
+        </div>
+
+        <HowItWorks
+          features={steps}
+          onStepSelect={(index) => onSelectStep(index)}
+          actionLabel={t('how_it_works_action')}
+          className="bg-transparent"
+        />
+      </motion.section>
+    );
+  }
+);
+StepsBoardSection.displayName = 'StepsBoardSection';
 
 // The scattered resting layout for the hero icons. Two rules shape it:
 //
@@ -609,6 +697,7 @@ const Onboarding = () => {
   // Section refs for scroll targeting
   const tourSectionRef = React.useRef<HTMLElement>(null);
   const aboutSectionRef = React.useRef<HTMLElement>(null);
+  const stepsBoardRef = React.useRef<HTMLElement>(null);
   const installRef = React.useRef<HTMLElement>(null);
   const nameRef = React.useRef<HTMLElement>(null);
   const genderRef = React.useRef<HTMLElement>(null);
@@ -865,7 +954,38 @@ const Onboarding = () => {
   };
 
   // Leaving the tour: reveal the install section below and scroll to it.
-  const finishTour = () => revealSection('install', installRef);
+  // Leaving the tour no longer drops straight into the first form: it opens the
+  // board of what is left, and the board is what opens the forms.
+  const finishTour = () => revealSection('steps', stepsBoardRef);
+
+  // The flow's sections in the order they are met. A step reached from the
+  // board opens everything up to it as well — the sections below are one
+  // continuous scroll, and revealing the fourth while the first three are
+  // missing would leave someone on a page that starts in the middle.
+  const goToOnboardingStep = React.useCallback((index: number) => {
+    const plan = [
+      { through: 'install', ref: installRef },
+      { through: 'name', ref: nameRef },
+      // "Your style" is two sections: who you shop for, then the departments.
+      { through: 'category', ref: genderRef },
+      { through: 'brands', ref: brandsRef },
+      { through: 'email', ref: emailRef },
+    ] as const;
+    const target = plan[index] ?? plan[0];
+    const order = ONBOARDING_SECTION_ORDER;
+    const upTo = order.indexOf(target.through);
+
+    setRevealedSections((prev) => {
+      const next = new Set(prev);
+      order.slice(0, upTo + 1).forEach((key) => next.add(key));
+      return next;
+    });
+
+    // The sections have to mount before there is anything to scroll to.
+    setTimeout(() => {
+      if (target.ref.current) scrollPageToElement(target.ref.current);
+    }, 160);
+  }, []);
 
   // Roulette index state for Step 1
   const [greetingIndex, setGreetingIndex] = useState(0);
@@ -1016,6 +1136,10 @@ const Onboarding = () => {
         <CatalogTourSection ref={tourSectionRef} onContinue={finishTour} />
 
         {/* ─── Install App Section ─── */}
+        {revealedSections.has('steps') && (
+          <StepsBoardSection ref={stepsBoardRef} onSelectStep={goToOnboardingStep} />
+        )}
+
         {revealedSections.has('install') && (
           <motion.section
             ref={installRef}

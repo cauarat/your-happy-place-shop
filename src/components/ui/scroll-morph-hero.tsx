@@ -87,10 +87,9 @@ const ICON_MORPH_END = MORPH_SCROLL;
 const REVEAL_START = 320; // reveal content starts fading in (overlaps the
 const REVEAL_END = 800; // icon morph's tail, so the two read as one motion)
 // Extra runway after the morph completes: the stage stays put while this is
-// scrolled through, so the finished state reads as a screen you're on rather
-// than a single position you pass through. Kept short for the same reason as
-// above — every pixel of it is a pixel of scrolling that shows nothing.
-const REST_SCROLL = 200;
+// scrolled through. We set this to 0 so the transition to the next section is
+// fluid and continuous without any perceived freeze.
+const REST_SCROLL = 0;
 const SCROLL_RANGE = MORPH_SCROLL + REST_SCROLL;
 
 /**
