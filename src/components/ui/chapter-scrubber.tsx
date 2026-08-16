@@ -86,20 +86,29 @@ const Tick = React.memo(function Tick({
   peakLength,
   isCurrent,
 }: TickProps) {
-  const rest = isCurrent ? restLength * CURRENT_REST_SCALE : restLength;
+  const rawCurrent = useMotionValue(isCurrent ? 1 : 0);
+  React.useEffect(() => {
+    rawCurrent.set(isCurrent ? 1 : 0);
+  }, [isCurrent, rawCurrent]);
+  
+  const springCurrent = useSpring(rawCurrent, { stiffness: 500, damping: 35 });
+
   const width = useTransform(() => {
+    const rest = restLength + springCurrent.get() * (restLength * CURRENT_REST_SCALE - restLength);
     const rise = strength.get() * bump(Math.abs(index - pointer.get()), radius);
     return rest + rise * Math.max(peakLength - rest, 0);
   });
+  
   const opacity = useTransform(() => {
     const rise = strength.get() * bump(Math.abs(index - pointer.get()), radius);
-    const base = isCurrent ? 0.85 : 0.22;
+    const base = 0.22 + springCurrent.get() * (0.85 - 0.22);
     return base + rise * (1 - base);
   });
+  
   const scaleY = useTransform(() => {
-    const rise = strength.get() * bump(Math.abs(index - pointer.get()), radius);
     // Only a slight thickening at the crest; the length change carries the
     // rise, thickness is a quiet secondary cue.
+    const rise = strength.get() * bump(Math.abs(index - pointer.get()), radius);
     return 1 + rise * 0.4;
   });
 
@@ -107,7 +116,10 @@ const Tick = React.memo(function Tick({
     <motion.span
       aria-hidden="true"
       style={{ width, opacity, scaleY }}
-      className={cn("block h-[2px] rounded-full", isCurrent ? "bg-primary" : "bg-foreground")}
+      className={cn(
+        "block h-[2px] rounded-full transition-colors duration-500 ease-out",
+        isCurrent ? "bg-primary" : "bg-foreground"
+      )}
     />
   );
 });
@@ -217,11 +229,11 @@ export function ChapterScrubber({
 
   const handlePointerLeave = () => {
     hoveringRef.current = false;
-    if (focusedRef.current != null) {
-      rawPointer.set(focusedRef.current);
-    } else {
-      rawStrength.set(0);
-      setEngaged(false);
+    rawStrength.set(0);
+    setEngaged(false);
+    focusedRef.current = null;
+    if (document.activeElement instanceof HTMLElement && listRef.current?.contains(document.activeElement)) {
+      document.activeElement.blur();
     }
   };
 
