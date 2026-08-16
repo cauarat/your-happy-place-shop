@@ -435,20 +435,20 @@ const AboutSection = React.forwardRef<HTMLElement, { onExplore: () => void }>(
         </div>
       </div>
 
-      <motion.div {...reveal(0.2)} className="w-full flex justify-center mt-20 lg:mt-32">
+      <motion.div {...reveal(0.2)} className="w-full flex justify-center mt-10 lg:mt-16">
         <button
           onClick={onExplore}
-          className="flex flex-col items-center justify-center gap-2 group"
+          className="flex flex-col items-center justify-center gap-3 p-4 group"
         >
-          <span className="text-xs font-bold tracking-[0.2em] text-muted-foreground uppercase transition-colors group-hover:text-foreground">
+          <span className="text-sm font-bold tracking-[0.2em] text-zinc-600 uppercase transition-colors group-hover:text-foreground">
             {t('scroll_to_explore')}
           </span>
           <motion.div
-            animate={{ y: [0, 4, 0] }}
+            animate={{ y: [0, 6, 0] }}
             transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-            className="opacity-70 group-hover:opacity-100 transition-opacity text-muted-foreground"
+            className="opacity-80 group-hover:opacity-100 transition-opacity text-zinc-600 group-hover:text-foreground"
           >
-            <ChevronDown className="w-4 h-4" />
+            <ChevronDown className="w-6 h-6" />
           </motion.div>
         </button>
       </motion.div>

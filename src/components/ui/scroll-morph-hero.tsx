@@ -1,7 +1,16 @@
 "use client";
 
 import * as React from "react";
-import { AnimatePresence, motion, useReducedMotion, useScroll, useSpring } from "framer-motion";
+import {
+  AnimatePresence,
+  motion,
+  useMotionValueEvent,
+  useReducedMotion,
+  useScroll,
+  useSpring,
+  useTransform,
+  type MotionValue,
+} from "framer-motion";
 import { cn } from "@/lib/utils";
 import { DURATION, EASE_SOFT, scrollPageTo } from "@/lib/motion";
 import { ChevronDown } from "lucide-react";
@@ -69,13 +78,19 @@ const ENTRANCE_EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
 // unlocked — scrolling up unwinds exactly what scrolling down built, and
 // carrying straight on takes you to whatever the page puts after the hero.
 const MORPH_SCROLL = 800; // pixels of scroll the morph itself is spread over
-const ICON_MORPH_END = 550; // icons finish gathering into the circle
+// The icons gather across the whole morph rather than finishing early. Ending
+// them sooner left a stretch of runway where scrolling moved the page but
+// nothing on screen — invisible on the way down, where it reads as the
+// finished screen holding, but on the way back up it is a stall before
+// anything happens.
+const ICON_MORPH_END = MORPH_SCROLL;
 const REVEAL_START = 320; // reveal content starts fading in (overlaps the
 const REVEAL_END = 800; // icon morph's tail, so the two read as one motion)
 // Extra runway after the morph completes: the stage stays put while this is
 // scrolled through, so the finished state reads as a screen you're on rather
-// than a single position you pass through.
-const REST_SCROLL = 420;
+// than a single position you pass through. Kept short for the same reason as
+// above — every pixel of it is a pixel of scrolling that shows nothing.
+const REST_SCROLL = 200;
 const SCROLL_RANGE = MORPH_SCROLL + REST_SCROLL;
 
 /**
@@ -118,6 +133,52 @@ function positionToCenterOffset(
     y: iconTop + iconSize / 2 - containerH / 2,
   };
 }
+
+/**
+ * The outer box of a single icon: where on the stage it currently sits.
+ *
+ * Its position is read straight off the scroll as a motion value — no state,
+ * no spring of its own. It used to be a `animate={{ x, y }}` target pushed in
+ * by a per-frame re-render, which meant the icon was always chasing a number
+ * that had already moved: on the way down the lag hid inside the gathering,
+ * but on the way back up it read as the screen stalling and then catching up
+ * all at once. Attached directly to the scroll, the icons drift with the page
+ * frame for frame, in whichever direction it is going.
+ */
+const IconPosition = React.forwardRef<
+  HTMLDivElement,
+  {
+    morph: MotionValue<number>;
+    fromX: number;
+    fromY: number;
+    toX: number;
+    toY: number;
+    /** Fraction of the gather this icon sits out before it sets off, 0–0.15. */
+    lag: number;
+    children: React.ReactNode;
+  }
+>(function IconPosition({ morph, fromX, fromY, toX, toY, lag, children }, ref) {
+  // Its own share of the gather: it waits out `lag`, then covers the rest.
+  // Both ends are preserved exactly — every icon is on its scattered spot at 0
+  // and on the ring at 1 — so no amount of staggering can leave one stranded.
+  // Smoothstepped on top, so an icon eases away and eases in rather than
+  // starting and stopping flat: ten of them on slightly different beats read
+  // as things drifting rather than a mechanism being cranked.
+  const progress = React.useCallback(
+    (m: number) => {
+      const t = Math.min(Math.max((m - lag) / (1 - lag), 0), 1);
+      return t * t * (3 - 2 * t);
+    },
+    [lag]
+  );
+  const x = useTransform(morph, (m) => lerp(fromX, toX, progress(m)));
+  const y = useTransform(morph, (m) => lerp(fromY, toY, progress(m)));
+  return (
+    <motion.div ref={ref} style={{ x, y }} className="absolute pointer-events-auto">
+      {children}
+    </motion.div>
+  );
+});
 
 export function ScrollMorphHero({
   icons,
@@ -246,18 +307,26 @@ export function ScrollMorphHero({
     offset: ["start start", "end end"],
   });
   // A light spring only: enough to round off the discrete steps a mouse wheel
-  // produces, not enough to lag behind a finger.
+  // produces, not enough to lag behind a finger. Fast and near-critically
+  // damped — the previous, softer settings took the better part of a second to
+  // catch up, which the eye reads as the screen hesitating before it responds.
   const smoothProgress = useSpring(scrollYProgress, {
-    stiffness: 160,
-    damping: 38,
-    mass: 0.5,
+    stiffness: 420,
+    damping: 40,
+    mass: 0.55,
     restDelta: 0.0005,
   });
-  const [scrollValue, setScrollValue] = React.useState(0);
+  // Someone who asked for less motion gets the raw scroll position: no
+  // smoothing to lag behind, nothing easing on its own.
+  const progress = reduceMotion ? scrollYProgress : smoothProgress;
 
-  React.useEffect(() => {
-    return smoothProgress.on("change", (p) => setScrollValue(p * SCROLL_RANGE));
-  }, [smoothProgress]);
+  // Everything below is a motion value derived from that one, not React state.
+  // Scroll used to be pushed through `setState` on every frame, which meant the
+  // whole hero re-rendered as fast as the wheel turned and each icon then
+  // sprang toward its new target — two lags stacked on top of each other. Read
+  // as motion values, the icons are attached to the scroll position itself:
+  // move the page a pixel and they move now, in whichever direction you went.
+  const scrolled = useTransform(progress, (p) => p * SCROLL_RANGE);
 
   // Clicking the scroll hint does exactly what scrolling would: carries the
   // page to the point where the morph has just completed, which is the start
@@ -272,14 +341,14 @@ export function ScrollMorphHero({
   // Two overlapping progress values derived from the same scroll position —
   // the overlap (reveal starts before the morph finishes) is what makes the
   // hand-off read as one continuous motion instead of two separate beats.
-  const iconMorph = Math.min(Math.max(scrollValue / ICON_MORPH_END, 0), 1);
+  const iconMorph = useTransform(scrolled, [0, ICON_MORPH_END], [0, 1], { clamp: true });
 
   // Scrolling puts the name away. Once the icons start gathering into the ring
   // they are no longer where they were tapped, and a label travelling with one
   // of them across the screen reads as something that got stuck.
-  React.useEffect(() => {
-    if (iconMorph > 0.02) setNamedIcon(null);
-  }, [iconMorph]);
+  useMotionValueEvent(iconMorph, "change", (m) => {
+    if (m > 0.02) setNamedIcon((current) => (current === null ? current : null));
+  });
 
   // Tapping anywhere else puts it away too. Matching on the icon's own marker
   // rather than doing this in the button's handler keeps the two out of each
@@ -295,10 +364,17 @@ export function ScrollMorphHero({
     document.addEventListener("pointerdown", dismiss);
     return () => document.removeEventListener("pointerdown", dismiss);
   }, [namedIcon]);
-  const revealProgress = Math.min(
-    Math.max((scrollValue - REVEAL_START) / (REVEAL_END - REVEAL_START), 0),
-    1
-  );
+  const revealProgress = useTransform(scrolled, [REVEAL_START, REVEAL_END], [0, 1], {
+    clamp: true,
+  });
+
+  // Two thresholds the layout genuinely has to know about, as state rather than
+  // motion values — but they flip once each, not once per frame, so they cost
+  // two renders across the whole sequence instead of one per scroll event.
+  const [morphUnderway, setMorphUnderway] = React.useState(false);
+  useMotionValueEvent(iconMorph, "change", (m) => setMorphUnderway(m >= 0.4));
+  const [revealed, setRevealed] = React.useState(false);
+  useMotionValueEvent(revealProgress, "change", (r) => setRevealed(r > 0.5));
 
   // The ring the icons gather into as the user scrolls, and the room it leaves
   // in its middle for the revealed content.
@@ -331,15 +407,27 @@ export function ScrollMorphHero({
   );
   // Rendered at its largest and scaled *down*, never up, so it stays crisp —
   // a canvas backdrop is rasterised once at the size of the box it's given.
-  const backdropScale =
-    backdropRestSize > 0 ? lerp(1, backdropRingSize / backdropRestSize, iconMorph) : 1;
-  const backdropCenterY = lerp(
-    // A touch above the very edge, so a phone's bottom browser chrome doesn't
-    // eat the horizon.
-    containerSize.height - 24,
-    containerSize.height / 2,
-    iconMorph
+  const backdropScale = useTransform(iconMorph, (m) =>
+    backdropRestSize > 0 ? lerp(1, backdropRingSize / backdropRestSize, m) : 1
   );
+  const backdropCenterY = useTransform(iconMorph, (m) =>
+    lerp(
+      // A touch above the very edge, so a phone's bottom browser chrome doesn't
+      // eat the horizon.
+      containerSize.height - 24,
+      containerSize.height / 2,
+      m
+    )
+  );
+  // Recedes a little as it comes fully into view, so the reveal content that
+  // lands on top of it stays the thing you read.
+  const backdropOpacity = useTransform(iconMorph, (m) => lerp(1, 0.8, m));
+
+  // The intro copy's three staggered fades, all off the same gather.
+  const introTitleOpacity = useTransform(iconMorph, (m) => Math.max(1 - m * 1.8, 0));
+  const introSubtitleOpacity = useTransform(iconMorph, (m) => Math.max(1 - m * 2.4, 0));
+  const introHintOpacity = useTransform(iconMorph, (m) => Math.max(1 - m * 3.2, 0) * 0.5);
+  const revealY = useTransform(revealProgress, (r) => (1 - r) * 16);
 
   return (
     // Runway: pure scroll distance, nothing drawn on it. Its height is what
@@ -363,76 +451,90 @@ export function ScrollMorphHero({
             would otherwise claim the touch that is meant to scroll the page. */}
         {backdrop && containerSize.width > 0 && (
           <div className="absolute inset-0 z-0 pointer-events-none" aria-hidden="true">
-            <div
+            <motion.div
               className="absolute left-1/2"
               style={{
                 width: backdropRestSize,
                 height: backdropRestSize,
                 top: backdropCenterY,
-                transform: `translate(-50%, -50%) scale(${backdropScale})`,
-                // Recedes a little as it comes fully into view, so the reveal
-                // content that lands on top of it stays the thing you read.
-                opacity: lerp(1, 0.8, iconMorph),
+                x: "-50%",
+                y: "-50%",
+                scale: backdropScale,
+                opacity: backdropOpacity,
               }}
             >
               {backdrop}
-            </div>
+            </motion.div>
           </div>
         )}
 
         {/* Intro copy — visible while the icons rest scattered, fades as scrolling begins */}
         <div className="absolute inset-0 z-0 flex flex-col items-center justify-center text-center px-6 pointer-events-none">
-          <motion.h1
+          {/* Two jobs, one per element rather than fought over on one: the outer
+              box carries the entrance (it arrives once, when the icons land),
+              the inner one carries the scroll fade (a motion value, so it never
+              re-renders). Nesting multiplies the two opacities for free. */}
+          <motion.div
             animate={
               phase === "resting"
-                ? { opacity: Math.max(1 - iconMorph * 1.8, 0), y: 0, filter: "blur(0px)" }
+                ? { opacity: 1, y: 0, filter: "blur(0px)" }
                 : { opacity: 0, y: 12, filter: "blur(8px)" }
             }
             transition={{ duration: 0.4 }}
-            className="text-3xl md:text-5xl font-semibold tracking-tight text-foreground"
           >
-            {introTitle}
-          </motion.h1>
+            <motion.h1
+              style={{ opacity: introTitleOpacity }}
+              className="text-3xl md:text-5xl font-semibold tracking-tight text-foreground"
+            >
+              {introTitle}
+            </motion.h1>
+          </motion.div>
           {introSubtitle && (
             <motion.div
-              animate={
-                phase === "resting"
-                  ? { opacity: Math.max(1 - iconMorph * 2.4, 0), scale: 1 }
-                  : { opacity: 0, scale: 0.96 }
-              }
+              animate={phase === "resting" ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.96 }}
               transition={{ duration: 0.4 }}
-              style={{ pointerEvents: phase === "resting" && iconMorph < 0.4 ? "auto" : "none" }}
               className="mt-5 max-w-sm text-sm md:text-base text-muted-foreground"
             >
-              {introSubtitle}
+              <motion.div
+                style={{
+                  opacity: introSubtitleOpacity,
+                  pointerEvents: phase === "resting" && !morphUnderway ? "auto" : "none",
+                }}
+              >
+                {introSubtitle}
+              </motion.div>
             </motion.div>
           )}
           <motion.div
-            animate={
-              phase === "resting" ? { opacity: Math.max(1 - iconMorph * 3.2, 0) * 0.5 } : { opacity: 0 }
-            }
+            animate={phase === "resting" ? { opacity: 1 } : { opacity: 0 }}
             transition={{ duration: 0.4 }}
-            // Live only while it's actually legible; once the morph is under
-            // way this is an invisible box sitting over the revealed content.
-            style={{ pointerEvents: phase === "resting" && iconMorph < 0.4 ? "auto" : "none" }}
             className="mt-8"
           >
-            <button
-              type="button"
-              onClick={scrollToMorphEnd}
-              className="flex flex-col items-center gap-2 group"
+            <motion.div
+              // Live only while it's actually legible; once the morph is under
+              // way this is an invisible box sitting over the revealed content.
+              style={{
+                opacity: introHintOpacity,
+                pointerEvents: phase === "resting" && !morphUnderway ? "auto" : "none",
+              }}
             >
-              <span className="text-xs font-bold tracking-[0.2em] text-muted-foreground uppercase transition-colors group-hover:text-foreground">
-                {scrollHint}
-              </span>
-              <motion.span
-                animate={{ y: [0, 4, 0] }}
-                transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-                className="text-muted-foreground opacity-70 group-hover:opacity-100 transition-opacity"
+              <button
+                type="button"
+                onClick={scrollToMorphEnd}
+                className="flex flex-col items-center gap-2 group"
               >
-                <ChevronDown className="w-4 h-4" />
-              </motion.span>
-            </button>
+                <span className="text-xs font-bold tracking-[0.2em] text-muted-foreground uppercase transition-colors group-hover:text-foreground">
+                  {scrollHint}
+                </span>
+                <motion.span
+                  animate={{ y: [0, 4, 0] }}
+                  transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                  className="text-muted-foreground opacity-70 group-hover:opacity-100 transition-opacity"
+                >
+                  <ChevronDown className="w-4 h-4" />
+                </motion.span>
+              </button>
+            </motion.div>
           </motion.div>
         </div>
 
@@ -443,9 +545,7 @@ export function ScrollMorphHero({
             only the actual interactive piece (children, e.g. the language
             dropdown) opts back into pointer events. */}
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: revealProgress, y: (1 - revealProgress) * 16 }}
-          transition={{ duration: 0.3 }}
+          style={{ opacity: revealProgress, y: revealY }}
           className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center px-6 pointer-events-none"
         >
           {revealLogo && <div className="mb-6">{revealLogo}</div>}
@@ -463,7 +563,7 @@ export function ScrollMorphHero({
                   : "mt-4"
               }
               style={{
-                pointerEvents: revealProgress > 0.5 ? "auto" : "none",
+                pointerEvents: revealed ? "auto" : "none",
                 // Anchored by its top edge just past the ring's lowest icon, so
                 // the CTA clears the circle whatever height it happens to be.
                 ...(tightRing
@@ -478,7 +578,7 @@ export function ScrollMorphHero({
           {bottomRevealContent && (
             <div
               className="absolute bottom-8 left-0 right-0 flex justify-center px-6"
-              style={{ pointerEvents: revealProgress > 0.5 ? "auto" : "none" }}
+              style={{ pointerEvents: revealed ? "auto" : "none" }}
             >
               {bottomRevealContent}
             </div>
@@ -508,32 +608,26 @@ export function ScrollMorphHero({
               y: Math.sin(ringAngle) * circleRadius,
             };
 
-            // Scroll gathers the scattered icons into the ring, and unwinds back
-            // out again on the way up.
-            const target = {
-              x: lerp(scatteredPos.x, circlePos.x, iconMorph),
-              y: lerp(scatteredPos.y, circlePos.y, iconMorph),
-            };
-
             const entrance = entrances[i];
             const isNamed = namedIcon === item.id;
             // Below the middle of the screen, the name goes above the tile.
             const namesAbove = scatteredPos.y > 0;
 
             return (
-              // Outer div: the resting/ring position, driven by scroll.
-              // `initial={false}` so the first paint lands on the resting spot —
-              // the entrance is a separate offset on the div below, which keeps
+              // Outer box: the scattered/ring position, bound to the scroll.
+              // The entrance is a separate offset on the div below, which keeps
               // the flight in and the later scroll morph from fighting over the
               // same transform.
               // Middle div: the one-time flight in from offscreen.
               // Inner div: idle "alive" float + hover response.
-              <motion.div
+              <IconPosition
                 key={item.id}
-                initial={false}
-                animate={{ x: target.x, y: target.y }}
-                transition={{ type: "spring", stiffness: 140, damping: 22, mass: 0.6 }}
-                className="absolute pointer-events-auto"
+                morph={iconMorph}
+                fromX={scatteredPos.x}
+                fromY={scatteredPos.y}
+                toX={circlePos.x}
+                toY={circlePos.y}
+                lag={((i * 0.37) % 1) * 0.12}
               >
                 <motion.div
                   initial={{
@@ -648,7 +742,7 @@ export function ScrollMorphHero({
                     </motion.span>
                   )}
                 </AnimatePresence>
-              </motion.div>
+              </IconPosition>
             );
           })}
         </div>
