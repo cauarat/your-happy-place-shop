@@ -214,17 +214,8 @@ const AboutSection = React.forwardRef<HTMLElement, { onExplore: () => void }>(
             </p>
           </motion.div>
 
-          <motion.div {...reveal(0.15)} className="mt-10">
-            <button
-              onClick={onExplore}
-              className="inline-flex h-[52px] items-center justify-center rounded-full border border-black/15 px-8 text-[13px] font-medium uppercase tracking-[0.08em] transition-all duration-500 hover:border-black/40 hover:bg-black/[0.03] active:scale-[0.98]"
-            >
-              {t('about_cta')}
-            </button>
-          </motion.div>
-
           {/* The number, set the way the statement is: label, rule, figure. */}
-          <motion.div {...reveal(0.2)} className="mt-20 lg:mt-auto">
+          <motion.div {...reveal(0.15)} className="mt-16 lg:mt-24">
             <p className="text-[14px] text-zinc-500 transition-colors duration-500">
               {t('about_stat_label')}
             </p>
@@ -235,6 +226,15 @@ const AboutSection = React.forwardRef<HTMLElement, { onExplore: () => void }>(
             <p className="mt-3 text-[15px] text-zinc-500 transition-colors duration-500">
               {t('about_stat_caption')}
             </p>
+          </motion.div>
+
+          <motion.div {...reveal(0.2)} className="mt-16 lg:mt-auto">
+            <button
+              onClick={onExplore}
+              className="inline-flex h-[52px] items-center justify-center rounded-full border border-black/15 px-8 text-[13px] font-medium uppercase tracking-[0.08em] transition-all duration-500 hover:border-black/40 hover:bg-black/[0.03] active:scale-[0.98]"
+            >
+              {t('about_cta')}
+            </button>
           </motion.div>
         </div>
       </div>
