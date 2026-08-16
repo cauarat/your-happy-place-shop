@@ -7,13 +7,13 @@ import {
   useTransform,
   useMotionValueEvent,
 } from 'framer-motion';
-import { Lock, ArrowLeft, Check, ChevronDown, SlidersHorizontal } from 'lucide-react';
+import { SlidersHorizontal, Package, MessageSquare, Send, CheckCircle, Smartphone, Fingerprint, RefreshCcw, Bell, Newspaper, Lock, ArrowLeft, Check, ChevronDown } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useOnboarding } from '../contexts/OnboardingContext';
 import { designers as staticDesigners } from '../data/products';
 import { supabase } from '../lib/supabase';
-import { getDesigners, getProducts } from '../lib/store';
+import { getDesigners, getProducts, getDesignSettings } from '../lib/store';
 import { Component as LanguageSelectorDropdown, LanguageOption } from '@/components/ui/language-selector-dropdown';
 import { ScrollMorphHero } from '@/components/ui/scroll-morph-hero';
 import { ContainerScroll } from '@/components/ui/container-scroll-animation';
@@ -168,6 +168,40 @@ const AboutSection = React.forwardRef<HTMLElement, { onExplore: () => void }>(
     const { t, language } = useLanguage();
     const [activeDemoCategory, setActiveDemoCategory] = useState<string>('All');
 
+    // Drag-to-scroll logic
+    const scrollContainerRef = React.useRef<HTMLDivElement>(null);
+    const isDragging = React.useRef(false);
+    const startX = React.useRef(0);
+    const scrollLeft = React.useRef(0);
+    const isDragClick = React.useRef(false);
+
+    const onMouseDown = (e: React.MouseEvent) => {
+      isDragging.current = true;
+      isDragClick.current = false;
+      if (!scrollContainerRef.current) return;
+      startX.current = e.pageX - scrollContainerRef.current.offsetLeft;
+      scrollLeft.current = scrollContainerRef.current.scrollLeft;
+    };
+
+    const onMouseLeave = () => {
+      isDragging.current = false;
+    };
+
+    const onMouseUp = () => {
+      isDragging.current = false;
+    };
+
+    const onMouseMove = (e: React.MouseEvent) => {
+      if (!isDragging.current || !scrollContainerRef.current) return;
+      e.preventDefault();
+      const x = e.pageX - scrollContainerRef.current.offsetLeft;
+      const walk = (x - startX.current) * 1.5;
+      if (Math.abs(walk) > 5) {
+        isDragClick.current = true;
+      }
+      scrollContainerRef.current.scrollLeft = scrollLeft.current - walk;
+    };
+
   // Both the picture and the count come from the live catalogue: the piece
   // shown is one that is actually for sale, and the figure moves when the shop
   // does. A number typed in by hand here would be a claim we'd have to keep
@@ -256,14 +290,24 @@ const AboutSection = React.forwardRef<HTMLElement, { onExplore: () => void }>(
             className="mt-12"
           >
             <div className="bg-[#f2f2f6]/70 backdrop-blur-[32px] saturate-[180%] rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.12),0_2px_8px_rgba(0,0,0,0.06),inset_0_1px_1px_rgba(255,255,255,0.8)] overflow-hidden pointer-events-auto border border-white/20 w-full max-w-md">
-              <div className="overflow-x-auto no-scrollbar flex items-center px-1.5 py-1.5 gap-0">
+              <div 
+                ref={scrollContainerRef}
+                onMouseDown={onMouseDown}
+                onMouseLeave={onMouseLeave}
+                onMouseUp={onMouseUp}
+                onMouseMove={onMouseMove}
+                className="overflow-x-auto no-scrollbar flex items-center px-1.5 py-1.5 gap-0 select-none cursor-grab active:cursor-grabbing"
+              >
                 {/* The "Filter" mock button */}
                 <motion.button
                   variants={{
                     hidden: { opacity: 0, x: -16, scale: 0.9 },
                     visible: { opacity: 1, x: 0, scale: 1, transition: { type: 'spring', stiffness: 260, damping: 20 } }
                   }}
-                  onClick={() => setActiveDemoCategory('All')}
+                  onClick={(e) => {
+                    if (isDragClick.current) { e.preventDefault(); return; }
+                    setActiveDemoCategory('All');
+                  }}
                   className="relative flex flex-col items-center gap-0.5 px-3.5 py-2 rounded-full shrink-0 min-w-[56px] outline-none"
                 >
                   {activeDemoCategory === 'All' && (
@@ -278,6 +322,61 @@ const AboutSection = React.forwardRef<HTMLElement, { onExplore: () => void }>(
                   </motion.span>
                 </motion.button>
 
+                {/* News */}
+                {getDesignSettings().enableNewsPage !== false && (
+                  <motion.button
+                    variants={{
+                      hidden: { opacity: 0, x: -16, scale: 0.9 },
+                      visible: { opacity: 1, x: 0, scale: 1, transition: { type: 'spring', stiffness: 260, damping: 20 } }
+                    }}
+                    onClick={(e) => {
+                      if (isDragClick.current) { e.preventDefault(); return; }
+                      setActiveDemoCategory('News');
+                    }}
+                    className="relative flex flex-col items-center gap-0.5 px-3.5 py-2 rounded-full shrink-0 min-w-[56px] outline-none hover:bg-black/5 transition-colors"
+                  >
+                    {activeDemoCategory === 'News' && (
+                      <motion.div layoutId="demo-active-dock-bg" className="absolute inset-0 rounded-full bg-black z-0 shadow-[inset_0_1px_2px_rgba(255,255,255,0.15)]" />
+                    )}
+                    <motion.span 
+                      className="relative z-10 flex flex-col items-center gap-0.5"
+                      animate={{ color: activeDemoCategory === 'News' ? '#ffffff' : '#4a4a4d' }}
+                    >
+                      <Newspaper size={20} strokeWidth={activeDemoCategory === 'News' ? 2 : 1.7} className="mb-0.5" />
+                      <span className="text-[9px] font-semibold tracking-wide">{t('news') || 'News'}</span>
+                    </motion.span>
+                  </motion.button>
+                )}
+
+                {/* Sale */}
+                {getDesignSettings().enableSalePage !== false && (
+                  <motion.button
+                    variants={{
+                      hidden: { opacity: 0, x: -16, scale: 0.9 },
+                      visible: { opacity: 1, x: 0, scale: 1, transition: { type: 'spring', stiffness: 260, damping: 20 } }
+                    }}
+                    onClick={(e) => {
+                      if (isDragClick.current) { e.preventDefault(); return; }
+                      setActiveDemoCategory('Sale');
+                    }}
+                    className="relative flex flex-col items-center gap-0.5 px-3.5 py-2 rounded-full shrink-0 min-w-[56px] outline-none hover:bg-black/5 transition-colors"
+                  >
+                    {activeDemoCategory === 'Sale' && (
+                      <motion.div layoutId="demo-active-dock-bg" className="absolute inset-0 rounded-full bg-black z-0 shadow-[inset_0_1px_2px_rgba(255,255,255,0.15)]" />
+                    )}
+                    <motion.span 
+                      className="relative z-10 flex flex-col items-center gap-0.5"
+                      animate={{ color: activeDemoCategory === 'Sale' ? '#ffffff' : '#4a4a4d' }}
+                    >
+                      <span className="text-[18px] leading-none font-light mb-0.5">%</span>
+                      <span className="text-[9px] font-semibold tracking-wide">{t('sale')}</span>
+                    </motion.span>
+                  </motion.button>
+                )}
+
+                {/* Divider */}
+                <div className="w-px h-6 bg-black/10 shrink-0 mx-0.5" />
+
                 {/* The rest of the icons */}
                 {categories.map((c, i) => {
                   const isActive = activeDemoCategory === c;
@@ -289,7 +388,10 @@ const AboutSection = React.forwardRef<HTMLElement, { onExplore: () => void }>(
                         hidden: { opacity: 0, x: -16, scale: 0.9 },
                         visible: { opacity: 1, x: 0, scale: 1, transition: { type: 'spring', stiffness: 260, damping: 20 } }
                       }}
-                      onClick={() => setActiveDemoCategory(c)}
+                      onClick={(e) => {
+                        if (isDragClick.current) { e.preventDefault(); return; }
+                        setActiveDemoCategory(c);
+                      }}
                       className="relative flex flex-col items-center gap-0.5 px-3.5 py-2 rounded-full shrink-0 min-w-[56px] outline-none hover:bg-black/5 transition-colors"
                     >
                       {isActive && (
