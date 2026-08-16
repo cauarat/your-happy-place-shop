@@ -133,11 +133,11 @@ const CatalogTourSection = React.forwardRef<
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.6 }}
           transition={{ duration: DURATION.content, ease: EASE_SOFT }}
-          className="w-full max-w-md mx-auto px-6 -mt-24 md:-mt-48 pb-16 flex justify-center"
+          className="w-full max-w-md mx-auto px-6 -mt-24 md:-mt-48 pb-16 flex justify-center relative z-20"
         >
           <button
             onClick={onContinue}
-            className="w-full h-[56px] rounded-[20px] font-medium tracking-wide text-[16px] transition-all duration-500 hover:shadow-xl active:scale-[0.98] bg-zinc-900 text-white hover:bg-black hover:shadow-black/20"
+            className="w-full h-[56px] rounded-[20px] font-medium tracking-wide text-[16px] transition-all duration-500 hover:shadow-xl active:scale-[0.98] bg-zinc-900 text-white hover:bg-black hover:shadow-black/20 cursor-pointer relative z-50"
           >
             {t('install_app_continue')}
           </button>
