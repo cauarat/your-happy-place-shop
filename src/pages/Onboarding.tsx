@@ -140,6 +140,7 @@ CatalogTourSection.displayName = 'CatalogTourSection';
 const AboutSection = React.forwardRef<HTMLElement, { onExplore: () => void }>(
   ({ onExplore }, ref) => {
     const { t, language } = useLanguage();
+    const [activeDemoCategory, setActiveDemoCategory] = useState<string>('All');
 
   // Both the picture and the count come from the live catalogue: the piece
   // shown is one that is actually for sale, and the figure moves when the shop
@@ -228,34 +229,52 @@ const AboutSection = React.forwardRef<HTMLElement, { onExplore: () => void }>(
             <div className="bg-[#f2f2f6]/70 backdrop-blur-[32px] saturate-[180%] rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.12),0_2px_8px_rgba(0,0,0,0.06),inset_0_1px_1px_rgba(255,255,255,0.8)] overflow-hidden pointer-events-auto border border-white/20 w-full">
               <div className="overflow-x-auto no-scrollbar flex items-center px-1.5 py-1.5 gap-0">
                 {/* The "Filter" mock button */}
-                <motion.div
+                <motion.button
                   variants={{
                     hidden: { opacity: 0, x: -16, scale: 0.9 },
                     visible: { opacity: 1, x: 0, scale: 1, transition: { type: 'spring', stiffness: 260, damping: 20 } }
                   }}
-                  className="relative flex flex-col items-center gap-0.5 px-3.5 py-2 rounded-full shrink-0 min-w-[56px]"
+                  onClick={() => setActiveDemoCategory('All')}
+                  className="relative flex flex-col items-center gap-0.5 px-3.5 py-2 rounded-full shrink-0 min-w-[56px] outline-none"
                 >
-                  <div className="absolute inset-0 rounded-full bg-black z-0 shadow-[inset_0_1px_2px_rgba(255,255,255,0.15)]" />
-                  <span className="relative z-10 flex flex-col items-center gap-0.5 text-white">
+                  {activeDemoCategory === 'All' && (
+                    <motion.div layoutId="demo-active-dock-bg" className="absolute inset-0 rounded-full bg-black z-0 shadow-[inset_0_1px_2px_rgba(255,255,255,0.15)]" />
+                  )}
+                  <motion.span 
+                    className="relative z-10 flex flex-col items-center gap-0.5"
+                    animate={{ color: activeDemoCategory === 'All' ? '#ffffff' : '#4a4a4d' }}
+                  >
                     <SlidersHorizontal size={20} strokeWidth={2} className="mb-0.5" />
                     <span className="text-[9px] font-semibold tracking-wide">All</span>
-                  </span>
-                </motion.div>
+                  </motion.span>
+                </motion.button>
 
                 {/* The rest of the icons */}
-                {onboardingHeroIcons.map((item, i) => (
-                  <motion.div
-                    key={i}
-                    variants={{
-                      hidden: { opacity: 0, x: -16, scale: 0.9 },
-                      visible: { opacity: 1, x: 0, scale: 1, transition: { type: 'spring', stiffness: 260, damping: 20 } }
-                    }}
-                    className="relative flex flex-col items-center gap-0.5 px-3.5 py-2 rounded-full shrink-0 min-w-[56px] text-[#4a4a4d] hover:bg-black/5"
-                  >
-                    <item.icon className="w-5 h-5 mb-0.5" strokeWidth={1.7} />
-                    <span className="text-[9px] font-semibold tracking-wide">{t(item.labelKey)}</span>
-                  </motion.div>
-                ))}
+                {onboardingHeroIcons.map((item, i) => {
+                  const isActive = activeDemoCategory === item.labelKey;
+                  return (
+                    <motion.button
+                      key={i}
+                      variants={{
+                        hidden: { opacity: 0, x: -16, scale: 0.9 },
+                        visible: { opacity: 1, x: 0, scale: 1, transition: { type: 'spring', stiffness: 260, damping: 20 } }
+                      }}
+                      onClick={() => setActiveDemoCategory(item.labelKey)}
+                      className="relative flex flex-col items-center gap-0.5 px-3.5 py-2 rounded-full shrink-0 min-w-[56px] outline-none hover:bg-black/5 transition-colors"
+                    >
+                      {isActive && (
+                        <motion.div layoutId="demo-active-dock-bg" className="absolute inset-0 rounded-full bg-black z-0 shadow-[inset_0_1px_2px_rgba(255,255,255,0.15)]" />
+                      )}
+                      <motion.span 
+                        className="relative z-10 flex flex-col items-center gap-0.5"
+                        animate={{ color: isActive ? '#ffffff' : '#4a4a4d' }}
+                      >
+                        <item.icon className="w-5 h-5 mb-0.5" strokeWidth={isActive ? 2 : 1.7} />
+                        <span className="text-[9px] font-semibold tracking-wide">{t(item.labelKey)}</span>
+                      </motion.span>
+                    </motion.button>
+                  );
+                })}
               </div>
             </div>
           </motion.div>
