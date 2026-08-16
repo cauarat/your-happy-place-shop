@@ -272,7 +272,7 @@ const translations: Record<Language, Record<string, string>> = {
     onboarding_ticket_guest: "Guest",
     // ---- Onboarding: what members say (placeholder copy) ----
     testimonials_eyebrow: "In their words",
-    testimonials_title: "What members say.",
+    testimonials_title: "Reviews",
     testimonial_1_meta: "Member since 2024",
     testimonial_1_body: "I stopped scrolling through thousands of near-identical listings. Everything here is something I would actually wear, and that alone changed how I shop.",
     testimonial_2_meta: "São Paulo",
@@ -612,7 +612,7 @@ const translations: Record<Language, Record<string, string>> = {
     onboarding_ticket_guest: "Convidado",
     // ---- Onboarding: o que os membros dizem (texto provisório) ----
     testimonials_eyebrow: "Nas palavras deles",
-    testimonials_title: "O que os membros dizem.",
+    testimonials_title: "As avaliações",
     testimonial_1_meta: "Membro desde 2024",
     testimonial_1_body: "Parei de rolar milhares de anúncios quase iguais. Tudo aqui é algo que eu realmente usaria, e só isso já mudou como eu compro.",
     testimonial_2_meta: "São Paulo",
@@ -952,7 +952,7 @@ const translations: Record<Language, Record<string, string>> = {
     onboarding_ticket_guest: "Invitado",
     // ---- Onboarding: lo que dicen los miembros (texto provisional) ----
     testimonials_eyebrow: "En sus palabras",
-    testimonials_title: "Lo que dicen los miembros.",
+    testimonials_title: "Reseñas",
     testimonial_1_meta: "Miembro desde 2024",
     testimonial_1_body: "Dejé de recorrer miles de anuncios casi idénticos. Todo lo que hay aquí es algo que de verdad me pondría, y eso ya cambió mi forma de comprar.",
     testimonial_2_meta: "São Paulo",
