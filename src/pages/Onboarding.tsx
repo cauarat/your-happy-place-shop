@@ -431,33 +431,24 @@ const AboutSection = React.forwardRef<HTMLElement, { onExplore: () => void }>(
             </p>
           </motion.div>
 
-          <motion.div {...reveal(0.2)} className="mt-16 lg:mt-auto">
+          <motion.div {...reveal(0.2)} className="mt-16 lg:mt-auto self-start">
             <button
               onClick={onExplore}
-              className="inline-flex h-[52px] items-center justify-center rounded-full border border-black/15 px-8 text-[13px] font-medium uppercase tracking-[0.08em] transition-all duration-500 hover:border-black/40 hover:bg-black/[0.03] active:scale-[0.98]"
+              className="flex flex-col items-center justify-center gap-2 group"
             >
-              {t('about_cta')}
+              <span className="text-xs font-bold tracking-[0.2em] text-muted-foreground uppercase transition-colors group-hover:text-foreground">
+                {t('scroll_to_explore')}
+              </span>
+              <motion.div
+                animate={{ y: [0, 4, 0] }}
+                transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                className="opacity-70 group-hover:opacity-100 transition-opacity text-muted-foreground"
+              >
+                <ChevronDown className="w-4 h-4" />
+              </motion.div>
             </button>
           </motion.div>
         </div>
-      </div>
-
-      <div className="w-full flex justify-center mt-20 lg:mt-32">
-        <button
-          onClick={onExplore}
-          className="flex flex-col items-center justify-center gap-2 group"
-        >
-          <span className="text-xs font-bold tracking-[0.2em] text-muted-foreground uppercase transition-colors group-hover:text-foreground">
-            {t('scroll_to_explore')}
-          </span>
-          <motion.div
-            animate={{ y: [0, 4, 0] }}
-            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-            className="opacity-70 group-hover:opacity-100 transition-opacity text-muted-foreground"
-          >
-            <ChevronDown className="w-4 h-4" />
-          </motion.div>
-        </button>
       </div>
     </section>
   );
