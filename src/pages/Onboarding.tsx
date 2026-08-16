@@ -171,15 +171,17 @@ const AboutSection = ({ onExplore }: { onExplore: () => void }) => {
           {cover && (
             <motion.div
               {...reveal()}
+              // Square, not the landscape frame this shape usually gets: the
+              // catalogue is shot on white in portrait, and a wide frame left
               // grey bars down both sides of every piece.
-              className="mb-12 w-full max-w-[480px] overflow-hidden rounded-2xl md:mb-16"
+              className="mb-12 w-full max-w-[300px] mx-auto overflow-hidden rounded-2xl md:mb-16"
             >
               <img
                 src={cover}
                 alt=""
                 loading="lazy"
                 decoding="async"
-                className="aspect-square w-full object-contain mix-blend-multiply"
+                className="aspect-square w-full object-contain p-6 mix-blend-multiply"
               />
             </motion.div>
           )}
