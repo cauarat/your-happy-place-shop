@@ -167,29 +167,11 @@ const AboutSection = React.forwardRef<HTMLElement, { onExplore: () => void }>(
   return (
     <section ref={ref} className="relative w-full px-6 py-24 md:px-10 md:py-32 lg:py-40">
       <div className="mx-auto grid w-full max-w-6xl gap-14 lg:grid-cols-2 lg:gap-16">
-        {/* Left: a piece, then the statement */}
-        <div>
-          {cover && (
-            <motion.div
-              {...reveal()}
-              // Square, not the landscape frame this shape usually gets: the
-              // catalogue is shot on white in portrait, and a wide frame left
-              // grey bars down both sides of every piece.
-              className="mb-12 w-full max-w-[380px] mx-auto overflow-hidden rounded-2xl md:mb-16"
-            >
-              <img
-                src={cover}
-                alt=""
-                loading="lazy"
-                decoding="async"
-                className="aspect-square w-full object-contain mix-blend-multiply"
-              />
-            </motion.div>
-          )}
-
+        {/* Left: the statement, then a piece */}
+        <div className="flex flex-col">
           <motion.h2
             {...reveal(0.05)}
-            className="text-[clamp(2rem,6.4vw,4rem)] font-semibold uppercase leading-[0.95] tracking-[-0.03em]"
+            className="text-[clamp(2rem,6.4vw,4rem)] font-semibold uppercase leading-[0.95] tracking-[-0.03em] mb-12 md:mb-16"
           >
             {/* The setup is greyed to hand the emphasis to the second half,
                 but it is still a sentence someone has to read — zinc-400, not
@@ -201,6 +183,24 @@ const AboutSection = React.forwardRef<HTMLElement, { onExplore: () => void }>(
               {t('about_title_strong')}
             </span>
           </motion.h2>
+
+          {cover && (
+            <motion.div
+              {...reveal()}
+              // Square, not the landscape frame this shape usually gets: the
+              // catalogue is shot on white in portrait, and a wide frame left
+              // grey bars down both sides of every piece.
+              className="w-full max-w-[380px] mx-auto overflow-hidden rounded-2xl"
+            >
+              <img
+                src={cover}
+                alt=""
+                loading="lazy"
+                decoding="async"
+                className="aspect-square w-full object-contain mix-blend-multiply"
+              />
+            </motion.div>
+          )}
         </div>
 
         {/* Right: the reasoning, the way in, and the number */}
