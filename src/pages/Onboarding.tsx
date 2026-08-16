@@ -181,7 +181,7 @@ const AboutSection = ({ onExplore }: { onExplore: () => void }) => {
                 alt=""
                 loading="lazy"
                 decoding="async"
-                className="w-full object-contain mix-blend-multiply"
+                className="aspect-square w-full object-contain mix-blend-multiply"
               />
             </motion.div>
           )}
@@ -196,7 +196,7 @@ const AboutSection = ({ onExplore }: { onExplore: () => void }) => {
             <span className="block text-zinc-400 transition-colors duration-500">
               {t('about_title_muted')}
             </span>
-            <span className="block text-black transition-colors duration-500">
+            <span className="block text-black transition-colors duration-500 mt-3 md:mt-4">
               {t('about_title_strong')}
             </span>
           </motion.h2>
