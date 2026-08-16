@@ -565,14 +565,14 @@ const Onboarding = () => {
             </button>
           }
         >
-          <div className="flex flex-col items-center justify-center">
+          <div className="flex flex-col items-center justify-center w-full">
             <button
               onClick={() => {
                 navigate('/login');
               }}
-              className="px-8 flex items-center justify-center h-[46px] rounded-full hover:scale-[1.02] transition-all duration-500 active:scale-95 shadow-xl bg-foreground text-background shadow-black/10"
+              className="w-[220px] sm:w-[240px] flex items-center justify-center h-[50px] rounded-full hover:scale-[1.02] transition-all duration-500 active:scale-95 shadow-xl bg-foreground text-background shadow-black/10"
             >
-              <span className="font-medium tracking-wide text-[14px]">
+              <span className="font-medium tracking-wide text-[15px]">
                 {t('onboarding_already_member')}
               </span>
             </button>
