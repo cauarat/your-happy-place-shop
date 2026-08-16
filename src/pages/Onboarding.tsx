@@ -435,7 +435,7 @@ const AboutSection = React.forwardRef<HTMLElement, { onExplore: () => void }>(
         </div>
       </div>
 
-      <motion.div {...reveal(0.2)} className="w-full flex justify-center -mt-12 lg:-mt-20">
+      <motion.div {...reveal(0.2)} className="w-full flex justify-center -mt-6 lg:-mt-10">
         <button
           onClick={onExplore}
           className="flex flex-col items-center justify-center gap-3 p-4 group"
