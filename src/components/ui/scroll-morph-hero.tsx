@@ -34,6 +34,7 @@ export interface ScrollMorphHeroProps {
   revealTitle: React.ReactNode;
   revealSubtitle?: React.ReactNode;
   children?: React.ReactNode;
+  bottomRevealContent?: React.ReactNode;
   className?: string;
   // Decorative layer behind the whole scene. Given as a square: the hero sizes
   // it and drives it with the scroll (see the globe choreography below), so
@@ -119,6 +120,7 @@ export function ScrollMorphHero({
   revealTitle,
   revealSubtitle,
   children,
+  bottomRevealContent,
   className,
   backdrop,
   stageClassName = "bg-background",
@@ -462,6 +464,15 @@ export function ScrollMorphHero({
               }}
             >
               {children}
+            </div>
+          )}
+
+          {bottomRevealContent && (
+            <div
+              className="absolute bottom-8 left-0 right-0 flex justify-center px-6"
+              style={{ pointerEvents: revealProgress > 0.5 ? "auto" : "none" }}
+            >
+              {bottomRevealContent}
             </div>
           )}
         </motion.div>

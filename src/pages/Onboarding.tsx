@@ -545,6 +545,25 @@ const Onboarding = () => {
               </motion.span>
             </div>
           }
+          bottomRevealContent={
+            <button
+              onClick={startTour}
+              className="flex flex-col items-center justify-center gap-1 group"
+            >
+              <div className="h-[44px] px-8 rounded-full backdrop-blur-xl bg-black/5 border border-black/10 flex items-center justify-center transition-all duration-500 hover:bg-black/10 hover:scale-[1.02] active:scale-95 shadow-sm">
+                <span className="font-medium tracking-wide text-[15px] text-foreground">
+                  {t('onboarding_take_quick_tour')} 💫
+                </span>
+              </div>
+              <motion.div
+                animate={{ y: [0, 4, 0] }}
+                transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                className="opacity-70 group-hover:opacity-100 transition-opacity text-muted-foreground mt-1"
+              >
+                <ChevronDown className="w-5 h-5" />
+              </motion.div>
+            </button>
+          }
         >
           <div className="flex flex-col items-center gap-4 w-[280px] sm:w-[320px] max-w-full">
             <button
@@ -557,25 +576,6 @@ const Onboarding = () => {
                 {t('onboarding_already_member')}
               </span>
             </button>
-            <button
-              onClick={startTour}
-              className="w-full flex items-center justify-center h-[52px] backdrop-blur-md border rounded-full hover:scale-[1.02] transition-all duration-500 active:scale-95 bg-black/5 text-foreground border-black/10 hover:bg-black/10"
-            >
-              <span className="font-medium tracking-wide text-[15px]">
-                {t('onboarding_take_quick_tour')}
-              </span>
-            </button>
-            {/* Same destination as the tour button — the arrow is the one
-                people reach for when they've read "scroll to explore". */}
-            <motion.button
-              onClick={startTour}
-              animate={{ y: [0, 4, 0] }}
-              transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-              className="-mt-3 p-1 opacity-70 hover:opacity-100 transition-all duration-500 text-muted-foreground"
-              aria-label={t('onboarding_take_quick_tour')}
-            >
-              <ChevronDown className="w-5 h-5" />
-            </motion.button>
           </div>
         </ScrollMorphHero>
 
