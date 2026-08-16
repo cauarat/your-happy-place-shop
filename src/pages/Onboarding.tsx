@@ -19,9 +19,35 @@ import { ScrollMorphHero } from '@/components/ui/scroll-morph-hero';
 import { ContainerScroll } from '@/components/ui/container-scroll-animation';
 import CatalogPreview from '@/components/CatalogPreview';
 import { DURATION, EASE_SOFT, jumpPageToTop, scrollPageToElement } from '@/lib/motion';
-import { Shirt, Glasses } from 'lucide-react';
-import { BagIcon, CapIcon, PantsIcon, JacketIcon, HoodieIcon, SweaterIcon, PufferJacketIcon } from '@/components/Icons';
+import { Shirt, Footprints, ShoppingBag, Gem, Glasses, Box, Layers, Search } from "lucide-react";
+import { CapIcon, PantsIcon, ShortsIcon, JacketIcon, HoodieIcon, VestIcon, PoloIcon, TankTopIcon, BagIcon, PufferJacketIcon, SweaterIcon } from "@/components/Icons";
 import { GlobeFlights } from '@/components/ui/cobe-globe-flights';
+
+const getCategoryIcon = (cat: string) => {
+  switch (cat.toUpperCase()) {
+    case 'CLOTHING': return Shirt;
+    case 'FOOTWEAR': return Footprints;
+    case 'BAGS': return BagIcon;
+    case 'JEWELRY': return Gem;
+    case 'ACCESSORIES': return Glasses;
+    case 'CAPS': return CapIcon;
+    case 'JACKETS': return JacketIcon;
+    case 'PUFFER JACKET': return PufferJacketIcon;
+    case 'PUFFER JACKETS': return PufferJacketIcon;
+    case 'OBJECTS': return Box;
+    case 'PANTS': return PantsIcon;
+    case 'POLO': return PoloIcon;
+    case 'SET': return Layers;
+    case 'SHORTS': return ShortsIcon;
+    case 'SWEATER': return SweaterIcon;
+    case 'SWEATERS': return SweaterIcon;
+    case 'T-SHIRT': return Shirt;
+    case 'TANK TOP': return TankTopIcon;
+    case 'HOODIES': return HoodieIcon;
+    case 'VEST': return VestIcon;
+    default: return null;
+  }
+};
 
 // iOS-style segmented control: a shared layoutId pill glides between options,
 // spring-driven, so switching languages feels native rather than a plain fade.
@@ -146,11 +172,14 @@ const AboutSection = React.forwardRef<HTMLElement, { onExplore: () => void }>(
   // shown is one that is actually for sale, and the figure moves when the shop
   // does. A number typed in by hand here would be a claim we'd have to keep
   // remembering to true up.
-  const { cover, pieceCount } = React.useMemo(() => {
+  const { cover, pieceCount, categories } = React.useMemo(() => {
     const products = getProducts();
+    const cats = new Set<string>();
+    products.forEach((p) => cats.add(p.category));
     return {
       cover: products.find((p) => p.image)?.image ?? null,
       pieceCount: products.length,
+      categories: Array.from(cats).sort(),
     };
   }, []);
 
@@ -250,8 +279,9 @@ const AboutSection = React.forwardRef<HTMLElement, { onExplore: () => void }>(
                 </motion.button>
 
                 {/* The rest of the icons */}
-                {onboardingHeroIcons.map((item, i) => {
-                  const isActive = activeDemoCategory === item.labelKey;
+                {categories.map((c, i) => {
+                  const isActive = activeDemoCategory === c;
+                  const Icon = getCategoryIcon(c);
                   return (
                     <motion.button
                       key={i}
@@ -259,7 +289,7 @@ const AboutSection = React.forwardRef<HTMLElement, { onExplore: () => void }>(
                         hidden: { opacity: 0, x: -16, scale: 0.9 },
                         visible: { opacity: 1, x: 0, scale: 1, transition: { type: 'spring', stiffness: 260, damping: 20 } }
                       }}
-                      onClick={() => setActiveDemoCategory(item.labelKey)}
+                      onClick={() => setActiveDemoCategory(c)}
                       className="relative flex flex-col items-center gap-0.5 px-3.5 py-2 rounded-full shrink-0 min-w-[56px] outline-none hover:bg-black/5 transition-colors"
                     >
                       {isActive && (
@@ -269,8 +299,12 @@ const AboutSection = React.forwardRef<HTMLElement, { onExplore: () => void }>(
                         className="relative z-10 flex flex-col items-center gap-0.5"
                         animate={{ color: isActive ? '#ffffff' : '#4a4a4d' }}
                       >
-                        <item.icon className="w-5 h-5 mb-0.5" strokeWidth={isActive ? 2 : 1.7} />
-                        <span className="text-[9px] font-semibold tracking-wide">{t(item.labelKey)}</span>
+                        {Icon
+                          ? <Icon className="w-5 h-5 mb-0.5" strokeWidth={isActive ? 2 : 1.7} />
+                          : <span className="w-5 h-5 mb-0.5" />}
+                        <span className="text-[9px] font-semibold tracking-wide leading-tight max-w-[48px] text-center">
+                          {t(c.toLowerCase()) === c.toLowerCase() ? c : t(c.toLowerCase())}
+                        </span>
                       </motion.span>
                     </motion.button>
                   );
