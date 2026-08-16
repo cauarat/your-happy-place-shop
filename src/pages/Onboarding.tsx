@@ -137,8 +137,9 @@ CatalogTourSection.displayName = 'CatalogTourSection';
 // has to be scanned sideways.
 //
 // No background of its own, for the same reason CatalogTourSection has none.
-const AboutSection = ({ onExplore }: { onExplore: () => void }) => {
-  const { t, language } = useLanguage();
+const AboutSection = React.forwardRef<HTMLElement, { onExplore: () => void }>(
+  ({ onExplore }, ref) => {
+    const { t, language } = useLanguage();
 
   // Both the picture and the count come from the live catalogue: the piece
   // shown is one that is actually for sale, and the figure moves when the shop
@@ -164,7 +165,7 @@ const AboutSection = ({ onExplore }: { onExplore: () => void }) => {
   });
 
   return (
-    <section className="relative w-full px-6 py-24 md:px-10 md:py-32 lg:py-40">
+    <section ref={ref} className="relative w-full px-6 py-24 md:px-10 md:py-32 lg:py-40">
       <div className="mx-auto grid w-full max-w-6xl gap-14 lg:grid-cols-2 lg:gap-16">
         {/* Left: a piece, then the statement */}
         <div>
@@ -237,9 +238,28 @@ const AboutSection = ({ onExplore }: { onExplore: () => void }) => {
           </motion.div>
         </div>
       </div>
+
+      <div className="w-full flex justify-center mt-20 lg:mt-32">
+        <button
+          onClick={onExplore}
+          className="flex flex-col items-center justify-center gap-2 group"
+        >
+          <span className="text-xs font-bold tracking-[0.2em] text-muted-foreground uppercase transition-colors group-hover:text-foreground">
+            {t('scroll_to_explore')}
+          </span>
+          <motion.div
+            animate={{ y: [0, 4, 0] }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+            className="opacity-70 group-hover:opacity-100 transition-opacity text-muted-foreground"
+          >
+            <ChevronDown className="w-4 h-4" />
+          </motion.div>
+        </button>
+      </div>
     </section>
   );
-};
+});
+AboutSection.displayName = 'AboutSection';
 
 // The scattered resting layout for the hero icons. Two rules shape it:
 //
@@ -318,6 +338,7 @@ const Onboarding = () => {
   // The quick tour lives directly below the hero in the same scrolling
   // document, so reaching it is scrolling the page — never a screen swap.
   const tourSectionRef = React.useRef<HTMLElement>(null);
+  const aboutSectionRef = React.useRef<HTMLElement>(null);
   const { language, setLanguage, t } = useLanguage();
 
   // The names are resolved once per language rather than on every render. The
@@ -441,6 +462,10 @@ const Onboarding = () => {
     if (tourSectionRef.current) scrollPageToElement(tourSectionRef.current);
   };
 
+  const scrollToAbout = () => {
+    if (aboutSectionRef.current) scrollPageToElement(aboutSectionRef.current);
+  };
+
   // Leaving the tour: glide back up while it fades out, so the install screen
   // takes over from a clean scroll position.
   // Leaving the tour: it fades out where it is, and the scroll is reset once
@@ -547,7 +572,7 @@ const Onboarding = () => {
           }
           bottomRevealContent={
             <button
-              onClick={startTour}
+              onClick={scrollToAbout}
               className="flex flex-col items-center justify-center gap-2 group"
             >
               <span className="text-xs font-bold tracking-[0.2em] text-muted-foreground uppercase transition-colors group-hover:text-foreground">
@@ -581,7 +606,7 @@ const Onboarding = () => {
             you meet says what this is before the device shows it to you. Its
             own button carries on to the tour, so the section is a step in the
             same journey rather than a detour off it. */}
-        <AboutSection onExplore={startTour} />
+        <AboutSection ref={aboutSectionRef} onExplore={startTour} />
 
         {/* Always in the document, directly below the hero's runway: carrying
             on scrolling arrives here with nothing to trigger or wait for, and

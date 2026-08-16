@@ -567,7 +567,7 @@ const translations: Record<Language, Record<string, string>> = {
     onboarding_continue: "Continuar",
     onboarding_lang_title: "Idioma preferido",
     onboarding_lang_desc: "Como devemos nos comunicar com você?",
-    scroll_to_explore: "EXPLORAR",
+    scroll_to_explore: "DESLIZE PARA EXPLORAR",
     onboarding_style_title: "Perfil de Estilo 👤",
     onboarding_style_desc: "{name}, como você prefere seu caimento?",
     onboarding_male: "Masculino",
