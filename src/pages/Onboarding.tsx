@@ -1638,7 +1638,7 @@ const Onboarding = () => {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -8 }}
             transition={{ duration: DURATION.content, ease: EASE_SOFT, delay: 0.4 }}
-            className="fixed top-1/2 -translate-y-1/2 mt-8 left-6 z-40 hidden md:block lg:left-10"
+            className="fixed top-[35%] -translate-y-1/2 left-6 z-40 hidden md:block lg:left-10"
           >
             <ChapterScrubber
               chapters={chapters}
