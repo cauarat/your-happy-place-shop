@@ -7,7 +7,7 @@ import {
   useTransform,
   useMotionValueEvent,
 } from 'framer-motion';
-import { Lock, ArrowLeft, Check, ChevronDown } from 'lucide-react';
+import { Lock, ArrowLeft, Check, ChevronDown, SlidersHorizontal } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useOnboarding } from '../contexts/OnboardingContext';
@@ -214,8 +214,7 @@ const AboutSection = React.forwardRef<HTMLElement, { onExplore: () => void }>(
             </p>
           </motion.div>
 
-          {/* Category icons — cascade in one by one as they scroll into view,
-              each with a gentle spring drop like Disney's anticipation principle */}
+          {/* Category icons — cascading segmented control style */}
           <motion.div
             initial="hidden"
             whileInView="visible"
@@ -224,33 +223,41 @@ const AboutSection = React.forwardRef<HTMLElement, { onExplore: () => void }>(
               hidden: {},
               visible: { transition: { staggerChildren: 0.08, delayChildren: 0.15 } },
             }}
-            className="mt-10 flex flex-wrap items-center gap-3"
+            className="mt-10"
           >
-            {[HoodieIcon, BagIcon, PantsIcon, Shirt, JacketIcon, CapIcon, Glasses, SweaterIcon, PufferJacketIcon].map(
-              (Icon, i) => (
+            <div className="bg-[#f2f2f6]/70 backdrop-blur-[32px] saturate-[180%] rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.12),0_2px_8px_rgba(0,0,0,0.06),inset_0_1px_1px_rgba(255,255,255,0.8)] overflow-hidden pointer-events-auto border border-white/20 w-full">
+              <div className="overflow-x-auto no-scrollbar flex items-center px-1.5 py-1.5 gap-0">
+                {/* The "Filter" mock button */}
                 <motion.div
-                  key={i}
                   variants={{
-                    hidden: { opacity: 0, y: -28, scale: 0.7, rotate: i % 2 === 0 ? -6 : 6 },
-                    visible: {
-                      opacity: 1,
-                      y: 0,
-                      scale: 1,
-                      rotate: 0,
-                      transition: {
-                        type: 'spring',
-                        stiffness: 260,
-                        damping: 18,
-                        mass: 0.6,
-                      },
-                    },
+                    hidden: { opacity: 0, x: -16, scale: 0.9 },
+                    visible: { opacity: 1, x: 0, scale: 1, transition: { type: 'spring', stiffness: 260, damping: 20 } }
                   }}
-                  className="flex items-center justify-center w-11 h-11 rounded-2xl bg-zinc-100/80 border border-zinc-200/60 shadow-sm"
+                  className="relative flex flex-col items-center gap-0.5 px-3.5 py-2 rounded-full shrink-0 min-w-[56px]"
                 >
-                  <Icon className="w-5 h-5 text-zinc-700" />
+                  <div className="absolute inset-0 rounded-full bg-black z-0 shadow-[inset_0_1px_2px_rgba(255,255,255,0.15)]" />
+                  <span className="relative z-10 flex flex-col items-center gap-0.5 text-white">
+                    <SlidersHorizontal size={20} strokeWidth={2} className="mb-0.5" />
+                    <span className="text-[9px] font-semibold tracking-wide">All</span>
+                  </span>
                 </motion.div>
-              )
-            )}
+
+                {/* The rest of the icons */}
+                {onboardingHeroIcons.map((item, i) => (
+                  <motion.div
+                    key={i}
+                    variants={{
+                      hidden: { opacity: 0, x: -16, scale: 0.9 },
+                      visible: { opacity: 1, x: 0, scale: 1, transition: { type: 'spring', stiffness: 260, damping: 20 } }
+                    }}
+                    className="relative flex flex-col items-center gap-0.5 px-3.5 py-2 rounded-full shrink-0 min-w-[56px] text-[#4a4a4d] hover:bg-black/5"
+                  >
+                    <item.icon className="w-5 h-5 mb-0.5" strokeWidth={1.7} />
+                    <span className="text-[9px] font-semibold tracking-wide">{t(item.labelKey)}</span>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
           </motion.div>
 
           {/* The number, set the way the statement is: label, rule, figure. */}
