@@ -184,7 +184,7 @@ const AboutSection = React.forwardRef<HTMLElement, { onExplore: () => void }>(
               // Square, not the landscape frame this shape usually gets: the
               // catalogue is shot on white in portrait, and a wide frame left
               // grey bars down both sides of every piece.
-              className="w-full max-w-[380px] mx-auto overflow-hidden rounded-2xl mb-12 md:mb-16"
+              className="w-full max-w-[480px] mx-auto overflow-hidden rounded-2xl mb-12 md:mb-16"
             >
               <img
                 src={cover}
@@ -195,19 +195,19 @@ const AboutSection = React.forwardRef<HTMLElement, { onExplore: () => void }>(
               />
             </motion.div>
           )}
+        </div>
 
+        {/* Right: the reasoning, the way in, and the number */}
+        <div className="flex flex-col h-full">
           <motion.h2
             {...reveal(0.05)}
-            className="text-[clamp(2rem,6.4vw,4rem)] font-semibold uppercase leading-[0.95] tracking-[-0.03em]"
+            className="text-[clamp(2rem,6.4vw,4rem)] font-semibold uppercase leading-[0.95] tracking-[-0.03em] mb-8 md:mb-12 lg:-mt-2"
           >
             <span className="block text-black transition-colors duration-500">
               {t('about_title_strong')}
             </span>
           </motion.h2>
-        </div>
 
-        {/* Right: the reasoning, the way in, and the number */}
-        <div className="flex flex-col h-full">
           <motion.div {...reveal(0.1)} className="flex flex-col gap-5">
             <p className="max-w-md text-[16px] leading-relaxed text-zinc-600 transition-colors duration-500 md:text-[18px]">
               {t('about_body_1')}
