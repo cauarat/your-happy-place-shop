@@ -533,7 +533,7 @@ const Onboarding = () => {
           }
           revealTitle={
             <div
-              className="font-serif text-[64px] md:text-[72px] leading-none flex items-center justify-center tracking-tight select-none font-light transition-colors duration-500 text-foreground"
+              className="font-serif text-[48px] md:text-[56px] leading-none flex items-center justify-center tracking-tight select-none font-light transition-colors duration-500 text-foreground"
             >
               <span>V</span>
               <motion.span
@@ -548,19 +548,17 @@ const Onboarding = () => {
           bottomRevealContent={
             <button
               onClick={startTour}
-              className="flex flex-col items-center justify-center gap-1 group"
+              className="flex flex-col items-center justify-center gap-2 group"
             >
-              <div className="h-[44px] px-8 rounded-full backdrop-blur-xl bg-black/5 border border-black/10 flex items-center justify-center transition-all duration-500 hover:bg-black/10 hover:scale-[1.02] active:scale-95 shadow-sm">
-                <span className="font-medium tracking-wide text-[15px] text-foreground">
-                  {t('onboarding_take_quick_tour')}
-                </span>
-              </div>
+              <span className="text-xs font-bold tracking-[0.2em] text-muted-foreground uppercase transition-colors group-hover:text-foreground">
+                {t('scroll_to_explore')}
+              </span>
               <motion.div
                 animate={{ y: [0, 4, 0] }}
                 transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-                className="opacity-70 group-hover:opacity-100 transition-opacity text-muted-foreground mt-1"
+                className="opacity-70 group-hover:opacity-100 transition-opacity text-muted-foreground"
               >
-                <ChevronDown className="w-5 h-5" />
+                <ChevronDown className="w-4 h-4" />
               </motion.div>
             </button>
           }
@@ -570,9 +568,9 @@ const Onboarding = () => {
               onClick={() => {
                 navigate('/login');
               }}
-              className="w-[240px] sm:w-[260px] flex items-center justify-center h-[54px] rounded-full hover:scale-[1.02] transition-all duration-500 active:scale-95 shadow-xl bg-foreground text-background shadow-black/10"
+              className="w-[220px] sm:w-[240px] flex items-center justify-center h-[50px] rounded-full hover:scale-[1.02] transition-all duration-500 active:scale-95 shadow-xl bg-foreground text-background shadow-black/10"
             >
-              <span className="font-medium tracking-wide text-[16px] md:text-[17px]">
+              <span className="font-medium tracking-wide text-[15px]">
                 {t('onboarding_already_member')}
               </span>
             </button>
