@@ -22,6 +22,8 @@ import { DURATION, EASE_SOFT, jumpPageToTop, scrollPageToElement } from '@/lib/m
 import { Shirt, Footprints, ShoppingBag, Gem, Glasses, Box, Layers, Search } from "lucide-react";
 import { CapIcon, PantsIcon, ShortsIcon, JacketIcon, HoodieIcon, VestIcon, PoloIcon, TankTopIcon, BagIcon, PufferJacketIcon, SweaterIcon } from "@/components/Icons";
 import { GlobeFlights } from '@/components/ui/cobe-globe-flights';
+import { AdmitOneTicket, TicketPrinter } from '@/components/ui/admit-one-ticket';
+import TestimonialMarquee from '@/components/ui/marquee-01';
 
 const getCategoryIcon = (cat: string) => {
   switch (cat.toUpperCase()) {
@@ -462,6 +464,67 @@ const AboutSection = React.forwardRef<HTMLElement, { onExplore: () => void }>(
 });
 AboutSection.displayName = 'AboutSection';
 
+// The people the section above is describing. Names and cities stay put across
+// languages — only what they said is translated, so the same six voices are
+// speaking whichever language the site is in.
+const TESTIMONIAL_NAMES = [
+  'Marina Alves',
+  'Tomás Ribeiro',
+  'Elena Duarte',
+  'Lucas Ferreira',
+  'Sofia Marchetti',
+  'Diego Navarro',
+] as const;
+
+// Directly after the statement about how the catalogue is chosen: other people
+// saying the same thing in their own words. It travels on its own rather than
+// waiting to be scrolled through, so it reads as a strip of voices instead of
+// a list to get past.
+const TestimonialsSection = () => {
+  const { t, language } = useLanguage();
+
+  const testimonials = React.useMemo(
+    () =>
+      TESTIMONIAL_NAMES.map((name, i) => ({
+        name,
+        meta: t(`testimonial_${i + 1}_meta`),
+        body: t(`testimonial_${i + 1}_body`),
+      })),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [language]
+  );
+
+  const reveal = (delay = 0) => ({
+    initial: { opacity: 0, y: 24 },
+    whileInView: { opacity: 1, y: 0 },
+    viewport: { once: true, amount: 0.35 },
+    transition: { duration: DURATION.content, ease: EASE_SOFT, delay },
+  });
+
+  return (
+    <section className="relative w-full py-24 md:py-32">
+      <div className="mx-auto w-full max-w-6xl px-6 md:px-10">
+        <motion.p
+          {...reveal()}
+          className="text-xs font-bold uppercase tracking-[0.2em] text-zinc-400"
+        >
+          {t('testimonials_eyebrow')}
+        </motion.p>
+        <motion.h2
+          {...reveal(0.05)}
+          className="mt-4 max-w-2xl text-[clamp(1.75rem,4.6vw,3rem)] font-semibold uppercase leading-[0.98] tracking-[-0.03em]"
+        >
+          {t('testimonials_title')}
+        </motion.h2>
+      </div>
+
+      <motion.div {...reveal(0.1)}>
+        <TestimonialMarquee testimonials={testimonials} className="mt-12 md:mt-16" />
+      </motion.div>
+    </section>
+  );
+};
+
 // The scattered resting layout for the hero icons. Two rules shape it:
 //
 // 1. The middle third of the screen is left completely empty. The greeting and
@@ -525,6 +588,16 @@ const villaoroCities = [
   { id: 'city-losangeles', location: [34.05, -118.24] as [number, number] },
 ];
 
+/**
+ * How long the pass takes to clear the printer's slot, in seconds. The account
+ * is usually created faster than that, so the success screen waits for the
+ * print to finish rather than cutting a half-printed ticket off mid-feed.
+ */
+const TICKET_PRINT_S = 3.1;
+
+/** Locale to format the ticket's date in, per app language. */
+const TICKET_LOCALE: Record<string, string> = { EN: 'en-GB', PT: 'pt-BR', ES: 'es-ES' };
+
 const Onboarding = () => {
   const location = useLocation();
   // Scroll-based flow: sections reveal progressively as the user completes each one.
@@ -580,6 +653,22 @@ const Onboarding = () => {
   const reduceMotion = useReducedMotion();
   const navigate = useNavigate();
 
+  // What gets printed on the pass. Resolved once per language rather than on
+  // every render, so the ticket never re-renders mid-feed.
+  const ticketYear = React.useMemo(() => String(new Date().getFullYear()), []);
+  const ticketDate = React.useMemo(
+    () =>
+      new Date()
+        .toLocaleDateString(TICKET_LOCALE[language] ?? 'en-GB', {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric',
+        })
+        .replace(/\./g, '')
+        .toUpperCase(),
+    [language]
+  );
+
   useEffect(() => {
     if (terminalStep === 9) setLoadingText(t('onboarding_analyzing'));
   }, [terminalStep, t]);
@@ -587,14 +676,26 @@ const Onboarding = () => {
   // Handle terminal step 9: Real Supabase Auth
   useEffect(() => {
     if (terminalStep === 9) {
+      const startedAt = Date.now();
+      // The pass finishes printing before anything replaces this screen. Signup
+      // often resolves in well under a second, and a ticket yanked out of the
+      // printer half-fed is worse than the extra beat of waiting.
+      const waitForPrintToFinish = async () => {
+        const remaining = TICKET_PRINT_S * 1000 + 500 - (Date.now() - startedAt);
+        if (remaining > 0) {
+          setLoadingText(t('onboarding_printing'));
+          await new Promise(resolve => setTimeout(resolve, remaining));
+        }
+      };
+
       const performSignUp = async () => {
         setLoadingText(t('onboarding_analyzing'));
-        
+
         try {
           // 1. Simulate the luxury curation delay (1s)
           await new Promise(resolve => setTimeout(resolve, 1000));
           setLoadingText(t('onboarding_curating'));
-          
+
           // 2. Perform real Supabase Auth Sign Up
           const { data, error } = await supabase.auth.signUp({
             email,
@@ -611,13 +712,16 @@ const Onboarding = () => {
           });
 
           if (error) throw error;
-          
+
+          // 3. Let the pass finish printing before the screen changes
+          await waitForPrintToFinish();
+
           if (!data.session) {
             // Email confirmation is required
             setAuthError('Account created! Please check your email to verify your account before logging in.');
             setTerminalStep(11);
           } else {
-            // 3. Move to success screen
+            // 4. Move to success screen
             setTerminalStep(10);
           }
         } catch (error: any) {
@@ -829,6 +933,9 @@ const Onboarding = () => {
             own button carries on to the tour, so the section is a step in the
             same journey rather than a detour off it. */}
         <AboutSection ref={aboutSectionRef} onExplore={startTour} />
+
+        {/* The same claim, from the people it was made to. */}
+        <TestimonialsSection />
 
         {/* Always in the document, directly below the hero's runway: carrying
             on scrolling arrives here with nothing to trigger or wait for, and
@@ -1322,31 +1429,50 @@ const Onboarding = () => {
     );
   };
 
-  // Terminal overlay: Loading / Analyzing
+  // Terminal overlay: the pass being printed while the account is created.
+  // The wait is the same wait it always was; this just shows what is being
+  // made rather than that something is happening.
   const renderTerminal9 = () => (
     <motion.div
       key="terminal9"
-      initial={{ backgroundColor: "#000000", opacity: 0 }}
-      animate={{ backgroundColor: "#ffffff", opacity: 1 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{
-        backgroundColor: { duration: 3, ease: "easeInOut" },
-        opacity: { duration: 0.8 }
-      }}
-      className="fixed inset-0 z-[100] flex flex-col items-center justify-center overflow-hidden"
+      transition={{ duration: 0.6, ease: EASE_SOFT }}
+      className="fixed inset-0 z-[100] flex flex-col items-center justify-center overflow-hidden bg-[#f4f4f5] px-6"
     >
+      <div className="w-full max-w-[440px]">
+        <TicketPrinter
+          duration={TICKET_PRINT_S}
+          reduceMotion={!!reduceMotion}
+          label="Villaoro"
+          // The ticket is the same width as the printer; the slot reads as the
+          // thing it came out of only if the two line up.
+          className="mx-auto"
+        >
+          <AdmitOneTicket
+            eyebrow={t('onboarding_ticket_presents').toUpperCase()}
+            subEyebrow={`${t('onboarding_ticket_edition').toUpperCase()} · ${ticketYear}`}
+            name={(firstName || t('onboarding_ticket_guest')).toUpperCase()}
+            footnote={`${t('onboarding_ticket_footnote').toUpperCase()} · ${ticketDate}`}
+            admitLabel={t('onboarding_ticket_admit').toUpperCase()}
+            year={ticketYear}
+          />
+        </TicketPrinter>
+      </div>
+
       <motion.div
-        initial={{ color: "#ffffff" }}
-        animate={{ color: "#000000" }}
-        transition={{ duration: 3, ease: "easeInOut" }}
-        className="text-center"
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4, duration: DURATION.content, ease: EASE_SOFT }}
+        className="mt-12 flex items-center gap-3 text-zinc-500"
       >
-        <motion.div
-          animate={{ rotate: 360 }}
+        <motion.span
+          animate={reduceMotion ? undefined : { rotate: 360 }}
           transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-          className="w-8 h-8 border-[2px] border-current border-t-transparent rounded-full mx-auto mb-6 opacity-60"
+          className="h-4 w-4 rounded-full border-[1.5px] border-current border-t-transparent opacity-60"
         />
-        <h2 className="text-[14px] font-medium tracking-wide" aria-live="polite">
+        <h2 className="text-[13px] font-medium tracking-wide" aria-live="polite">
           {loadingText}
         </h2>
       </motion.div>
