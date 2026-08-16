@@ -431,25 +431,26 @@ const AboutSection = React.forwardRef<HTMLElement, { onExplore: () => void }>(
             </p>
           </motion.div>
 
-          <motion.div {...reveal(0.2)} className="mt-16 lg:mt-auto w-full flex justify-center">
-            <button
-              onClick={onExplore}
-              className="flex flex-col items-center justify-center gap-2 group"
-            >
-              <span className="text-xs font-bold tracking-[0.2em] text-muted-foreground uppercase transition-colors group-hover:text-foreground">
-                {t('scroll_to_explore')}
-              </span>
-              <motion.div
-                animate={{ y: [0, 4, 0] }}
-                transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-                className="opacity-70 group-hover:opacity-100 transition-opacity text-muted-foreground"
-              >
-                <ChevronDown className="w-4 h-4" />
-              </motion.div>
-            </button>
-          </motion.div>
         </div>
       </div>
+
+      <motion.div {...reveal(0.2)} className="w-full flex justify-center mt-20 lg:mt-32">
+        <button
+          onClick={onExplore}
+          className="flex flex-col items-center justify-center gap-2 group"
+        >
+          <span className="text-xs font-bold tracking-[0.2em] text-muted-foreground uppercase transition-colors group-hover:text-foreground">
+            {t('scroll_to_explore')}
+          </span>
+          <motion.div
+            animate={{ y: [0, 4, 0] }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+            className="opacity-70 group-hover:opacity-100 transition-opacity text-muted-foreground"
+          >
+            <ChevronDown className="w-4 h-4" />
+          </motion.div>
+        </button>
+      </motion.div>
     </section>
   );
 });
