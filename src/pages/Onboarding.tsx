@@ -181,17 +181,14 @@ const AboutSection = React.forwardRef<HTMLElement, { onExplore: () => void }>(
           {cover && (
             <motion.div
               {...reveal()}
-              // Square, not the landscape frame this shape usually gets: the
-              // catalogue is shot on white in portrait, and a wide frame left
-              // grey bars down both sides of every piece.
-              className="w-full max-w-[480px] mx-auto overflow-hidden rounded-2xl mb-12 md:mb-16"
+              className="w-full max-w-[420px] mx-auto rounded-2xl mb-12 md:mb-16"
             >
               <img
                 src={cover}
                 alt=""
                 loading="lazy"
                 decoding="async"
-                className="aspect-square w-full object-contain mix-blend-multiply"
+                className="aspect-auto w-full object-contain mix-blend-multiply"
               />
             </motion.div>
           )}
