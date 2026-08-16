@@ -552,7 +552,7 @@ const Onboarding = () => {
             >
               <div className="h-[44px] px-8 rounded-full backdrop-blur-xl bg-black/5 border border-black/10 flex items-center justify-center transition-all duration-500 hover:bg-black/10 hover:scale-[1.02] active:scale-95 shadow-sm">
                 <span className="font-medium tracking-wide text-[15px] text-foreground">
-                  {t('onboarding_take_quick_tour')} 💫
+                  {t('onboarding_take_quick_tour')}
                 </span>
               </div>
               <motion.div

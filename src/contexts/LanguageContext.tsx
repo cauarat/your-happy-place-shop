@@ -559,7 +559,7 @@ const translations: Record<Language, Record<string, string>> = {
     // Onboarding
     onboarding_luxury: "Curadoria de luxo. Acesso restrito.",
     onboarding_request_access: "Solicitar Acesso",
-    onboarding_take_quick_tour: "Fazer um tour rápido 💫",
+    onboarding_take_quick_tour: "EXPLORAR 💫",
     onboarding_already_member: "Já sou um membro ♟️",
     onboarding_first_name_title: "Insira seu primeiro nome ✍️",
     onboarding_first_name_desc: "Isso será usado para personalizar sua curadoria.",
