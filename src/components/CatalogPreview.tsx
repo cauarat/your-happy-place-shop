@@ -10,7 +10,7 @@ import {
   SlidersHorizontal,
 } from "lucide-react";
 import ProductCard from "@/components/ProductCard";
-import { products as staticProducts } from "@/data/products";
+import { getProducts } from "@/lib/store";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useOnboarding } from "@/contexts/OnboardingContext";
 import { BagIcon, CapIcon, JacketIcon } from "@/components/Icons";
@@ -35,10 +35,15 @@ const CatalogPreview = () => {
   const { t } = useLanguage();
   const { firstName } = useOnboarding();
 
-  const brandProducts = useMemo(
-    () => staticProducts.filter((p) => p.designer === PREVIEW_BRAND).slice(0, 4),
+  // Read from the live catalogue rather than a second copy compiled into the
+  // bundle: the store holds the same pieces, and importing the static array
+  // here was what kept a duplicate 672-product catalogue in the JavaScript
+  // every visitor downloads and builds in memory.
+  const brandPieces = useMemo(
+    () => getProducts().filter((p) => p.designer === PREVIEW_BRAND),
     []
   );
+  const brandProducts = useMemo(() => brandPieces.slice(0, 4), [brandPieces]);
 
   const greeting = useMemo(() => {
     const hour = new Date().getHours();
@@ -111,7 +116,7 @@ const CatalogPreview = () => {
           {PREVIEW_BRAND}
         </span>
         <span className="text-[9px] sm:text-[10px] font-semibold tracking-widest text-[#888]">
-          ({staticProducts.filter((p) => p.designer === PREVIEW_BRAND).length})
+          ({brandPieces.length})
         </span>
       </div>
 

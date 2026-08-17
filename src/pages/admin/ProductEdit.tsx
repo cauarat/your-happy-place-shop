@@ -6,7 +6,6 @@ import { ArrowLeft, Save, Upload, Image as ImageIcon, Crop, X, Eraser, ArrowUp, 
 import { toast } from "sonner";
 import Cropper from "react-easy-crop";
 import { getCroppedImg } from "@/lib/cropImage";
-import { removeBackground } from "@imgly/background-removal";
 import { compressImage } from "@/lib/compressImage";
 import { uploadToR2 } from "@/utils/cloudflareUpload";
 import { computeCropStyles } from "@/lib/cropUtils";
@@ -392,6 +391,10 @@ const AdminProductEdit = () => {
       try {
         const originalImage = product.originalImage || product.image;
         
+        // Loaded only when someone actually presses the toggle. Imported at the
+        // top of the file it dragged onnxruntime and its ~26MB of WASM into the
+        // bundle every visitor downloads, admin or not.
+        const { removeBackground } = await import("@imgly/background-removal");
         const blob = await removeBackground(originalImage);
         
         // Step 2: convert blob → base64 → compress → upload

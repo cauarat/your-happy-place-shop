@@ -1,5 +1,13 @@
-import { products as initialProducts, Product, categories as defaultCategories, designers as defaultDesigners } from "@/data/products";
-import catalogSeed from "@/data/catalog.json";
+// Only the small lists and the types: the module's 672-product array is a
+// duplicate of catalog.json below, and importing it here shipped the whole
+// catalogue twice.
+import { Product, categories as defaultCategories, designers as defaultDesigners } from "@/data/products";
+// Imported as raw text, not as a module. As a JSON module the bundler turns it
+// into a JavaScript object literal that the engine builds into 672 live objects
+// on every single page load — heap and parse time spent whether or not the
+// catalogue needs seeding, which is most of the time. As text it is one string
+// the engine keeps as-is, parsed only on the visit that actually seeds.
+import catalogSeedRaw from "@/data/catalog.json?raw";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -45,15 +53,18 @@ export interface Look {
 const initStore = () => {
   const currentVersion = localStorage.getItem(CATALOG_VERSION_KEY);
   if (currentVersion !== CATALOG_VERSION) {
-    localStorage.setItem(PRODUCTS_KEY, JSON.stringify(catalogSeed));
-    const cats = Array.from(new Set((catalogSeed as Product[]).map(p => p.category))).sort();
-    const dess = Array.from(new Set((catalogSeed as Product[]).map(p => p.designer))).sort();
+    // The seed goes to storage as the text it already is — no parse, no
+    // re-serialisation of the same 672 products.
+    localStorage.setItem(PRODUCTS_KEY, catalogSeedRaw);
+    const seeded = JSON.parse(catalogSeedRaw) as Product[];
+    const cats = Array.from(new Set(seeded.map(p => p.category))).sort();
+    const dess = Array.from(new Set(seeded.map(p => p.designer))).sort();
     localStorage.setItem(CATEGORIES_KEY, JSON.stringify(cats));
     localStorage.setItem(DESIGNERS_KEY, JSON.stringify(dess));
     localStorage.removeItem(LOOKS_KEY); // Force looks reseed
     localStorage.setItem(CATALOG_VERSION_KEY, CATALOG_VERSION);
   } else if (!localStorage.getItem(PRODUCTS_KEY)) {
-    localStorage.setItem(PRODUCTS_KEY, JSON.stringify(catalogSeed));
+    localStorage.setItem(PRODUCTS_KEY, catalogSeedRaw);
   }
   if (localStorage.getItem(DESIGN_VERSION_KEY) !== DESIGN_VERSION) {
     localStorage.removeItem(DESIGN_KEY);
@@ -141,9 +152,27 @@ const initStore = () => {
 };
 
 // Product CRUD
+
+// The catalogue is ~470KB of JSON in localStorage, and every page that shows
+// products asks for it two or three times as it mounts. Parsing it each time
+// costs both the parse and a fresh graph of 672 objects for the collector to
+// clean up afterwards — enough, on an older phone, to show as a stall between
+// screens. The parse is kept until the stored text itself changes, so a write
+// anywhere (this tab or another) is still picked up on the next read.
+let parsedProductsRaw: string | null = null;
+let parsedProducts: Product[] = [];
+
 export function getProducts(): Product[] {
   const data = localStorage.getItem(PRODUCTS_KEY);
-  return data ? JSON.parse(data) : [];
+  if (!data) return [];
+  if (data !== parsedProductsRaw) {
+    parsedProducts = JSON.parse(data);
+    parsedProductsRaw = data;
+  }
+  // A copy of the list, so callers that reorder or splice what they get back
+  // (saveProduct does) can't reach into the cache — exactly as they could not
+  // reach into a freshly parsed array before.
+  return parsedProducts.slice();
 }
 
 export function saveProduct(product: Product) {
