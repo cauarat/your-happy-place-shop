@@ -135,6 +135,7 @@ const translations: Record<Language, Record<string, string>> = {
     sweater: "Sweater",
     "puffer jacket": "Puffer Jacket",
     // ---- Onboarding: what this is ----
+    about_eyebrow: "About",
     about_title_muted: "We choose the pieces.",
     about_title_strong: "You keep them for years.",
     about_body_1: "Every piece is picked by someone who would wear it, from houses whose work still holds up. Nothing is listed just to fill the catalogue.",
@@ -486,6 +487,7 @@ const translations: Record<Language, Record<string, string>> = {
     "tank top": "Regatas",
     "puffer jacket": "Jaqueta Puffer",
     // ---- Onboarding: o que é isto ----
+    about_eyebrow: "Sobre",
     about_title_muted: "Nós escolhemos as peças.",
     about_title_strong: "Você usa por anos.",
     about_body_1: "Cada peça é escolhida por alguém que a usaria, de casas cujo trabalho se sustenta. Nada entra só para encher o catálogo.",
@@ -853,6 +855,7 @@ const translations: Record<Language, Record<string, string>> = {
     "tank top": "Camisetas sin mangas",
     "puffer jacket": "Chaqueta acolchada",
     // ---- Onboarding: qué es esto ----
+    about_eyebrow: "Sobre",
     about_title_muted: "Elegimos las piezas.",
     about_title_strong: "Las usas durante años.",
     about_body_1: "Cada pieza la elige alguien que la usaría, de casas cuyo trabajo aguanta. Nada se publica solo para llenar el catálogo.",

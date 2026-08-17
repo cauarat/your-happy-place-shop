@@ -237,6 +237,12 @@ const AboutSection = React.forwardRef<HTMLElement, { onExplore: () => void }>(
       <div className="mx-auto grid w-full max-w-6xl gap-14 lg:grid-cols-2 lg:gap-16">
         {/* Left: the statement split around a piece */}
         <div className="flex flex-col">
+          <motion.p
+            {...reveal()}
+            className="text-xs font-bold uppercase tracking-[0.2em] text-zinc-400 mb-4"
+          >
+            _{t('about_eyebrow')}
+          </motion.p>
           <motion.h2
             {...reveal(0.05)}
             className="text-[clamp(2rem,6.4vw,4rem)] font-semibold uppercase leading-[0.95] tracking-[-0.03em] mb-12 md:mb-16"
