@@ -2,13 +2,14 @@ import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { BackgroundMusicHandle } from "./BackgroundMusic";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface OpeningExperienceProps {
   onComplete: () => void;
   musicControl: React.RefObject<BackgroundMusicHandle>;
 }
 
-const RealisticVinyl: React.FC<{ onClick: () => void, isStarting: boolean }> = ({ onClick, isStarting }) => {
+const RealisticVinyl: React.FC<{ onClick: () => void, isStarting: boolean, isMobile: boolean }> = ({ onClick, isStarting, isMobile }) => {
   const { t } = useLanguage();
   return (
     <motion.div
@@ -55,6 +56,8 @@ const RealisticVinyl: React.FC<{ onClick: () => void, isStarting: boolean }> = (
             background: "conic-gradient(from 0deg, transparent 0%, rgba(255,255,255,0.1) 10%, rgba(255,255,255,0.6) 15%, rgba(255,255,255,0.1) 20%, transparent 40%, transparent 60%, rgba(255,255,255,0.1) 70%, rgba(255,255,255,0.5) 75%, rgba(255,255,255,0.1) 80%, transparent 100%)",
           }}
         />
+        {/* Counter-rotating light: skipped on mobile to reduce GPU composite layers. */}
+        {!isMobile && (
         <motion.div 
           className="absolute inset-0 opacity-40 mix-blend-screen"
           initial={{ opacity: 0 }}
@@ -64,6 +67,7 @@ const RealisticVinyl: React.FC<{ onClick: () => void, isStarting: boolean }> = (
             background: "conic-gradient(from 0deg, transparent 10%, rgba(255,255,255,0.3) 30%, transparent 50%, transparent 70%, rgba(255,255,255,0.3) 90%, transparent 100%)",
           }}
         />
+        )}
 
         {/* Inner Label */}
         <div className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-[#0A0A0A] border border-white/5 flex flex-col items-center justify-center shadow-inner relative z-10">
@@ -109,6 +113,7 @@ const RealisticVinyl: React.FC<{ onClick: () => void, isStarting: boolean }> = (
 
 const OpeningExperience: React.FC<OpeningExperienceProps> = ({ onComplete, musicControl }) => {
   const { t } = useLanguage();
+  const isMobile = useIsMobile();
   const [hasInteracted, setHasInteracted] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
   const [showContent, setShowContent] = useState(false);
@@ -163,7 +168,7 @@ const OpeningExperience: React.FC<OpeningExperienceProps> = ({ onComplete, music
       <AnimatePresence mode="wait">
         {!hasInteracted ? (
           <div className="flex flex-col items-center gap-12">
-            <RealisticVinyl onClick={startExperience} isStarting={isStarting} />
+            <RealisticVinyl onClick={startExperience} isStarting={isStarting} isMobile={isMobile} />
             <motion.p 
               initial={{ opacity: 0 }}
               animate={{ opacity: 0.3 }}
@@ -210,7 +215,7 @@ const OpeningExperience: React.FC<OpeningExperienceProps> = ({ onComplete, music
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 0.05 }}
                 transition={{ duration: 3 }}
-                className="absolute inset-0 -z-10 pointer-events-none blur-3xl scale-150"
+                className={`absolute inset-0 -z-10 pointer-events-none ${isMobile ? 'blur-xl' : 'blur-3xl'} scale-150`}
                 style={{
                   background: "radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(0,0,0,0) 70%)"
                 }}

@@ -273,7 +273,7 @@ export const TicketPrinter = React.forwardRef<HTMLDivElement, TicketPrinterProps
       <div ref={ref} className={cn("relative w-full", className)} {...divProps}>
         {/* Printer body. */}
         <div
-          className="relative z-20 bg-[#1b1b1d] px-[4%] pb-[2.6%] pt-[4.4%]"
+          className="relative z-20 bg-[#151834] px-[4%] pb-[2.6%] pt-[4.4%]"
           style={{
             borderRadius: "22px 22px 10px 10px",
             boxShadow: "0 12px 30px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.08)",

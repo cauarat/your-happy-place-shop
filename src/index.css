@@ -7,35 +7,43 @@
 @layer base {
   :root {
     /* Villaoro — minimalist editorial luxury */
+
+    /* The site's darkest tone. Not pure black: a deep navy, so type and solid
+       fills read as ink on paper rather than as switched-off pixels. Every
+       token that used to be `0 0% 0%` points here, and Tailwind's own `black`
+       is mapped to it too (see tailwind.config.ts), so changing this one line
+       moves every dark surface on the site together. */
+    --ink: 235 100% 10%;              /* #000433 */
+
     --background: 0 0% 100%;          /* pure white */
-    --foreground: 0 0% 0%;               /* pure black */
+    --foreground: var(--ink);
 
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 0%;
+    --card-foreground: var(--ink);
 
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 0%;
+    --popover-foreground: var(--ink);
 
-    --primary: 0 0% 0%;
+    --primary: var(--ink);
     --primary-foreground: 0 0% 100%;
 
     --secondary: 0 0% 96%;
-    --secondary-foreground: 0 0% 0%;
+    --secondary-foreground: var(--ink);
 
     --muted: 0 0% 98%;
     --muted-foreground: 0 0% 40%;
 
-    --accent: 0 0% 0%;
+    --accent: var(--ink);
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 0% 0%;
+    --destructive: var(--ink);
     --destructive-foreground: 0 0% 100%;
 
     --border: 0 0% 90%;
     --input: 0 0% 90%;
-    --ring: 0 0% 0%;
+    --ring: var(--ink);
 
-    --sale: 0 0% 0%;
+    --sale: var(--ink);
 
     --radius: 0;                        /* sharp editorial */
 
@@ -46,13 +54,13 @@
     --tracking-tight: -0.02em;
 
     --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 0 0% 0%;
-    --sidebar-primary: 0 0% 0%;
+    --sidebar-foreground: var(--ink);
+    --sidebar-primary: var(--ink);
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 0 0% 98%;
-    --sidebar-accent-foreground: 0 0% 0%;
+    --sidebar-accent-foreground: var(--ink);
     --sidebar-border: 0 0% 94%;
-    --sidebar-ring: 0 0% 0%;
+    --sidebar-ring: var(--ink);
   }
 }
 

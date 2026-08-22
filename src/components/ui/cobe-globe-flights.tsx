@@ -24,6 +24,8 @@ interface GlobeFlightsProps {
   markers?: FlightMarker[]
   className?: string
   speed?: number
+  /** When true, reduces rendering quality (DPR, map detail) for smoother mobile performance. */
+  isMobile?: boolean
 }
 
 const defaultArcs: FlightArc[] = [
@@ -95,6 +97,7 @@ export function GlobeFlights({
   markers = defaultMarkers,
   className = "",
   speed = 0.003,
+  isMobile = false,
 }: GlobeFlightsProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
@@ -265,10 +268,10 @@ export function GlobeFlights({
       if (width === 0 || globe) return
 
       globe = createGlobe(canvas, {
-        devicePixelRatio: Math.min(window.devicePixelRatio || 1, 2),
+        devicePixelRatio: isMobile ? 1 : Math.min(window.devicePixelRatio || 1, 2),
         width, height: width,
         phi: 0, theta: 0.2, dark: 0.05, diffuse: 1.5,
-        mapSamples: 16000, mapBrightness: 8,
+        mapSamples: isMobile ? 8000 : 16000, mapBrightness: 8,
         baseColor: [0.98, 0.98, 1],
         markerColor: [0.3, 0.55, 0.95],
         glowColor: [0.94, 0.93, 0.91],
@@ -336,7 +339,7 @@ export function GlobeFlights({
       if (animationId) cancelAnimationFrame(animationId)
       if (globe) globe.destroy()
     }
-  }, [markers, arcs, speed])
+  }, [markers, arcs, speed, isMobile])
 
   return (
     <div className={`relative aspect-square select-none ${className}`}>
@@ -393,7 +396,7 @@ export function GlobeFlights({
           >
             {Icon ? (
               <Icon
-                style={{ width: "0.875rem", height: "0.875rem", color: "#111" }}
+                style={{ width: "0.875rem", height: "0.875rem", color: "hsl(var(--ink))" }}
                 aria-hidden
               />
             ) : (
@@ -402,7 +405,7 @@ export function GlobeFlights({
                   width: "0.3rem",
                   height: "0.3rem",
                   borderRadius: "9999px",
-                  background: "#111",
+                  background: "hsl(var(--ink))",
                 }}
               />
             )}

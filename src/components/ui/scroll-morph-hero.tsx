@@ -14,6 +14,7 @@ import {
 import { cn } from "@/lib/utils";
 import { DURATION, EASE_SOFT, scrollPageTo } from "@/lib/motion";
 import { ChevronDown } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export type ScrollMorphPhase = "entrance" | "resting";
 
@@ -227,6 +228,7 @@ export function ScrollMorphHero({
   // the flight: the icons simply resolve in place.
   const reduceMotion = useReducedMotion();
   const travelDuration = reduceMotion ? 0.35 : ENTRANCE_TRAVEL;
+  const mobile = useIsMobile();
 
   // --- Entrance choreography (recomputed only when the layout changes) ---
   // Per icon: where it starts (just past the edge it's nearest, along the ray
@@ -317,7 +319,10 @@ export function ScrollMorphHero({
   });
   // Someone who asked for less motion gets the raw scroll position: no
   // smoothing to lag behind, nothing easing on its own.
-  const progress = reduceMotion ? scrollYProgress : smoothProgress;
+  // On mobile, skip the spring too: touch scrolling has no discrete wheel
+  // steps to smooth out, and the spring's per-frame recalculation is a
+  // meaningful cost on a phone's GPU compositor.
+  const progress = reduceMotion || mobile ? scrollYProgress : smoothProgress;
 
   // Everything below is a motion value derived from that one, not React state.
   // Scroll used to be pushed through `setState` on every frame, which meant the
@@ -657,12 +662,12 @@ export function ScrollMorphHero({
                     const tile = (
                       <motion.div
                         animate={
-                          phase === "resting"
+                          phase === "resting" && !mobile
                             ? { y: [0, -7, 0], rotate: [0, i % 2 === 0 ? 2 : -2, 0] }
                             : { y: 0, rotate: 0 }
                         }
                         transition={
-                          phase === "resting"
+                          phase === "resting" && !mobile
                             ? {
                                 duration: 3.2 + (i % 4) * 0.4,
                                 repeat: Infinity,
@@ -680,7 +685,10 @@ export function ScrollMorphHero({
                         // Pressing it settles rather than bounces: the name is
                         // what the tap is for, so the tile itself stays quiet.
                         whileTap={item.label ? { scale: 1.04 } : undefined}
-                        className="flex items-center justify-center w-16 h-16 md:w-20 md:h-20 p-3 rounded-3xl shadow-xl bg-card/80 backdrop-blur-md border border-border/10 cursor-pointer"
+                        className={cn(
+                          "flex items-center justify-center w-16 h-16 md:w-20 md:h-20 p-3 rounded-3xl shadow-xl border border-border/10 cursor-pointer",
+                          mobile ? "bg-card" : "bg-card/80 backdrop-blur-md"
+                        )}
                       >
                         <item.icon className="w-8 h-8 md:w-10 md:h-10 text-foreground" />
                       </motion.div>

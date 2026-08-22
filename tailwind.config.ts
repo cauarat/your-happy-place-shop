@@ -14,6 +14,18 @@ export default {
     },
     extend: {
       colors: {
+        // `bg-black`, `text-black` and `border-black/10` are written all over
+        // the app. Pointing Tailwind's own black at the ink token moves them
+        // with everything else instead of leaving pure black behind.
+        black: "hsl(var(--ink) / <alpha-value>)",
+        ink: "hsl(var(--ink) / <alpha-value>)",
+        // The two near-black steps the app uses for headings and solid buttons
+        // are moved onto the ink's hue as well — same lightness as before, so
+        // every contrast and hover relationship holds, but the page no longer
+        // mixes a navy black with a neutral one. Lighter than the ink itself,
+        // which keeps pairs like `bg-zinc-900 hover:bg-black` distinguishable.
+        zinc: { 800: "#171B4F", 900: "#080C40" },
+        neutral: { 800: "#171B4F", 900: "#080C40" },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
