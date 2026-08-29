@@ -24,7 +24,7 @@ const CATALOG_VERSION_KEY = "villaoro_catalog_version";
 // both `Date.now().toString()`, so this ledger is the only way to tell a
 // product the catalogue deliberately dropped from one the admin added here.
 const SEED_IDS_KEY = "villaoro_seed_ids";
-const CATALOG_VERSION = "v25";
+const CATALOG_VERSION = "v28";
 const DESIGN_VERSION_KEY = "villaoro_design_version";
 const DESIGN_VERSION = "v2";
 
