@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { getDesignSettings } from "@/lib/store";
+import { useTourNarration } from "@/hooks/useTourNarration";
+import type { VOICE_CUES } from "@/lib/voiceLines";
 
 type TourStep = {
   target: string;
@@ -16,12 +18,17 @@ const steps: TourStep[] = [
   { target: '[data-tour="category-scroll"]', titleKey: 'tour_step3_title', descKey: 'tour_step3_desc' },
 ];
 
+/** What the assistant says at each step, in the same order. */
+const cueIds: (keyof typeof VOICE_CUES)[] = ['tour_1', 'tour_2', 'tour_3'];
+
 export const AppTour = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
   const [isVisible, setIsVisible] = useState(false);
   const { t } = useLanguage();
   const { user, loading } = useAuth();
+
+  useTourNarration(cueIds, currentStep, isVisible);
 
   useEffect(() => {
     if (loading) return;

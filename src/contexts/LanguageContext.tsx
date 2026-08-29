@@ -1,6 +1,9 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 
-type Language = "EN" | "PT" | "ES";
+export type Language = "EN" | "PT" | "ES";
+
+/** The languages the assistant speaks, in the order the pickers list them. */
+export const LANGUAGES: Language[] = ["EN", "PT", "ES"];
 
 interface LanguageContextType {
   language: Language;
@@ -8,7 +11,10 @@ interface LanguageContextType {
   t: (key: string) => string;
 }
 
-const translations: Record<Language, Record<string, string>> = {
+// Exported so the voice pre-generation script (scripts/generate-voice.ts) can
+// read the same strings the screen shows, instead of keeping a second copy of
+// every line that would drift the moment one of them is edited.
+export const translations: Record<Language, Record<string, string>> = {
   EN: {
     search: "Search",
     login: "Login",
@@ -337,8 +343,37 @@ const translations: Record<Language, Record<string, string>> = {
     product_tour_step1_desc: "Here you can find all the details, materials, and styling of this piece.",
     product_tour_step2_title: "Add to Favorites",
     product_tour_step2_desc: "Click here to favorite this item and proceed with the order 📫✨",
+    cart_tour_step1_title: "Your Favorites",
+    cart_tour_step1_desc: "These are the pieces you picked. Check the details before you carry on.",
+    cart_tour_step2_title: "Popular Items",
+    cart_tour_step2_desc: "While you're here, add other pieces our members keep coming back to.",
+    cart_tour_step3_title: "Complete Your Order",
+    cart_tour_step3_desc: "All set? Head to checkout and finish your order safely.",
+    checkout_tour_step1_title: "Delivery Address",
+    checkout_tour_step1_desc: "Fill in your delivery details carefully so we can make sure your order reaches you perfectly.",
+    checkout_tour_step2_title: "Order Summary",
+    checkout_tour_step2_desc: "Review every item in your order, along with the applicable taxes and shipping options.",
+    checkout_tour_step3_title: "Complete Payment",
+    checkout_tour_step3_desc: "All ready! Choose your payment method and click finish to complete your purchase safely.",
     tour_next: "Next",
     tour_done: "Done",
+    voice_assistant: "Voice assistant",
+    voice_mute: "Mute the assistant",
+    voice_unmute: "Let the assistant speak",
+    // Spoken only — the assistant's own lines about what you just picked.
+    // The language picker demonstrates each option by speaking in it. No
+    // {name} in these greetings: nobody has given one yet at that point.
+    voice_about_selector: "This is your item selector, where you can choose what you want to wear.",
+    voice_about_count: "Right now there are {count} pieces in the catalogue waiting for you!",
+    voice_greeting_morning: "Good morning!",
+    voice_greeting_afternoon: "Good afternoon!",
+    voice_greeting_evening: "Good evening!",
+    voice_choose_language: "Choose a language to explore.",
+    voice_all_categories: "The whole catalogue",
+    voice_one_piece: "one piece",
+    voice_empty_category: "Nothing here at the moment.",
+    voice_favorited: "Added to your favorites.",
+    voice_unfavorited: "Removed from your favorites.",
     install_app_tip: "💡 PWA Tip: Using 'Install App' opens Villaoro in full-screen. On iOS Chrome, if the option isn't visible, please use Safari.",
     install_app_continue: "Continue",
     // Quick tour — catalogue preview
@@ -705,8 +740,37 @@ const translations: Record<Language, Record<string, string>> = {
     product_tour_step1_desc: "Aqui você encontra todos os detalhes, materiais e o estilo desta peça.",
     product_tour_step2_title: "Adicionar aos Favoritos",
     product_tour_step2_desc: "Clique aqui para favoritar este item e seguir com o pedido 📫✨",
+    cart_tour_step1_title: "Seus Favoritos",
+    cart_tour_step1_desc: "Aqui estão os produtos que você selecionou. Revise os detalhes antes de prosseguir.",
+    cart_tour_step2_title: "Itens Populares",
+    cart_tour_step2_desc: "Aproveite para adicionar outros itens queridinhos pelos nossos clientes.",
+    cart_tour_step3_title: "Finalizar Compra",
+    cart_tour_step3_desc: "Tudo certo? Siga para o checkout e finalize seu pedido com segurança.",
+    checkout_tour_step1_title: "Endereço de Entrega",
+    checkout_tour_step1_desc: "Preencha seus dados de entrega com atenção para garantirmos que seu pedido chegue perfeitamente até você.",
+    checkout_tour_step2_title: "Resumo do Pedido",
+    checkout_tour_step2_desc: "Revise todos os itens do seu pedido, assim como as taxas e opções de envio aplicáveis.",
+    checkout_tour_step3_title: "Finalizar Pagamento",
+    checkout_tour_step3_desc: "Tudo pronto! Selecione a forma de pagamento e clique em finalizar para completar sua compra com total segurança.",
     tour_next: "Próximo",
     tour_done: "Concluir",
+    voice_assistant: "Assistente de voz",
+    voice_mute: "Silenciar o assistente",
+    voice_unmute: "Deixar o assistente falar",
+    // Só falado — as frases do próprio assistente sobre o que você escolheu.
+    // O seletor de idioma demonstra cada opção falando nela. Sem {name}
+    // nestas saudações: ninguém informou o nome ainda nesse ponto.
+    voice_about_selector: "Este é o seu seletor de peças, onde você escolhe o que quer vestir.",
+    voice_about_count: "Neste momento há {count} peças no catálogo esperando por você!",
+    voice_greeting_morning: "Bom dia!",
+    voice_greeting_afternoon: "Boa tarde!",
+    voice_greeting_evening: "Boa noite!",
+    voice_choose_language: "Escolha um idioma para explorar.",
+    voice_all_categories: "O catálogo inteiro",
+    voice_one_piece: "uma peça",
+    voice_empty_category: "Nada por aqui no momento.",
+    voice_favorited: "Adicionado aos seus favoritos.",
+    voice_unfavorited: "Removido dos seus favoritos.",
     install_app_tip: "💡 Dica: A opção 'Instalar aplicativo' abre o site em tela cheia. No iOS, se não achar a opção no Chrome, use o Safari.",
     install_app_continue: "Continuar",
     // Quick tour — catalogue preview
@@ -1073,8 +1137,37 @@ const translations: Record<Language, Record<string, string>> = {
     product_tour_step1_desc: "Aquí encontrarás todos los detalles, materiales y el estilo de esta pieza.",
     product_tour_step2_title: "Añadir a Favoritos",
     product_tour_step2_desc: "Haz clic aquí para marcar este artículo como favorito y continuar con el pedido 📫✨",
+    cart_tour_step1_title: "Tus Favoritos",
+    cart_tour_step1_desc: "Estas son las piezas que elegiste. Revisa los detalles antes de continuar.",
+    cart_tour_step2_title: "Artículos Populares",
+    cart_tour_step2_desc: "Aprovecha para añadir otras piezas que nuestros clientes adoran.",
+    cart_tour_step3_title: "Finalizar Compra",
+    cart_tour_step3_desc: "¿Todo listo? Continúa al checkout y finaliza tu pedido con seguridad.",
+    checkout_tour_step1_title: "Dirección de Entrega",
+    checkout_tour_step1_desc: "Completa tus datos de entrega con atención para asegurar que tu pedido llegue perfectamente hasta ti.",
+    checkout_tour_step2_title: "Resumen del Pedido",
+    checkout_tour_step2_desc: "Revisa todos los artículos de tu pedido, así como los impuestos y las opciones de envío aplicables.",
+    checkout_tour_step3_title: "Finalizar Pago",
+    checkout_tour_step3_desc: "¡Todo listo! Selecciona la forma de pago y haz clic en finalizar para completar tu compra con total seguridad.",
     tour_next: "Siguiente",
     tour_done: "Hecho",
+    voice_assistant: "Asistente de voz",
+    voice_mute: "Silenciar el asistente",
+    voice_unmute: "Dejar hablar al asistente",
+    // Solo hablado — las frases del propio asistente sobre lo que elegiste.
+    // El selector de idioma demuestra cada opción hablando en ella. Sin
+    // {name} en estos saludos: nadie ha dado uno todavía en ese punto.
+    voice_about_selector: "Este es tu selector de piezas, donde eliges lo que quieres llevar.",
+    voice_about_count: "Ahora mismo hay {count} piezas en el catálogo esperándote!",
+    voice_greeting_morning: "¡Buenos días!",
+    voice_greeting_afternoon: "¡Buenas tardes!",
+    voice_greeting_evening: "¡Buenas noches!",
+    voice_choose_language: "Elige un idioma para explorar.",
+    voice_all_categories: "El catálogo entero",
+    voice_one_piece: "una pieza",
+    voice_empty_category: "Nada por aquí en este momento.",
+    voice_favorited: "Añadido a tus favoritos.",
+    voice_unfavorited: "Eliminado de tus favoritos.",
     install_app_tip: "💡 Consejo: La opción 'Instalar aplicación' abre el sitio a pantalla completa. En iOS, si no ves la opción en Chrome, usa Safari.",
     install_app_continue: "Continuar",
     // Quick tour — catalogue preview

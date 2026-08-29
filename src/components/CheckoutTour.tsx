@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { getDesignSettings } from "@/lib/store";
+import { useTourNarration } from "@/hooks/useTourNarration";
+import type { VOICE_CUES } from "@/lib/voiceLines";
 
 type TourStep = {
   target: string;
@@ -10,11 +12,16 @@ type TourStep = {
   descKey: string;
 };
 
+// Same fix as CartTour: these were literal sentences handed to `t()`, which
+// reverses the word order for PT and ES.
 const steps: TourStep[] = [
-  { target: '[data-tour="checkout-address"]', titleKey: 'Endereço de Entrega', descKey: 'Preencha seus dados de entrega com atenção para garantirmos que seu pedido chegue perfeitamente até você.' },
-  { target: '[data-tour="checkout-summary"]', titleKey: 'Resumo do Pedido', descKey: 'Revise todos os itens do seu pedido, assim como as taxas e opções de envio aplicáveis.' },
-  { target: '[data-tour="checkout-payment"]', titleKey: 'Finalizar Pagamento', descKey: 'Tudo pronto! Selecione a forma de pagamento e clique em finalizar para completar sua compra com total segurança.' },
+  { target: '[data-tour="checkout-address"]', titleKey: 'checkout_tour_step1_title', descKey: 'checkout_tour_step1_desc' },
+  { target: '[data-tour="checkout-summary"]', titleKey: 'checkout_tour_step2_title', descKey: 'checkout_tour_step2_desc' },
+  { target: '[data-tour="checkout-payment"]', titleKey: 'checkout_tour_step3_title', descKey: 'checkout_tour_step3_desc' },
 ];
+
+/** What the assistant says at each step, in the same order. */
+const cueIds: (keyof typeof VOICE_CUES)[] = ['checkout_tour_1', 'checkout_tour_2', 'checkout_tour_3'];
 
 interface CheckoutTourProps {
   onStepChange?: (step: number) => void;
@@ -26,6 +33,8 @@ export const CheckoutTour = ({ onStepChange }: CheckoutTourProps = {}) => {
   const [isVisible, setIsVisible] = useState(false);
   const { t } = useLanguage();
   const { user, loading } = useAuth();
+
+  useTourNarration(cueIds, currentStep, isVisible);
 
   useEffect(() => {
     if (loading) return;

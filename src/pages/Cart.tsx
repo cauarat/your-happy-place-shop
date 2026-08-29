@@ -68,7 +68,6 @@ const Cart = () => {
                           src={item.product?.image} 
                           alt={item.product?.name} 
                           className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
-                          style={item.product?.removeBackground ? { mixBlendMode: 'multiply' } : {}}
                         />
                       </Link>
                       
@@ -160,7 +159,6 @@ const Cart = () => {
                       src={prod.image} 
                       alt={prod.name} 
                       className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-700 ease-out"
-                      style={prod.removeBackground ? { mixBlendMode: 'multiply' } : {}}
                     />
                   </div>
                   <p className="text-[10px] font-bold tracking-widest uppercase mb-1 truncate text-[#111]">{prod.designer}</p>

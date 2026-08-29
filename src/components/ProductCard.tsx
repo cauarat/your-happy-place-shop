@@ -5,6 +5,7 @@ import { computeCropStyles } from "@/lib/cropUtils";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getDesignSettings } from "@/lib/store";
 import { useCart } from "@/contexts/CartContext";
+import { useVoiceAssistant } from "@/contexts/VoiceAssistantContext";
 import { Heart } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
@@ -12,6 +13,7 @@ import { toast } from "sonner";
 const ProductCard = ({ product, index, isFeatured }: { product: Product, index?: number, isFeatured?: boolean }) => {
   const { t } = useLanguage();
   const { items, addToCart, removeFromCart } = useCart();
+  const { speak } = useVoiceAssistant();
   
   const cartItems = items.filter(item => item.product.id === product.id);
   const totalQuantity = cartItems.reduce((sum, item) => sum + item.quantity, 0);
@@ -33,8 +35,13 @@ const ProductCard = ({ product, index, isFeatured }: { product: Product, index?:
       // Add product with quantity 1 and default size null
       addToCart(product, 1, (product as any).sizes?.[0] || null);
       toast.success(`${product.name} adicionado à sacola / favoritos`);
+      // The piece is named first so it is clear which card answered — on a grid
+      // of near-identical shoes, "added to favorites" on its own tells you
+      // nothing about which one you actually tapped.
+      speak({ text: `${product.designer}. ${product.name}. ${t("voice_favorited")}` });
     } else {
       cartItems.forEach(item => removeFromCart(item.id));
+      speak({ text: t("voice_unfavorited") });
     }
   };
   
@@ -51,6 +58,10 @@ const ProductCard = ({ product, index, isFeatured }: { product: Product, index?:
       {(() => {
         const cropData = product.displayCrops?.[0];
         const hasCrop = !!cropData;
+        // The catalogue grid is a uniform 4/5 for every category, so this is
+        // NOT aspectFor(category) — the tile really is 4/5 even for footwear,
+        // and the number must describe the box that is rendered, not the one
+        // the detail page uses.
         const containerAspect = 4 / 5;
         // Skip crop styles if this is a featured card without a fixed aspect container
         const cropStyles = (hasCrop && imgAspect && !isFeatured) 

@@ -5,6 +5,8 @@ import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useVoiceAssistant } from '@/contexts/VoiceAssistantContext';
+import VoiceToggle from '@/components/VoiceToggle';
 import { toast } from 'sonner';
 import { DURATION, EASE_SOFT } from '@/lib/motion';
 
@@ -27,6 +29,17 @@ const Login = () => {
   const location = useLocation();
   const { session } = useAuth();
   const { t } = useLanguage();
+  const { speakCue } = useVoiceAssistant();
+
+  // Greets whoever lands here, the way the onboarding does. Someone reaching
+  // this page has been here before — they are signing back in, not being
+  // introduced — so it is the page's own welcome that is read, nothing more.
+  const greetedRef = useRef(false);
+  useEffect(() => {
+    if (greetedRef.current) return;
+    greetedRef.current = true;
+    speakCue('login');
+  }, [speakCue]);
 
   const canSubmit = isValidEmail(email) && password.length > 0 && !loading;
   // Where to land after a successful sign in — a protected route can send the
@@ -105,6 +118,12 @@ const Login = () => {
       transition={{ duration: DURATION.screen, ease: EASE_SOFT }}
       className="relative flex flex-col w-full h-full min-h-screen bg-[#FDFDFD] overflow-hidden text-black select-none"
     >
+      {/* The mute. This page does not render the site header either, and a
+          voice with no way to silence it is worse than no voice. */}
+      <div className="absolute top-5 right-5 z-40 md:top-6 md:right-6">
+        <VoiceToggle />
+      </div>
+
       <div className="flex flex-col items-center justify-center flex-1 w-full max-w-md mx-auto px-6 pt-12">
         {/* App icon — the same tile the onboarding hero resolves into, so the
             hand-off from "I'm already a member" reads as one continuous screen */}

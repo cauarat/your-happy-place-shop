@@ -1,0 +1,345 @@
+{
+  "EN/tour_1": {
+    "text": "Search & Filters. Find what you want quickly using the search bar, color grading, or brand selector.",
+    "voiceId": "EXAVITQu4vr4xnSDxMaL",
+    "model": "eleven_multilingual_v2",
+    "settings": "s75-sim50-nostyle-noboost"
+  },
+  "EN/tour_2": {
+    "text": "Product Details. Click on any product to see more photos, sizes, and add it to your favorites.",
+    "voiceId": "EXAVITQu4vr4xnSDxMaL",
+    "model": "eleven_multilingual_v2",
+    "settings": "s75-sim50-nostyle-noboost"
+  },
+  "EN/tour_3": {
+    "text": "Categories. Swipe and select to discover the different types of items we have for you.",
+    "voiceId": "EXAVITQu4vr4xnSDxMaL",
+    "model": "eleven_multilingual_v2",
+    "settings": "s75-sim50-nostyle-noboost"
+  },
+  "EN/product_tour_1": {
+    "text": "Product Description. Here you can find all the details, materials, and styling of this piece.",
+    "voiceId": "EXAVITQu4vr4xnSDxMaL",
+    "model": "eleven_multilingual_v2",
+    "settings": "s75-sim50-nostyle-noboost"
+  },
+  "EN/product_tour_2": {
+    "text": "Add to Favorites. Click here to favorite this item and proceed with the order",
+    "voiceId": "EXAVITQu4vr4xnSDxMaL",
+    "model": "eleven_multilingual_v2",
+    "settings": "s75-sim50-nostyle-noboost"
+  },
+  "EN/cart_tour_1": {
+    "text": "Your Favorites. These are the pieces you picked. Check the details before you carry on.",
+    "voiceId": "EXAVITQu4vr4xnSDxMaL",
+    "model": "eleven_multilingual_v2",
+    "settings": "s75-sim50-nostyle-noboost"
+  },
+  "EN/cart_tour_2": {
+    "text": "Popular Items. While you're here, add other pieces our members keep coming back to.",
+    "voiceId": "EXAVITQu4vr4xnSDxMaL",
+    "model": "eleven_multilingual_v2",
+    "settings": "s75-sim50-nostyle-noboost"
+  },
+  "EN/cart_tour_3": {
+    "text": "Complete Your Order. All set? Head to checkout and finish your order safely.",
+    "voiceId": "EXAVITQu4vr4xnSDxMaL",
+    "model": "eleven_multilingual_v2",
+    "settings": "s75-sim50-nostyle-noboost"
+  },
+  "EN/checkout_tour_1": {
+    "text": "Delivery Address. Fill in your delivery details carefully so we can make sure your order reaches you perfectly.",
+    "voiceId": "EXAVITQu4vr4xnSDxMaL",
+    "model": "eleven_multilingual_v2",
+    "settings": "s75-sim50-nostyle-noboost"
+  },
+  "EN/checkout_tour_2": {
+    "text": "Order Summary. Review every item in your order, along with the applicable taxes and shipping options.",
+    "voiceId": "EXAVITQu4vr4xnSDxMaL",
+    "model": "eleven_multilingual_v2",
+    "settings": "s75-sim50-nostyle-noboost"
+  },
+  "EN/checkout_tour_3": {
+    "text": "Complete Payment. All ready! Choose your payment method and click finish to complete your purchase safely.",
+    "voiceId": "EXAVITQu4vr4xnSDxMaL",
+    "model": "eleven_multilingual_v2",
+    "settings": "s75-sim50-nostyle-noboost"
+  },
+  "EN/onboarding_install": {
+    "text": "Villaoro on your Home Screen. Turn Villaoro into an app",
+    "voiceId": "EXAVITQu4vr4xnSDxMaL",
+    "model": "eleven_multilingual_v2",
+    "settings": "s75-sim50-nostyle-noboost"
+  },
+  "EN/onboarding_name": {
+    "text": "Enter your first name. This will be used to personalize your curation.",
+    "voiceId": "EXAVITQu4vr4xnSDxMaL",
+    "model": "eleven_multilingual_v2",
+    "settings": "s75-sim50-nostyle-noboost"
+  },
+  "EN/onboarding_brands": {
+    "text": "Brand Affinity. Tell me, which of these do you like the most?",
+    "voiceId": "EXAVITQu4vr4xnSDxMaL",
+    "model": "eleven_multilingual_v2",
+    "settings": "s75-sim50-nostyle-noboost"
+  },
+  "EN/onboarding_email": {
+    "text": "Great! Now save your email and password! To secure your profile and request access.",
+    "voiceId": "EXAVITQu4vr4xnSDxMaL",
+    "model": "eleven_multilingual_v2",
+    "settings": "s75-sim50-nostyle-noboost"
+  },
+  "PT/tour_1": {
+    "text": "Busca e Filtros. Encontre o que deseja rapidamente pela barra de pesquisa, color grading ou selecionador de marcas.",
+    "voiceId": "EXAVITQu4vr4xnSDxMaL",
+    "model": "eleven_multilingual_v2",
+    "settings": "s75-sim50-nostyle-noboost"
+  },
+  "PT/tour_2": {
+    "text": "Detalhes do Produto. Clique em qualquer produto para ver mais fotos, tamanhos e adicioná-lo aos Favoritos.",
+    "voiceId": "EXAVITQu4vr4xnSDxMaL",
+    "model": "eleven_multilingual_v2"
+  },
+  "PT/tour_3": {
+    "text": "Categorias. Deslize e selecione para descobrir os diferentes tipos de itens que temos para você.",
+    "voiceId": "EXAVITQu4vr4xnSDxMaL",
+    "model": "eleven_multilingual_v2"
+  },
+  "PT/product_tour_1": {
+    "text": "Descrição do Produto. Aqui você encontra todos os detalhes, materiais e o estilo desta peça.",
+    "voiceId": "EXAVITQu4vr4xnSDxMaL",
+    "model": "eleven_multilingual_v2"
+  },
+  "PT/product_tour_2": {
+    "text": "Adicionar aos Favoritos. Clique aqui para favoritar este item e seguir com o pedido",
+    "voiceId": "EXAVITQu4vr4xnSDxMaL",
+    "model": "eleven_multilingual_v2"
+  },
+  "PT/cart_tour_1": {
+    "text": "Seus Favoritos. Aqui estão os produtos que você selecionou. Revise os detalhes antes de prosseguir.",
+    "voiceId": "EXAVITQu4vr4xnSDxMaL",
+    "model": "eleven_multilingual_v2"
+  },
+  "PT/cart_tour_2": {
+    "text": "Itens Populares. Aproveite para adicionar outros itens queridinhos pelos nossos clientes.",
+    "voiceId": "EXAVITQu4vr4xnSDxMaL",
+    "model": "eleven_multilingual_v2"
+  },
+  "PT/cart_tour_3": {
+    "text": "Finalizar Compra. Tudo certo? Siga para o checkout e finalize seu pedido com segurança.",
+    "voiceId": "EXAVITQu4vr4xnSDxMaL",
+    "model": "eleven_multilingual_v2"
+  },
+  "PT/checkout_tour_1": {
+    "text": "Endereço de Entrega. Preencha seus dados de entrega com atenção para garantirmos que seu pedido chegue perfeitamente até você.",
+    "voiceId": "EXAVITQu4vr4xnSDxMaL",
+    "model": "eleven_multilingual_v2"
+  },
+  "PT/checkout_tour_2": {
+    "text": "Resumo do Pedido. Revise todos os itens do seu pedido, assim como as taxas e opções de envio aplicáveis.",
+    "voiceId": "EXAVITQu4vr4xnSDxMaL",
+    "model": "eleven_multilingual_v2"
+  },
+  "PT/checkout_tour_3": {
+    "text": "Finalizar Pagamento. Tudo pronto! Selecione a forma de pagamento e clique em finalizar para completar sua compra com total segurança.",
+    "voiceId": "EXAVITQu4vr4xnSDxMaL",
+    "model": "eleven_multilingual_v2"
+  },
+  "PT/onboarding_install": {
+    "text": "Villaoro na Tela de Início. Transforme Villaoro em um aplicativo",
+    "voiceId": "EXAVITQu4vr4xnSDxMaL",
+    "model": "eleven_multilingual_v2"
+  },
+  "PT/onboarding_name": {
+    "text": "Insira seu primeiro nome. Isso será usado para personalizar sua curadoria.",
+    "voiceId": "EXAVITQu4vr4xnSDxMaL",
+    "model": "eleven_multilingual_v2"
+  },
+  "PT/onboarding_brands": {
+    "text": "Afinidade de Marca. Me conta aqui, quais dessas você mais gosta?",
+    "voiceId": "EXAVITQu4vr4xnSDxMaL",
+    "model": "eleven_multilingual_v2"
+  },
+  "PT/onboarding_email": {
+    "text": "Boa! Agora salve seu email e senha! Para proteger seu perfil e solicitar acesso.",
+    "voiceId": "EXAVITQu4vr4xnSDxMaL",
+    "model": "eleven_multilingual_v2"
+  },
+  "ES/tour_1": {
+    "text": "Búsqueda y Filtros. Encuentra lo que deseas rápidamente con la barra de búsqueda, color grading o selector de marcas.",
+    "voiceId": "EXAVITQu4vr4xnSDxMaL",
+    "model": "eleven_multilingual_v2",
+    "settings": "s75-sim50-nostyle-noboost"
+  },
+  "ES/tour_2": {
+    "text": "Detalles del Producto. Haz clic en cualquier producto para ver más fotos, tallas y añadirlo a Favoritos.",
+    "voiceId": "EXAVITQu4vr4xnSDxMaL",
+    "model": "eleven_multilingual_v2",
+    "settings": "s75-sim50-nostyle-noboost"
+  },
+  "ES/tour_3": {
+    "text": "Categorías. Desliza y selecciona para descubrir los diferentes tipos de artículos que tenemos para ti.",
+    "voiceId": "EXAVITQu4vr4xnSDxMaL",
+    "model": "eleven_multilingual_v2",
+    "settings": "s75-sim50-nostyle-noboost"
+  },
+  "ES/product_tour_1": {
+    "text": "Descripción del Producto. Aquí encontrarás todos los detalles, materiales y el estilo de esta pieza.",
+    "voiceId": "EXAVITQu4vr4xnSDxMaL",
+    "model": "eleven_multilingual_v2",
+    "settings": "s75-sim50-nostyle-noboost"
+  },
+  "ES/product_tour_2": {
+    "text": "Añadir a Favoritos. Haz clic aquí para marcar este artículo como favorito y continuar con el pedido",
+    "voiceId": "EXAVITQu4vr4xnSDxMaL",
+    "model": "eleven_multilingual_v2",
+    "settings": "s75-sim50-nostyle-noboost"
+  },
+  "ES/cart_tour_1": {
+    "text": "Tus Favoritos. Estas son las piezas que elegiste. Revisa los detalles antes de continuar.",
+    "voiceId": "EXAVITQu4vr4xnSDxMaL",
+    "model": "eleven_multilingual_v2",
+    "settings": "s75-sim50-nostyle-noboost"
+  },
+  "ES/cart_tour_2": {
+    "text": "Artículos Populares. Aprovecha para añadir otras piezas que nuestros clientes adoran.",
+    "voiceId": "EXAVITQu4vr4xnSDxMaL",
+    "model": "eleven_multilingual_v2",
+    "settings": "s75-sim50-nostyle-noboost"
+  },
+  "ES/cart_tour_3": {
+    "text": "Finalizar Compra. ¿Todo listo? Continúa al checkout y finaliza tu pedido con seguridad.",
+    "voiceId": "EXAVITQu4vr4xnSDxMaL",
+    "model": "eleven_multilingual_v2",
+    "settings": "s75-sim50-nostyle-noboost"
+  },
+  "ES/checkout_tour_1": {
+    "text": "Dirección de Entrega. Completa tus datos de entrega con atención para asegurar que tu pedido llegue perfectamente hasta ti.",
+    "voiceId": "EXAVITQu4vr4xnSDxMaL",
+    "model": "eleven_multilingual_v2",
+    "settings": "s75-sim50-nostyle-noboost"
+  },
+  "ES/checkout_tour_2": {
+    "text": "Resumen del Pedido. Revisa todos los artículos de tu pedido, así como los impuestos y las opciones de envío aplicables.",
+    "voiceId": "EXAVITQu4vr4xnSDxMaL",
+    "model": "eleven_multilingual_v2",
+    "settings": "s75-sim50-nostyle-noboost"
+  },
+  "ES/checkout_tour_3": {
+    "text": "Finalizar Pago. ¡Todo listo! Selecciona la forma de pago y haz clic en finalizar para completar tu compra con total seguridad.",
+    "voiceId": "EXAVITQu4vr4xnSDxMaL",
+    "model": "eleven_multilingual_v2",
+    "settings": "s75-sim50-nostyle-noboost"
+  },
+  "ES/onboarding_install": {
+    "text": "Villaoro en tu Pantalla de Inicio. Convierte Villaoro en una aplicación",
+    "voiceId": "EXAVITQu4vr4xnSDxMaL",
+    "model": "eleven_multilingual_v2",
+    "settings": "s75-sim50-nostyle-noboost"
+  },
+  "ES/onboarding_name": {
+    "text": "Ingresa tu primer nombre. Esto se usará para personalizar tu curaduría.",
+    "voiceId": "EXAVITQu4vr4xnSDxMaL",
+    "model": "eleven_multilingual_v2",
+    "settings": "s75-sim50-nostyle-noboost"
+  },
+  "ES/onboarding_brands": {
+    "text": "Afinidad de Marca. Cuéntame, ¿cuáles de estas te gustan más?",
+    "voiceId": "EXAVITQu4vr4xnSDxMaL",
+    "model": "eleven_multilingual_v2",
+    "settings": "s75-sim50-nostyle-noboost"
+  },
+  "ES/onboarding_email": {
+    "text": "¡Genial! Ahora guarda tu correo y contraseña! Para asegurar tu perfil y solicitar acceso.",
+    "voiceId": "EXAVITQu4vr4xnSDxMaL",
+    "model": "eleven_multilingual_v2",
+    "settings": "s75-sim50-nostyle-noboost"
+  },
+  "EN/greeting_morning": {
+    "text": "Good morning! Choose a language to explore.",
+    "voiceId": "EXAVITQu4vr4xnSDxMaL",
+    "model": "eleven_multilingual_v2",
+    "settings": "s75-sim50-nostyle-noboost"
+  },
+  "EN/greeting_afternoon": {
+    "text": "Good afternoon! Choose a language to explore.",
+    "voiceId": "EXAVITQu4vr4xnSDxMaL",
+    "model": "eleven_multilingual_v2",
+    "settings": "s75-sim50-nostyle-noboost"
+  },
+  "EN/greeting_evening": {
+    "text": "Good evening! Choose a language to explore.",
+    "voiceId": "EXAVITQu4vr4xnSDxMaL",
+    "model": "eleven_multilingual_v2",
+    "settings": "s75-sim50-nostyle-noboost"
+  },
+  "PT/greeting_morning": {
+    "text": "Bom dia! Escolha um idioma para explorar.",
+    "voiceId": "EXAVITQu4vr4xnSDxMaL",
+    "model": "eleven_multilingual_v2"
+  },
+  "PT/greeting_afternoon": {
+    "text": "Boa tarde! Escolha um idioma para explorar.",
+    "voiceId": "EXAVITQu4vr4xnSDxMaL",
+    "model": "eleven_multilingual_v2"
+  },
+  "PT/greeting_evening": {
+    "text": "Boa noite! Escolha um idioma para explorar.",
+    "voiceId": "EXAVITQu4vr4xnSDxMaL",
+    "model": "eleven_multilingual_v2"
+  },
+  "ES/greeting_morning": {
+    "text": "¡Buenos días! Elige un idioma para explorar.",
+    "voiceId": "EXAVITQu4vr4xnSDxMaL",
+    "model": "eleven_multilingual_v2",
+    "settings": "s75-sim50-nostyle-noboost"
+  },
+  "ES/greeting_afternoon": {
+    "text": "¡Buenas tardes! Elige un idioma para explorar.",
+    "voiceId": "EXAVITQu4vr4xnSDxMaL",
+    "model": "eleven_multilingual_v2",
+    "settings": "s75-sim50-nostyle-noboost"
+  },
+  "ES/greeting_evening": {
+    "text": "¡Buenas noches! Elige un idioma para explorar.",
+    "voiceId": "EXAVITQu4vr4xnSDxMaL",
+    "model": "eleven_multilingual_v2",
+    "settings": "s75-sim50-nostyle-noboost"
+  },
+  "EN/about": {
+    "text": "You keep them for years. Every piece is picked by someone who would wear it, from houses whose work still holds up. Nothing is listed just to fill the catalogue.",
+    "voiceId": "EXAVITQu4vr4xnSDxMaL",
+    "model": "eleven_multilingual_v2",
+    "settings": "s75-sim50-nostyle-noboost"
+  },
+  "EN/reviews": {
+    "text": "Reviews. In their words",
+    "voiceId": "EXAVITQu4vr4xnSDxMaL",
+    "model": "eleven_multilingual_v2",
+    "settings": "s75-sim50-nostyle-noboost"
+  },
+  "EN/catalog_preview": {
+    "text": "This is your catalogue. Every piece hand-picked, refreshed every week. Keep scrolling.",
+    "voiceId": "EXAVITQu4vr4xnSDxMaL",
+    "model": "eleven_multilingual_v2",
+    "settings": "s75-sim50-nostyle-noboost"
+  },
+  "EN/login": {
+    "text": "Welcome back. Sign in to your curated space.",
+    "voiceId": "EXAVITQu4vr4xnSDxMaL",
+    "model": "eleven_multilingual_v2",
+    "settings": "s75-sim50-nostyle-noboost"
+  },
+  "PT/reviews": {
+    "text": "As avaliações. Nas palavras deles",
+    "voiceId": "EXAVITQu4vr4xnSDxMaL",
+    "model": "eleven_multilingual_v2",
+    "settings": "s75-sim50-nostyle-noboost"
+  },
+  "ES/reviews": {
+    "text": "Reseñas. En sus palabras",
+    "voiceId": "EXAVITQu4vr4xnSDxMaL",
+    "model": "eleven_multilingual_v2",
+    "settings": "s75-sim50-nostyle-noboost"
+  }
+}

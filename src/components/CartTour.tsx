@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { getDesignSettings } from "@/lib/store";
+import { useTourNarration } from "@/hooks/useTourNarration";
+import type { VOICE_CUES } from "@/lib/voiceLines";
 
 type TourStep = {
   target: string;
@@ -10,11 +12,19 @@ type TourStep = {
   descKey: string;
 };
 
+// These were literal Portuguese sentences passed to `t()`, which for PT and ES
+// falls through to its product-name heuristic and reverses the word order —
+// the pop-up has been showing them backwards. They are proper translation keys
+// now, which fixes that and gives the other two languages a version to show
+// (and for the assistant to read).
 const steps: TourStep[] = [
-  { target: '[data-tour="cart-items"]', titleKey: 'Seus Favoritos', descKey: 'Aqui estão os produtos que você selecionou. Revise os detalhes antes de prosseguir.' },
-  { target: '[data-tour="cart-popular"]', titleKey: 'Itens Populares', descKey: 'Aproveite para adicionar outros itens queridinhos pelos nossos clientes.' },
-  { target: '[data-tour="cart-checkout"]', titleKey: 'Finalizar Compra', descKey: 'Tudo certo? Siga para o checkout e finalize seu pedido com segurança.' },
+  { target: '[data-tour="cart-items"]', titleKey: 'cart_tour_step1_title', descKey: 'cart_tour_step1_desc' },
+  { target: '[data-tour="cart-popular"]', titleKey: 'cart_tour_step2_title', descKey: 'cart_tour_step2_desc' },
+  { target: '[data-tour="cart-checkout"]', titleKey: 'cart_tour_step3_title', descKey: 'cart_tour_step3_desc' },
 ];
+
+/** What the assistant says at each step, in the same order. */
+const cueIds: (keyof typeof VOICE_CUES)[] = ['cart_tour_1', 'cart_tour_2', 'cart_tour_3'];
 
 interface CartTourProps {
   onStepChange?: (step: number) => void;
@@ -26,6 +36,8 @@ export const CartTour = ({ onStepChange }: CartTourProps = {}) => {
   const [isVisible, setIsVisible] = useState(false);
   const { t } = useLanguage();
   const { user, loading } = useAuth();
+
+  useTourNarration(cueIds, currentStep, isVisible);
 
   useEffect(() => {
     if (loading) return;

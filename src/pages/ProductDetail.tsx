@@ -7,7 +7,8 @@ import { Minus, Plus, Heart } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useCart } from "@/contexts/CartContext";
-import { computeCropStyles } from "@/lib/cropUtils";
+import { useVoiceAssistant } from "@/contexts/VoiceAssistantContext";
+import { computeCropStyles, aspectFor, aspectClassFor } from "@/lib/cropUtils";
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -17,6 +18,7 @@ const ProductDetail = () => {
   const [isFavorited, setIsFavorited] = useState(false);
   const { t, language } = useLanguage();
   const { addToCart } = useCart();
+  const { speak } = useVoiceAssistant();
   const navigate = useNavigate();
 
   // Track natural aspect ratios for cropped images
@@ -33,7 +35,17 @@ const ProductDetail = () => {
     const found = products.find((p) => p.id === id);
     if (found) setProduct(found);
     window.scrollTo(0, 0);
-  }, [id]);
+
+    // Name the piece you just opened, the same way the heading does. Skipped on
+    // the one visit where the product tour is about to run — it starts talking
+    // 1.5 seconds in, and would cut this off halfway through.
+    if (found && localStorage.getItem("product_tour_completed")) {
+      speak({ text: `${found.designer}. ${t(found.name)}.` });
+    }
+    // `t` is left out on purpose: it changes identity with the language, and
+    // re-announcing the product because someone switched language would be odd.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, speak]);
 
   if (!product) return null;
 
@@ -90,14 +102,13 @@ const ProductDetail = () => {
                   src={product.detailImage} 
                   alt={`${product.name} 16:9 Detail`} 
                   className="w-full h-full object-contain"
-                  style={product.removeBackground ? { mixBlendMode: 'multiply' } : {}}
                 />
               </div>
             )}
             {(product.images && product.images.length > 0 ? product.images : [product.image]).map((img, i) => {
               const cropData = product.displayCrops?.[i];
               const hasCrop = !!cropData;
-              const containerAspect = isShoe ? 4 / 3 : 4 / 5;
+              const containerAspect = aspectFor(product.category);
               const imgAspect = imageAspects[i];
 
               // Compute crop styles when we have the image's natural aspect ratio
@@ -106,7 +117,7 @@ const ProductDetail = () => {
                 : undefined;
 
               return (
-                <div key={i} className={`${isShoe ? 'aspect-square md:aspect-[4/3]' : 'aspect-[4/5]'} bg-transparent overflow-hidden relative`}>
+                <div key={i} className={`${aspectClassFor(product.category)} bg-transparent overflow-hidden relative`}>
                   <img 
                     src={img} 
                     alt={`${product.name} ${i + 1}`} 
@@ -114,13 +125,12 @@ const ProductDetail = () => {
                     className="transition-all duration-300"
                     style={
                       cropStyles
-                        ? { ...cropStyles, ...(product.removeBackground ? { mixBlendMode: 'multiply' as const } : {}) }
+                        ? cropStyles
                         : {
                             width: '100%',
                             height: '100%',
                             objectFit: hasCrop ? 'cover' : 'contain',
                             objectPosition: hasCrop ? `${cropData!.x}% ${cropData!.y}%` : undefined,
-                            ...(product.removeBackground ? { mixBlendMode: 'multiply' as const } : {}),
                           }
                     }
                   />

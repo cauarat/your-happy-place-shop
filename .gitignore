@@ -13,6 +13,9 @@ dist-ssr
 *.local
 .env
 .env.*
+# The template is the one env file meant to be shared — it holds the names of
+# the variables, never their values.
+!.env.example
 
 # Editor directories and files
 .vscode/*
@@ -26,3 +29,10 @@ dist-ssr
 *.sw?
 credentials.json
 .tmp/
+
+# Firecrawl exports, the importer's image cache and its last report. The dumps
+# are large and are not the catalogue — `src/data/catalog.json` is.
+data/firecrawl/
+
+# Measurements the cover picker caches; derived from the photos, not a decision.
+data/curation/.cover-scores.json

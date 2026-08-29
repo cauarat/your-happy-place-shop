@@ -1,17 +1,26 @@
-import React, { createContext, useContext, useState, useEffect, useRef } from "react";
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from "react";
 import { getDesignSettings } from "@/lib/store";
 
 interface MusicContextType {
   isPlaying: boolean;
   isVisible: boolean;
   togglePlay: () => void;
+  /** Drop the music under a voice line, and bring it back after. */
+  duck: () => void;
+  unduck: () => void;
 }
 
 const MusicContext = createContext<MusicContextType>({
   isPlaying: false,
   isVisible: false,
   togglePlay: () => {},
+  duck: () => {},
+  unduck: () => {},
 });
+
+/** The music's own level, and the level it drops to while the assistant talks. */
+const MUSIC_VOLUME = 50;
+const DUCKED_VOLUME = 10;
 
 export const useMusicPlayer = () => useContext(MusicContext);
 
@@ -72,7 +81,7 @@ export const MusicProvider = ({ children }: { children: React.ReactNode }) => {
           },
           events: {
             onReady: (event: any) => { 
-              event.target.setVolume(50); 
+              event.target.setVolume(MUSIC_VOLUME);
               // Tenta dar play automaticamente
               try {
                 event.target.playVideo();
@@ -152,6 +161,42 @@ export const MusicProvider = ({ children }: { children: React.ReactNode }) => {
     };
   }, [hasInteracted]);
 
+  // The music doesn't cut to the ducked level, it slides. A hard volume step
+  // under a voice reads as a glitch; a short ramp reads as the room making
+  // space for someone to speak.
+  const rampFrameRef = useRef<number | null>(null);
+
+  const rampVolume = useCallback((to: number) => {
+    const player = playerRef.current;
+    if (!player?.setVolume || !player?.getVolume) return;
+    if (rampFrameRef.current) cancelAnimationFrame(rampFrameRef.current);
+
+    let from: number;
+    try {
+      from = player.getVolume();
+    } catch {
+      return;
+    }
+
+    const startedAt = performance.now();
+    const RAMP_MS = 260;
+    const step = (now: number) => {
+      const progress = Math.min(1, (now - startedAt) / RAMP_MS);
+      try {
+        player.setVolume(from + (to - from) * progress);
+      } catch {}
+      rampFrameRef.current = progress < 1 ? requestAnimationFrame(step) : null;
+    };
+    rampFrameRef.current = requestAnimationFrame(step);
+  }, []);
+
+  const duck = useCallback(() => rampVolume(DUCKED_VOLUME), [rampVolume]);
+  const unduck = useCallback(() => rampVolume(MUSIC_VOLUME), [rampVolume]);
+
+  useEffect(() => () => {
+    if (rampFrameRef.current) cancelAnimationFrame(rampFrameRef.current);
+  }, []);
+
   const togglePlay = () => {
     if (!playerRef.current) return;
     if (isPlaying) {
@@ -165,7 +210,7 @@ export const MusicProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <MusicContext.Provider value={{ isPlaying, isVisible, togglePlay }}>
+    <MusicContext.Provider value={{ isPlaying, isVisible, togglePlay, duck, unduck }}>
       <div className="fixed top-0 left-0 w-[1px] h-[1px] opacity-0 pointer-events-none -z-50 overflow-hidden">
         <div id="youtube-audio-global" />
       </div>

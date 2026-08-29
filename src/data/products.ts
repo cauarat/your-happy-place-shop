@@ -32,6 +32,15 @@ export interface Product {
   sizes?: string[];
   allowQuantity?: boolean;
   displayCrops?: Record<number, { x: number; y: number; zoom: number }>;
+  /**
+   * Cut-out URL -> the photo it was cut from, so any image can be reverted.
+   *
+   * `originalImage` only ever remembered the primary, which is why background
+   * removal could not be undone on the rest of the gallery. Keyed by URL rather
+   * than by index so reordering the gallery cannot detach a photo from its
+   * original.
+   */
+  originalImages?: Record<string, string>;
 }
 
 export const products: Product[] = [

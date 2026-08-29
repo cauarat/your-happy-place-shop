@@ -1,6 +1,7 @@
 import { useMemo, useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useVoiceAssistant } from "@/contexts/VoiceAssistantContext";
 import { useSearch } from "@/contexts/SearchContext";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -160,6 +161,7 @@ const Index = () => {
 
   const [searchParams] = useSearchParams();
   const { t } = useLanguage();
+  const { speak } = useVoiceAssistant();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [category, setCategory] = useState<string>(() => {
@@ -344,6 +346,40 @@ const Index = () => {
     }
     return list;
   }, [availableProducts, designer, sort, searchQuery, selectedColor]);
+
+  // The assistant names the department you landed in and says how much is in
+  // it. Driven by the resulting list rather than by the tap that caused it:
+  // the category also changes from the mobile dock and from the two "clear
+  // everything" buttons, and a count taken from the finished list is the count
+  // actually on the screen.
+  const lastSpokenCategory = useRef<string | null>(null);
+  useEffect(() => {
+    // Arriving on the page is not a selection. The tour and the greeting own
+    // that moment; being told the department you did not choose is noise.
+    if (lastSpokenCategory.current === null) {
+      lastSpokenCategory.current = category;
+      return;
+    }
+    if (lastSpokenCategory.current === category) return;
+    lastSpokenCategory.current = category;
+
+    const label =
+      category === "All"
+        ? t("voice_all_categories")
+        : t(category.toLowerCase()) === category.toLowerCase()
+          ? category
+          : t(category.toLowerCase());
+
+    const count = filtered.length;
+    const tally =
+      count === 0
+        ? t("voice_empty_category")
+        : count === 1
+          ? `${t("voice_one_piece")}.`
+          : `${count} ${t("home_pieces")}.`;
+
+    speak({ text: `${label}. ${tally}` });
+  }, [category, filtered.length, speak, t]);
 
   // Group filtered products by designer for News-style layout
   const filteredByDesigner = useMemo(() => {

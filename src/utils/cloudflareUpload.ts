@@ -1,22 +1,31 @@
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { supabase } from "@/integrations/supabase/client";
 
-// Extract credentials from environment variables
-const accountId = import.meta.env.VITE_CLOUDFLARE_ACCOUNT_ID;
-const accessKeyId = import.meta.env.VITE_R2_ACCESS_KEY_ID;
-const secretAccessKey = import.meta.env.VITE_R2_SECRET_ACCESS_KEY;
-const bucketName = import.meta.env.VITE_R2_BUCKET_NAME;
+/**
+ * Uploading a product image.
+ *
+ * There are no credentials in this file, and there must never be again. The
+ * previous version built an S3 client here from `import.meta.env.VITE_*`, and
+ * that prefix is precisely what inlines a value into the JavaScript every
+ * visitor downloads — the bucket's access key and secret shipped in a public
+ * chunk, readable by anyone who opened the shop.
+ *
+ * Instead the `r2-upload-url` Edge Function checks who is asking, picks the
+ * object key itself, and returns a URL that is good for five minutes. The file
+ * then goes straight from the browser to R2, which keeps a few hundred images
+ * from making a pointless round trip through the function.
+ */
 
-// Initialize the S3 Client for Cloudflare R2
-const S3 = new S3Client({
-  region: "auto",
-  endpoint: `https://${accountId || "dummy"}.r2.cloudflarestorage.com`,
-  forcePathStyle: true,
-  credentials: {
-    accessKeyId: accessKeyId || "dummy",
-    secretAccessKey: secretAccessKey || "dummy",
-  },
-  maxAttempts: 1, // Set to 1 to disable SDK retries
-});
+export interface UploadOptions {
+  /**
+   * Throw instead of returning a base64 data URL when the upload cannot happen.
+   *
+   * The fallback is right for a single upload — better a working image than a
+   * lost edit. It is ruinous in bulk: a few hundred base64 images go into
+   * localStorage as megabytes of text each and blow the quota, taking the
+   * catalogue with them. Anything processing more than one image must pass this.
+   */
+  strict?: boolean;
+}
 
 export const base64ToFile = (base64: string, filename: string): File => {
   const arr = base64.split(',');
@@ -31,17 +40,77 @@ export const base64ToFile = (base64: string, filename: string): File => {
   return new File([u8arr], filename, {type: mime});
 };
 
+interface Ticket {
+  uploadUrl: string;
+  publicUrl: string;
+  contentType: string;
+}
+
+/** Ask the server for permission to write one object. */
+async function requestTicket(extension: string): Promise<Ticket> {
+  const { data, error } = await supabase.functions.invoke("r2-upload-url", {
+    body: { extension },
+  });
+
+  if (error) {
+    // The function answers non-2xx with a readable reason — "not signed in",
+    // "this account cannot upload", "ADMIN_EMAILS is not set". Surfacing that
+    // beats a generic failure, because every one of them is a different fix.
+    const detail =
+      (data as { error?: string } | null)?.error ??
+      (await readFunctionError(error)) ??
+      error.message;
+    throw new Error(detail);
+  }
+  if (!data?.uploadUrl || !data?.publicUrl) {
+    throw new Error("The upload service returned an unusable response.");
+  }
+  return data as Ticket;
+}
+
+/** Supabase wraps a non-2xx body in the error; dig the message back out. */
+async function readFunctionError(error: unknown): Promise<string | null> {
+  const context = (error as { context?: Response }).context;
+  if (!context || typeof context.json !== "function") return null;
+  try {
+    const body = await context.json();
+    return typeof body?.error === "string" ? body.error : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Whether this signed-in account may upload, asked without uploading. */
+export const checkUploadAccess = async (): Promise<{ ok: boolean; reason?: string }> => {
+  try {
+    await requestTicket("webp");
+    return { ok: true };
+  } catch (error) {
+    return { ok: false, reason: error instanceof Error ? error.message : "Unavailable." };
+  }
+};
+
+const fileToDataUrl = (file: File) =>
+  new Promise<string>((resolve) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result as string);
+    reader.readAsDataURL(file);
+  });
+
 /**
- * Uploads a file or base64 string directly to your Cloudflare R2 bucket.
- * Falls back to base64 Data URL if credentials are not configured or upload fails.
+ * Uploads a file or base64 string to Cloudflare R2 and returns its public URL.
+ * Falls back to a base64 data URL if the upload cannot happen, unless `strict`.
  */
-export const uploadToR2 = async (fileOrBase64: File | string, customExtension?: string): Promise<string> => {
+export const uploadToR2 = async (
+  fileOrBase64: File | string,
+  customExtension?: string,
+  options: UploadOptions = {}
+): Promise<string> => {
   let file: File;
   let base64String = "";
-  
+
   if (typeof fileOrBase64 === 'string') {
     base64String = fileOrBase64;
-    // Determine extension from mime type
     const mimeMatch = fileOrBase64.match(/:(.*?);/);
     const mime = mimeMatch ? mimeMatch[1] : 'image/jpeg';
     const ext = customExtension || (mime.split('/')[1] || 'jpg');
@@ -50,73 +119,34 @@ export const uploadToR2 = async (fileOrBase64: File | string, customExtension?: 
     file = fileOrBase64;
   }
 
-  // If R2 credentials are not set, immediately use base64 fallback to prevent throwing
-  if (!accountId || !accessKeyId || !secretAccessKey || !bucketName) {
-    console.warn("Cloudflare R2 is not fully configured. Using local base64 fallback.");
-    if (base64String) {
-      return base64String;
-    }
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result as string);
-      reader.readAsDataURL(file);
-    });
-  }
-
-  const fileExtension = file.name.split('.').pop() || 'jpg';
-  const uniqueFileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExtension}`;
-  
+  const extension = customExtension || file.name.split('.').pop() || 'jpg';
   const isVideo = file.type.startsWith('video/');
-  const timeoutMs = isVideo ? 45000 : 10000; // 45s for video, 10s for images
-  const controller = new AbortController();
+  const timeoutMs = isVideo ? 45000 : 20000;
 
   try {
-    // Convert File to Uint8Array to bypass the AWS SDK v3 stream reader bug in Vite
-    const arrayBuffer = await file.arrayBuffer();
-    const bodyData = new Uint8Array(arrayBuffer);
+    const ticket = await requestTicket(extension);
 
-    const command = new PutObjectCommand({
-      Bucket: bucketName,
-      Key: uniqueFileName,
-      Body: bodyData,
-      ContentType: file.type,
-    });
-
-    // Use Promise.race to guarantee the upload never hangs indefinitely.
-    // The AWS SDK v3 does not reliably honour AbortSignal in browser environments,
-    // so we must enforce the timeout externally via a racing rejection promise.
-    const timeoutPromise = new Promise<never>((_, reject) =>
-      setTimeout(() => {
-        controller.abort();
-        reject(new Error(`Upload timed out after ${timeoutMs / 1000}s`));
-      }, timeoutMs)
-    );
-
-    await Promise.race([
-      S3.send(command, { abortSignal: controller.signal }),
-      timeoutPromise,
-    ]);
-
-    const publicDomain = import.meta.env.VITE_R2_PUBLIC_DOMAIN;
-    
-    if (!publicDomain) {
-      console.warn("VITE_R2_PUBLIC_DOMAIN is not set in .env. Returning the file name as a fallback.");
-      return `https://[YOUR_R2_DEV_URL_HERE].r2.dev/${uniqueFileName}`;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const response = await fetch(ticket.uploadUrl, {
+        method: "PUT",
+        // Must match what the function signed, or R2 rejects the signature.
+        headers: { "Content-Type": ticket.contentType },
+        body: file,
+        signal: controller.signal,
+      });
+      if (!response.ok) {
+        throw new Error(`R2 refused the upload (${response.status}).`);
+      }
+    } finally {
+      clearTimeout(timer);
     }
 
-    const cleanDomain = publicDomain.endsWith('/') ? publicDomain.slice(0, -1) : publicDomain;
-    return `${cleanDomain}/${uniqueFileName}`;
-    
+    return ticket.publicUrl;
   } catch (error) {
-    console.error("Error uploading to R2, falling back to base64:", error);
-    // Fall back to base64 if S3 upload fails for any reason
-    if (base64String) {
-      return base64String;
-    }
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result as string);
-      reader.readAsDataURL(file);
-    });
+    if (options.strict) throw error;
+    console.error("Upload failed, falling back to base64:", error);
+    return base64String || (await fileToDataUrl(file));
   }
 };

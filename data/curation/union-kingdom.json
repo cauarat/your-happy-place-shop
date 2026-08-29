@@ -1,0 +1,788 @@
+{
+  "designer": "Union Kingdom",
+  "source": "https://unionkingdom.x.yupoo.com/albums",
+  "remove": [
+    {
+      "id": "1787830312569",
+      "was": "How to contact us? How to buy?"
+    },
+    {
+      "id": "1787830312572",
+      "was": "How to view inventory?"
+    }
+  ],
+  "products": [
+    {
+      "id": "1787831271383",
+      "name": "220gsm Washed Black Cotton Loose T-Shirt",
+      "category": "T-Shirt",
+      "description": "220gsm Union Kingdom washed black 100% cotton loose fit blank t-shirt",
+      "was": {
+        "name": "220gsm Union Kingdom washed black 100% cotton loose fit blank t-shirt",
+        "category": "T-Shirt"
+      },
+      "note": "shares this name with 1787830312498 — different albums, no photo in common"
+    },
+    {
+      "id": "1787830312496",
+      "name": "600gsm Fleece Hoodie & Sweatpants Set",
+      "category": "Set",
+      "description": "600gsm Union Kingdom 100% Cotton Fleece Cropped Fit Hoodie And Baggy Fit Sweatpants",
+      "was": {
+        "name": "600gsm Union Kingdom 100% Cotton Fleece Cropped Fit Hoodie And Baggy Fit Sweatpants",
+        "category": "Pants"
+      },
+      "note": "name shortened by hand"
+    },
+    {
+      "id": "1787830312497",
+      "name": "350gsm Baggy Pleated Pants",
+      "category": "Pants",
+      "description": "350gsm Union Kingdom Baggy Fit Pleated Pant",
+      "was": {
+        "name": "350gsm Union Kingdom Baggy Fit Pleated Pant",
+        "category": "Pants"
+      }
+    },
+    {
+      "id": "1787830312498",
+      "name": "220gsm Washed Black Cotton Loose T-Shirt",
+      "category": "T-Shirt",
+      "description": "220gsm Union Kingdom washed black 100% cotton loose fit blank t-shirt",
+      "was": {
+        "name": "220gsm Union Kingdom washed black 100% cotton loose fit blank t-shirt",
+        "category": "T-Shirt"
+      },
+      "note": "shares this name with 1787831271383 — different albums, no photo in common"
+    },
+    {
+      "id": "1787830312499",
+      "name": "520gsm Boxy Cropped Zip-Up",
+      "category": "Zip-up",
+      "description": "520gsm Union Kingdom boxy cropped fit zip-up",
+      "was": {
+        "name": "520gsm Union Kingdom boxy cropped fit zip-up",
+        "category": "Premium Collection"
+      }
+    },
+    {
+      "id": "1787830312500",
+      "name": "520gsm Baggy Shorts",
+      "category": "Shorts",
+      "description": "520gsm Union Kingdom Cozy Baggy Shorts",
+      "was": {
+        "name": "520gsm Union Kingdom Cozy Baggy Shorts",
+        "category": "Shorts"
+      }
+    },
+    {
+      "id": "1787830312501",
+      "name": "250gsm/280gsm Cotton Slim T-Shirt",
+      "category": "T-Shirt",
+      "description": "250gsm/280gsm Union Kingdom Cotton Slim Fit Blank T-shirt",
+      "was": {
+        "name": "250gsm/280gsm Union Kingdom Cotton Slim Fit Blank T-shirt",
+        "category": "T-Shirt"
+      }
+    },
+    {
+      "id": "1787830312502",
+      "name": "250gsm Raw Cotton Long Sleeve",
+      "category": "Long Sleeve",
+      "description": "250gsm Union Kingdom 100% Raw Cotton Long Sleeve",
+      "was": {
+        "name": "[Preview]250gsm Union Kingdom 100% Raw Cotton Long Sleeve",
+        "category": "Long Sleeve"
+      }
+    },
+    {
+      "id": "1787830312503",
+      "name": "480gsm French Terry Raglan Zip-Up",
+      "category": "Zip-up",
+      "description": "480gsm Union Kingdom 100% Cotton French Terry Raglan Boxy Cropped Fit Zip-up",
+      "was": {
+        "name": "480gsm Union Kingdom 100% Cotton French Terry Raglan Boxy Cropped Fit Zip-up",
+        "category": "Zip-up"
+      },
+      "note": "name shortened by hand"
+    },
+    {
+      "id": "1787830312504",
+      "name": "480gsm French Terry Collared Sweater",
+      "category": "sweater",
+      "description": "480gsm Union Kingdom Vintage 100% Cotton French Terry Cropped Fit Collared Sweater",
+      "was": {
+        "name": "[Preview]480gsm Union Kingdom Vintage 100% Cotton French Terry Cropped Fit Collared Sweater",
+        "category": "sweater"
+      },
+      "note": "name shortened by hand"
+    },
+    {
+      "id": "1787830312505",
+      "name": "480gsm French Terry Raglan Hoodie",
+      "category": "hoodies",
+      "description": "480gsm Union Kingdom 100% Cotton French Terry Raglan Boxy Cropped Fit Hoodie",
+      "was": {
+        "name": "480gsm Union Kingdom 100% Cotton French Terry Raglan Boxy Cropped Fit Hoodie",
+        "category": "hoodies"
+      },
+      "note": "name shortened by hand"
+    },
+    {
+      "id": "1787830312506",
+      "name": "1000gsm Reversible Double-Layer Hoodie",
+      "category": "hoodies",
+      "description": "1000gsm Union Kingdom Double-layer 100% Cotton Fleece Reversible Cropped Fit Hoodie",
+      "was": {
+        "name": "1000gsm Union Kingdom Double-layer 100% Cotton Fleece Reversible Cropped Fit Hoodie",
+        "category": "hoodies"
+      },
+      "note": "name shortened by hand"
+    },
+    {
+      "id": "1787830312507",
+      "name": "520gsm Boxy Crewneck",
+      "category": "sweater",
+      "description": "520gsm Union Kingdom boxy fit crewneck",
+      "was": {
+        "name": "520gsm Union Kingdom boxy fit crewneck",
+        "category": "Premium Collection"
+      }
+    },
+    {
+      "id": "1787830312508",
+      "name": "520gsm Boxy Cropped Tracksuit",
+      "category": "Set",
+      "description": "520gsm Union Kingdom boxy cropped fit tracksuit",
+      "was": {
+        "name": "520gsm Union Kingdom boxy cropped fit tracksuit",
+        "category": "Premium Collection"
+      }
+    },
+    {
+      "id": "1787830312509",
+      "name": "320gsm Plaid Flannel Cropped Jacket",
+      "category": "Jackets",
+      "description": "320gsm Union Kingdom 100% Cotton Boxy Cropped Fit Plaid Flannel Jacket",
+      "was": {
+        "name": "[Restocking]320gsm Union Kingdom 100% Cotton Boxy Cropped Fit Plaid Flannel Jacket",
+        "category": "Jackets"
+      },
+      "note": "name shortened by hand"
+    },
+    {
+      "id": "1787830312510",
+      "name": "320gsm Vintage Washed Regular T-Shirt",
+      "category": "T-Shirt",
+      "description": "320gsm Union Kingdom vintage washed 100% cotton regual shoulder blank t-shirt",
+      "was": {
+        "name": "320gsm Union Kingdom vintage washed 100% cotton regual shoulder blank t-shirt",
+        "category": "T-Shirt"
+      },
+      "note": "name shortened by hand"
+    },
+    {
+      "id": "1787830312511",
+      "name": "300gsm Baggy Striped Pleated Pants",
+      "category": "Pants",
+      "description": "300gsm Union Kingdom Baggy Fit Striped Pleated Pant",
+      "was": {
+        "name": "[Restocking]300gsm Union Kingdom Baggy Fit Striped Pleated Pant",
+        "category": "Pants"
+      }
+    },
+    {
+      "id": "1787830312512",
+      "name": "250gsm Vintage Washed Cotton Loose T-Shirt",
+      "category": "T-Shirt",
+      "description": "250gsm Union Kingdom vintage washed 100% cotton loose fit blank t-shirt",
+      "was": {
+        "name": "250gsm Union Kingdom vintage washed 100% cotton loose fit blank t-shirt",
+        "category": "T-Shirt"
+      }
+    },
+    {
+      "id": "1787830312513",
+      "name": "170gsm Plaid Flannel Short-Sleeved Shirt",
+      "category": "Shirt",
+      "description": "170gsm Union Kingdom 100% Cotton Boxy Cropped Fit Plaid Flannel Short-sleeved Shirt",
+      "was": {
+        "name": "170gsm Union Kingdom 100% Cotton Boxy Cropped Fit Plaid Flannel Short-sleeved Shirt",
+        "category": "Shorts"
+      },
+      "note": "name shortened by hand"
+    },
+    {
+      "id": "1787830312514",
+      "name": "250gsm Terry Raglan Long Sleeve",
+      "category": "Long Sleeve",
+      "description": "250gsm Union Kingdom 100% Cotton Terry Texture Raglan Soft Long Sleeve",
+      "was": {
+        "name": "250gsm Union Kingdom 100% Cotton Terry Texture Raglan Soft Long Sleeve",
+        "category": "Long Sleeve"
+      }
+    },
+    {
+      "id": "1787830312515",
+      "name": "210gsm Cotton Long Sleeve",
+      "category": "Long Sleeve",
+      "description": "210gsm Union Kingdom 100% Cotton Ultra Soft Long Sleeve",
+      "was": {
+        "name": "210gsm Union Kingdom 100% Cotton Ultra Soft Long Sleeve",
+        "category": "Long Sleeve"
+      }
+    },
+    {
+      "id": "1787830312516",
+      "name": "380gsm Waffle Weave Raglan Long Sleeve",
+      "category": "Long Sleeve",
+      "description": "380gsm Union Kingdom 100% Cotton Waffle Weave Soft Raglan Long Sleeve",
+      "was": {
+        "name": "380gsm Union Kingdom 100% Cotton Waffle Weave Soft Raglan Long Sleeve",
+        "category": "Long Sleeve"
+      }
+    },
+    {
+      "id": "1787830312517",
+      "name": "380gsm Bubble Boxy Cropped Tracksuit",
+      "category": "Set",
+      "description": "380gsm Union Kingdom Bubble Texture Soft Boxy Cropped Fit Tracksuit",
+      "was": {
+        "name": "380gsm Union Kingdom Bubble Texture Soft Boxy Cropped Fit Tracksuit",
+        "category": "Pants"
+      }
+    },
+    {
+      "id": "1787830312518",
+      "name": "500gsm Orlon Fleece Boxy Cropped Tracksuit",
+      "category": "Set",
+      "description": "500gsm Union Kingdom Orlon Fleece Boxy Cropped Fit Blank Tracksuits",
+      "was": {
+        "name": "500gsm Union Kingdom Orlon Fleece Boxy Cropped Fit Blank Tracksuits",
+        "category": "Pants"
+      }
+    },
+    {
+      "id": "1787830312519",
+      "name": "480gsm Fleece Cropped Zip-Up",
+      "category": "Zip-up",
+      "description": "480gsm Union Kingdom 100% Cotton Fleece Cropped Fit Zip-up",
+      "was": {
+        "name": "480gsm Union Kingdom 100% Cotton Fleece Cropped Fit Zip-up",
+        "category": "Zip-up"
+      }
+    },
+    {
+      "id": "1787830312520",
+      "name": "360gsm French Terry Boxy Cropped Hoodie",
+      "category": "hoodies",
+      "description": "360gsm Union Kingdom 100% Cotton French Terry Boxy Cropped Fit Hoodie",
+      "was": {
+        "name": "360gsm Union Kingdom 100% Cotton French Terry Boxy Cropped Fit Hoodie",
+        "category": "hoodies"
+      }
+    },
+    {
+      "id": "1787830312521",
+      "name": "280gsm Raw Cotton Raglan Long Sleeve",
+      "category": "Long Sleeve",
+      "description": "280gsm Union Kingdom 100% Raw Cotton Raglan Long Sleeve",
+      "was": {
+        "name": "280gsm Union Kingdom 100% Raw Cotton Raglan Long Sleeve",
+        "category": "Long Sleeve"
+      }
+    },
+    {
+      "id": "1787830312522",
+      "name": "480gsm Washed Polar Fleece Zip-Up",
+      "category": "Zip-up",
+      "description": "480gsm Union Kingdom 100% Cotton Polar Fleece Boxy Cropped Fit Washed Zip-u",
+      "was": {
+        "name": "480gsm Union Kingdom 100% Cotton Polar Fleece Boxy Cropped Fit Washed Zip-u",
+        "category": "Zip-up"
+      },
+      "note": "name shortened by hand"
+    },
+    {
+      "id": "1787830312523",
+      "name": "110gsm Cotton Boxy Cropped Cuban Shirt",
+      "category": "Shirt",
+      "description": "110gsm Union Kingdom 100% Cotton Boxy Cropped Fit Cuban Shirt",
+      "was": {
+        "name": "110gsm Union Kingdom 100% Cotton Boxy Cropped Fit Cuban Shirt",
+        "category": "Shirt"
+      }
+    },
+    {
+      "id": "1787830312524",
+      "name": "480gsm French Terry Loose Hoodie",
+      "category": "hoodies",
+      "description": "480gsm Union Kingdom 100% Cotton French Terry Loose Fit Hoodie",
+      "was": {
+        "name": "480gsm Union Kingdom 100% Cotton French Terry Loose Fit Hoodie",
+        "category": "hoodies"
+      }
+    },
+    {
+      "id": "1787830312525",
+      "name": "350gsm Loose Pleated Shorts",
+      "category": "Shorts",
+      "description": "350gsm Union Kingdom Loose Fit Pleated Shorts",
+      "was": {
+        "name": "350gsm Union Kingdom Loose Fit Pleated Shorts",
+        "category": "Shorts"
+      }
+    },
+    {
+      "id": "1787830312526",
+      "name": "400gsm French Terry Loose Hoodie",
+      "category": "hoodies",
+      "description": "400gsm Union Kingdom 100% Cotton French Terry Loose Fit Hoodie",
+      "was": {
+        "name": "400gsm Union Kingdom 100% Cotton French Terry Loose Fit Hoodie",
+        "category": "hoodies"
+      }
+    },
+    {
+      "id": "1787830312527",
+      "name": "550gsm French Terry Cropped Washed Zip-Up",
+      "category": "Zip-up",
+      "description": "550gsm Union Kingdom 100% Cotton French Terry Cropped Fit Washed Zip-up",
+      "was": {
+        "name": "550gsm Union Kingdom 100% Cotton French Terry Cropped Fit Washed Zip-up",
+        "category": "Zip-up"
+      }
+    },
+    {
+      "id": "1787830312528",
+      "name": "360gsm French Terry Boxy Cropped Zip-Up",
+      "category": "Zip-up",
+      "description": "360gsm Union Kingdom 100% Cotton French Terry Boxy Cropped Fit Zip-up",
+      "was": {
+        "name": "360gsm Union Kingdom 100% Cotton French Terry Boxy Cropped Fit Zip-up",
+        "category": "Zip-up"
+      }
+    },
+    {
+      "id": "1787830312529",
+      "name": "180gsm Oxford Long-Sleeved Shirt",
+      "category": "Shirt",
+      "description": "180gsm 100% Cotton Oxford Weave Boxy Cropped Fit Long-sleeved Shirt",
+      "was": {
+        "name": "[Restocking]180gsm 100% Cotton Oxford Weave Boxy Cropped Fit Long-sleeved Shirt",
+        "category": "Shirt"
+      },
+      "note": "name shortened by hand"
+    },
+    {
+      "id": "1787830312530",
+      "name": "420gsm Raw Cotton Fleece Sweatpants",
+      "category": "Pants",
+      "description": "420gsm Union Kingdom 100% Raw Cotton Fleece Blank Sweatpants",
+      "was": {
+        "name": "420gsm Union Kingdom 100% Raw Cotton Fleece Blank Sweatpants",
+        "category": "Pants"
+      }
+    },
+    {
+      "id": "1787830312531",
+      "name": "450gsm Washed Polar Fleece Zip-Up",
+      "category": "Zip-up",
+      "description": "450gsm Union Kingdom 100% Cotton Polar Fleece Boxy Cropped Fit Washed Zip-up",
+      "was": {
+        "name": "450gsm Union Kingdom 100% Cotton Polar Fleece Boxy Cropped Fit Washed Zip-up",
+        "category": "Zip-up"
+      },
+      "note": "name shortened by hand"
+    },
+    {
+      "id": "1787830312532",
+      "name": "360gsm Cropped Quarter-Zip Sweatshirt",
+      "category": "sweater",
+      "description": "360gsm Union Kingdom 100% Cotton Boxy Cropped Fit Quarter-zip Sweatshirt",
+      "was": {
+        "name": "360gsm Union Kingdom 100% Cotton Boxy Cropped Fit Quarter-zip Sweatshirt",
+        "category": "Polo"
+      },
+      "note": "name shortened by hand"
+    },
+    {
+      "id": "1787830312533",
+      "name": "430gsm Double-Faced Quarter-Zip Sweatshirt",
+      "category": "sweater",
+      "description": "430gsm Union Kingdom Double-face Fabric Boxy Cropped Fit Quarter-zip Sweatshirt",
+      "was": {
+        "name": "430gsm Union Kingdom Double-face Fabric Boxy Cropped Fit Quarter-zip Sweatshirt",
+        "category": "Polo"
+      },
+      "note": "name shortened by hand"
+    },
+    {
+      "id": "1787830312534",
+      "name": "150gsm Raw Cotton Relaxed Boxy T-Shirt",
+      "category": "T-Shirt",
+      "description": "150gsm Union Kingdom 100% Raw Cotton Relaxed Boxy Fit Blank T-shirt",
+      "was": {
+        "name": "150gsm Union Kingdom 100% Raw Cotton Relaxed Boxy Fit Blank T-shirt",
+        "category": "T-Shirt"
+      }
+    },
+    {
+      "id": "1787830312535",
+      "name": "200gsm Slub Cotton Regular T-Shirt",
+      "category": "T-Shirt",
+      "description": "200gsm Union Kingdom 100% Slub Cotton Regular Fit Blank T-shirt",
+      "was": {
+        "name": "200gsm Union Kingdom 100% Slub Cotton Regular Fit Blank T-shirt",
+        "category": "T-Shirt"
+      }
+    },
+    {
+      "id": "1787830312536",
+      "name": "200gsm Slub Cotton Relaxed Boxy T-Shirt",
+      "category": "T-Shirt",
+      "description": "200gsm Union Kingdom 100% Slub Cotton Relaxed Boxy Fit Blank T-shirt",
+      "was": {
+        "name": "200gsm Union Kingdom 100% Slub Cotton Relaxed Boxy Fit Blank T-shirt",
+        "category": "T-Shirt"
+      }
+    },
+    {
+      "id": "1787830312537",
+      "name": "480gsm French Terry Boxy Cropped Zip-Up",
+      "category": "Zip-up",
+      "description": "480gsm Union Kingdom 100% Cotton French Terry Boxy Cropped Fit Zip-up",
+      "was": {
+        "name": "480gsm Union Kingdom 100% Cotton French Terry Boxy Cropped Fit Zip-up",
+        "category": "Zip-up"
+      }
+    },
+    {
+      "id": "1787830312538",
+      "name": "240gsm Cotton Boxy Cropped T-Shirt",
+      "category": "T-Shirt",
+      "description": "240gsm Union Kingdom 100% cotton boxy cropped fit blank t-shirt",
+      "was": {
+        "name": "240gsm Union Kingdom 100% cotton boxy cropped fit blank t-shirt",
+        "category": "T-Shirt"
+      }
+    },
+    {
+      "id": "1787830312539",
+      "name": "120gsm Striped Long-Sleeved Shirt",
+      "category": "Shirt",
+      "description": "120gsm Union Kingdom 100% Cotton Boxy Cropped Fit Striped Long-sleeved Shirt",
+      "was": {
+        "name": "120gsm Union Kingdom 100% Cotton Boxy Cropped Fit Striped Long-sleeved Shirt",
+        "category": "Shirt"
+      },
+      "note": "name shortened by hand; shares this name with 1787830312554 — different albums, no photo in common"
+    },
+    {
+      "id": "1787830312540",
+      "name": "150gsm Striped Short-Sleeved Shirt",
+      "category": "Shirt",
+      "description": "150gsm Union Kingdom 100% Cotton Boxy Cropped Fit Striped Short-sleeved Shirt",
+      "was": {
+        "name": "[Restocking]150gsm Union Kingdom 100% Cotton Boxy Cropped Fit Striped Short-sleeved Shirt",
+        "category": "Shorts"
+      },
+      "note": "name shortened by hand"
+    },
+    {
+      "id": "1787830312541",
+      "name": "140gsm Plaid Short-Sleeved Shirt",
+      "category": "Shirt",
+      "description": "140gsm Union Kingdom 100% Cotton Boxy Cropped Fit Plaid Short-sleeved Shirt",
+      "was": {
+        "name": "140gsm Union Kingdom 100% Cotton Boxy Cropped Fit Plaid Short-sleeved Shirt",
+        "category": "Shorts"
+      },
+      "note": "name shortened by hand"
+    },
+    {
+      "id": "1787830312542",
+      "name": "380gsm Waffle Cropped Tank Top",
+      "category": "Tank top",
+      "description": "380g Union Kingdom 100% Cotton Slim And Cropped Fit Waffle Weave Tank Top",
+      "was": {
+        "name": "380g Union Kingdom 100% Cotton Slim And Cropped Fit Waffle Weave Tank Top",
+        "category": "Tank top"
+      },
+      "note": "name shortened by hand"
+    },
+    {
+      "id": "1787830312543",
+      "name": "450gsm Distressed Washed Gray Hoodie",
+      "category": "hoodies",
+      "description": "450gsm Union Kingdom Distressed Washed Gray 100% Cotton Loose Fit Hoodie",
+      "was": {
+        "name": "450gsm Union Kingdom Distressed Washed Gray 100% Cotton Loose Fit Hoodie",
+        "category": "hoodies"
+      },
+      "note": "name shortened by hand"
+    },
+    {
+      "id": "1787830312544",
+      "name": "350gsm/420gsm Terry T-Shirt & Shorts Set",
+      "category": "Set",
+      "description": "350gsm/420gsm Terry Texture T-shirt and Shorts Set",
+      "was": {
+        "name": "350gsm/420gsm Terry Texture T-shirt and Shorts Set",
+        "category": "Shorts"
+      }
+    },
+    {
+      "id": "1787830312545",
+      "name": "630gsm Boxy Cropped Zip-Up",
+      "category": "Zip-up",
+      "description": "630gsm Union Kingdom Boxy Cropped Fit Blank Zip-up",
+      "was": {
+        "name": "630gsm Union Kingdom Boxy Cropped Fit Blank Zip-up",
+        "category": "Set"
+      }
+    },
+    {
+      "id": "1787830312546",
+      "name": "630gsm Boxy Cropped Quarter-Zip Sweatshirt",
+      "category": "sweater",
+      "description": "630gsm Union Kingdom Boxy Crop Fit Blank Quarter-zip Sweatshirt",
+      "was": {
+        "name": "630gsm Union Kingdom Boxy Crop Fit Blank Quarter-zip Sweatshirt",
+        "category": "Polo"
+      }
+    },
+    {
+      "id": "1787830312547",
+      "name": "430gsm Double-Faced Loose Pants",
+      "category": "Pants",
+      "description": "430gsm Union Kingdom Double-face Fabric Loose Fit Pants",
+      "was": {
+        "name": "430gsm Union Kingdom Double-face Fabric Loose Fit Pants",
+        "category": "Pants"
+      }
+    },
+    {
+      "id": "1787830312548",
+      "name": "400gsm Coarse Needle Shorts",
+      "category": "Shorts",
+      "description": "400gsm Union Kingdom Coarse Needle Texture Blank Shorts",
+      "was": {
+        "name": "400gsm Union Kingdom Coarse Needle Texture Blank Shorts",
+        "category": "Shorts"
+      }
+    },
+    {
+      "id": "1787830312549",
+      "name": "400gsm Cotton Boxy Cropped Washed T-Shirt",
+      "category": "T-Shirt",
+      "description": "400gsm Union Kingdom 100% cotton boxy cropped fit washed blank t-shirt",
+      "was": {
+        "name": "400gsm Union Kingdom 100% cotton boxy cropped fit washed blank t-shirt",
+        "category": "T-Shirt"
+      }
+    },
+    {
+      "id": "1787830312550",
+      "name": "360gsm Cloud Shorts",
+      "category": "Shorts",
+      "description": "360gsm Union Kingdom Cloud Feeling Blank Shorts",
+      "was": {
+        "name": "360gsm Union Kingdom Cloud Feeling Blank Shorts",
+        "category": "Shorts"
+      }
+    },
+    {
+      "id": "1787830312551",
+      "name": "300gsm Raw Cotton Loose T-Shirt",
+      "category": "T-Shirt",
+      "description": "300gsm Union Kingdom 100% Raw Cotton Loose Fit Blank T-shirt",
+      "was": {
+        "name": "300gsm Union Kingdom 100% Raw Cotton Loose Fit Blank T-shirt",
+        "category": "T-Shirt"
+      }
+    },
+    {
+      "id": "1787830312552",
+      "name": "320gsm Cotton Loose T-Shirt",
+      "category": "T-Shirt",
+      "description": "320gsm Union Kingdom 100% cotton loose fit blank t-shirt",
+      "was": {
+        "name": "320gsm Union Kingdom 100% cotton loose fit blank t-shirt",
+        "category": "T-Shirt"
+      }
+    },
+    {
+      "id": "1787830312553",
+      "name": "280gsm Cotton Loose T-Shirt",
+      "category": "T-Shirt",
+      "description": "280gsm Union Kingdom 100% cotton loose fit blank t-shirt",
+      "was": {
+        "name": "280gsm Union Kingdom 100% cotton loose fit blank t-shirt",
+        "category": "T-Shirt"
+      }
+    },
+    {
+      "id": "1787830312554",
+      "name": "120gsm Striped Long-Sleeved Shirt",
+      "category": "Shirt",
+      "description": "120gsm Union Kingdom 100% Cotton Boxy Cropped Fit Striped Long-sleeved Shirt",
+      "was": {
+        "name": "[Restocking]120gsm Union Kingdom 100% Cotton Boxy Cropped Fit Striped Long-sleeved Shirt",
+        "category": "Shirt"
+      },
+      "note": "name shortened by hand; shares this name with 1787830312539 — different albums, no photo in common"
+    },
+    {
+      "id": "1787830312555",
+      "name": "250gsm Cotton Loose T-Shirt",
+      "category": "T-Shirt",
+      "description": "250gsm Union Kingdom 100% cotton loose fit blank t-shirt",
+      "was": {
+        "name": "250gsm Union Kingdom 100% cotton loose fit blank t-shirt",
+        "category": "T-Shirt"
+      }
+    },
+    {
+      "id": "1787830312556",
+      "name": "220gsm Cotton Loose T-Shirt",
+      "category": "T-Shirt",
+      "description": "220gsm Union Kingdom 100% cotton loose fit blank t-shirt",
+      "was": {
+        "name": "220gsm Union Kingdom 100% cotton loose fit blank t-shirt",
+        "category": "T-Shirt"
+      }
+    },
+    {
+      "id": "1787830312558",
+      "name": "220gsm Vintage Washed Cotton Loose T-Shirt",
+      "category": "T-Shirt",
+      "description": "220gsm Union Kingdom vintage washed 100% cotton loose fit blank t-shirt",
+      "was": {
+        "name": "220gsm Union Kingdom vintage washed 100% cotton loose fit blank t-shirt",
+        "category": "T-Shirt"
+      }
+    },
+    {
+      "id": "1787830312559",
+      "name": "630gsm Boxy Cropped Crewneck",
+      "category": "sweater",
+      "description": "630gsm Union Kingdom Boxy Cropped Fit Blank Crewneck",
+      "was": {
+        "name": "630gsm Union Kingdom Boxy Cropped Fit Blank Crewneck",
+        "category": "sweater"
+      }
+    },
+    {
+      "id": "1787830312560",
+      "name": "630gsm Boxy Cropped Tracksuit",
+      "category": "Set",
+      "description": "630gsm Union Kingdom Boxy Cropped Fit Blank Tracksuits",
+      "was": {
+        "name": "630gsm Union Kingdom Boxy Cropped Fit Blank Tracksuits",
+        "category": "Pants"
+      }
+    },
+    {
+      "id": "1787830312561",
+      "name": "450gsm Fleece Cropped Tracksuit",
+      "category": "Set",
+      "description": "450gsm Union Kingdom 100% Cotton Fleece Cropped Fit Blank Tracksuits",
+      "was": {
+        "name": "450gsm Union Kingdom 100% Cotton Fleece Cropped Fit Blank Tracksuits",
+        "category": "Pants"
+      }
+    },
+    {
+      "id": "1787830312562",
+      "name": "450gsm Cotton Boxy Chemical Blue Tracksuit",
+      "category": "Set",
+      "description": "450gsm Union Kingdom 100% Cotton Boxy Chemical Blue Blank Tracksuits",
+      "was": {
+        "name": "450gsm Union Kingdom 100% Cotton Boxy Chemical Blue Blank Tracksuits",
+        "category": "Pants"
+      }
+    },
+    {
+      "id": "1787830312563",
+      "name": "360gsm Loose Zip-Up Hoodie & Tracksuit",
+      "category": "Set",
+      "description": "360gsm Union Kingdom Loose Fit Blank Zip-up Hoodie And Tracksuit",
+      "was": {
+        "name": "360gsm Union Kingdom Loose Fit Blank Zip-up Hoodie And Tracksuit",
+        "category": "Pants"
+      }
+    },
+    {
+      "id": "1787830312564",
+      "name": "360gsm Boxy Loose Hoodie & Tracksuit",
+      "category": "Set",
+      "description": "360gsm Union Kingdom Boxy Loose Fit Hoodie And Tracksuit",
+      "was": {
+        "name": "360gsm Union Kingdom Boxy Loose Fit Hoodie And Tracksuit",
+        "category": "Pants"
+      }
+    },
+    {
+      "id": "1787830312565",
+      "name": "360gsm Oversize Sweatpants & Tracksuit",
+      "category": "Set",
+      "description": "360gsm Union Kingdom Oversize Blank Sweatpants And Tracksuit",
+      "was": {
+        "name": "360gsm Union Kingdom Oversize Blank Sweatpants And Tracksuit",
+        "category": "Pants"
+      }
+    },
+    {
+      "id": "1787830312566",
+      "name": "420gsm Terry Cotton Cropped Hoodie",
+      "category": "hoodies",
+      "description": "420gsm Union Kingdom Terry Faric 100% Cotton Cropped Fit Blank Hoodie",
+      "was": {
+        "name": "420gsm Union Kingdom Terry Faric 100% Cotton Cropped Fit Blank Hoodie",
+        "category": "hoodies"
+      }
+    },
+    {
+      "id": "1787830312567",
+      "name": "450gsm Vintage Washed Loose Hoodie",
+      "category": "hoodies",
+      "description": "450gsm Union Kingdom Vintage Washed Loose Fit Blank Hoodie",
+      "was": {
+        "name": "450gsm Union Kingdom Vintage Washed Loose Fit Blank Hoodie",
+        "category": "hoodies"
+      }
+    },
+    {
+      "id": "1787830312568",
+      "name": "Reverse Weave Hoodie",
+      "category": "hoodies",
+      "description": "Blank Reverse Weave Without Embroidery Hoodie 5 Colors",
+      "was": {
+        "name": "[discount price: ¥39]Blank Reverse Weave Without Embroidery Hoodie 5 Colors",
+        "category": "hoodies"
+      }
+    },
+    {
+      "id": "1787830312570",
+      "name": "Washed Hoodie & Crewneck",
+      "category": "Set",
+      "description": "Blank Washed Hoodie And Crewneck",
+      "was": {
+        "name": "[discount price: ¥49]Blank Washed Hoodie And Crewneck",
+        "category": "hoodies"
+      }
+    },
+    {
+      "id": "1787830312571",
+      "name": "250gsm Vintage Washed Gray T-Shirt",
+      "category": "T-Shirt",
+      "description": "250gsm Union Kingdom vintage washed gray 100% cotton loose fit blank t-shirt",
+      "was": {
+        "name": "250gsm Union Kingdom vintage washed gray 100% cotton loose fit blank t-shirt",
+        "category": "T-Shirt"
+      },
+      "note": "name shortened by hand"
+    }
+  ]
+}

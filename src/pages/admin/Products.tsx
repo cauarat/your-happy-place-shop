@@ -32,14 +32,32 @@ const AdminProducts = () => {
     });
   };
 
+  /**
+   * Save one product, reporting a storage failure instead of throwing into the
+   * render. The list is only reloaded when the write actually landed, so a
+   * rejected save no longer redraws as though it had succeeded.
+   */
+  const persist = (product: Product): boolean => {
+    try {
+      saveProduct(product);
+      return true;
+    } catch (error) {
+      console.error("Save failed:", error);
+      toast.error(
+        error instanceof Error ? error.message : "This change could not be saved.",
+        { duration: 10000 }
+      );
+      return false;
+    }
+  };
+
   const handleDuplicate = (product: Product) => {
     const duplicated: Product = {
       ...product,
       id: Date.now().toString(),
       name: `${product.name} (Copy)`,
     };
-    saveProduct(duplicated);
-    loadProducts();
+    if (persist(duplicated)) loadProducts();
   };
 
   const handleCategoryCycle = (product: Product, direction: 'prev' | 'next') => {
@@ -56,8 +74,7 @@ const AdminProducts = () => {
     }
 
     const updatedProduct = { ...product, category: categories[nextIndex] };
-    saveProduct(updatedProduct);
-    loadProducts();
+    if (persist(updatedProduct)) loadProducts();
   };
 
   const filteredProducts = useMemo(() => {
@@ -174,8 +191,7 @@ const AdminProducts = () => {
                     type="button"
                     onClick={() => {
                       const updated = { ...product, allowQuantity: product.allowQuantity === false ? true : false };
-                      saveProduct(updated);
-                      loadProducts();
+                      if (persist(updated)) loadProducts();
                     }}
                     className={`w-10 h-5 rounded-full transition-all relative inline-flex items-center ${product.allowQuantity !== false ? 'bg-primary shadow-[0_0_10px_rgba(var(--primary),0.3)]' : 'bg-border'}`}
                     title={product.allowQuantity !== false ? "Quantity Selection Enabled" : "Quantity Selection Disabled"}

@@ -10,7 +10,9 @@ import { LanguageProvider } from "./contexts/LanguageContext";
 import { SearchProvider } from "./contexts/SearchContext";
 import { CartProvider } from "./contexts/CartContext";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import AdminRoute from "./components/AdminRoute";
 import { OnboardingProvider } from "./contexts/OnboardingContext";
+import { VoiceAssistantProvider } from "./contexts/VoiceAssistantContext";
 
 // Every page is loaded on demand rather than bundled into one file. Before
 // this, opening the shop downloaded and compiled the admin app too — the
@@ -40,6 +42,8 @@ const AdminLookEdit = lazy(() => import("./pages/admin/LookEdit.tsx"));
 const AdminSettings = lazy(() => import("./pages/admin/Settings.tsx"));
 const AdminCatalog = lazy(() => import("./pages/admin/CatalogSettings.tsx"));
 const AdminAiControl = lazy(() => import("./pages/admin/AiControl.tsx"));
+const AdminStudio = lazy(() => import("./pages/admin/Studio.tsx"));
+const AdminLogin = lazy(() => import("./pages/admin/Login.tsx"));
 const AdminTryTheLook = lazy(() => import("./pages/admin/TryTheLookControl.tsx"));
 const AdminOrders = lazy(() => import("./pages/admin/Orders.tsx"));
 const AdminSuggestions = lazy(() => import("./pages/admin/Suggestions.tsx"));
@@ -100,6 +104,9 @@ const App = () => {
           <LanguageProvider>
           <SearchProvider>
             <MusicProvider>
+              {/* Inside MusicProvider so a spoken line can duck the music, and
+                  inside LanguageProvider so it speaks the language on screen. */}
+              <VoiceAssistantProvider>
               <TooltipProvider>
                 <Toaster />
                 <Sonner />
@@ -116,8 +123,8 @@ const App = () => {
                       <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
                       <Route path="/success" element={<ProtectedRoute><Success /></ProtectedRoute>} />
                       <Route path="/product/:id" element={<ProtectedRoute><ProductDetail /></ProtectedRoute>} />
-                      <Route path="/admin/login" element={<Navigate to="/admin/dashboard" replace />} />
-                      <Route path="/admin" element={<AdminLayout />}>
+                      <Route path="/admin/login" element={<AdminLogin />} />
+                      <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
                         <Route index element={<Navigate to="/admin/dashboard" replace />} />
                         <Route path="dashboard" element={<AdminDashboard />} />
                         <Route path="orders" element={<AdminOrders />} />
@@ -128,6 +135,7 @@ const App = () => {
                         <Route path="looks/new" element={<AdminLookEdit />} />
                         <Route path="looks/:id" element={<AdminLookEdit />} />
                         <Route path="ai" element={<AdminAiControl />} />
+                        <Route path="studio" element={<AdminStudio />} />
                         <Route path="catalog" element={<AdminCatalog />} />
                         <Route path="try-the-look" element={<AdminTryTheLook />} />
                         <Route path="suggestions" element={<AdminSuggestions />} />
@@ -138,6 +146,7 @@ const App = () => {
                   </BrowserRouter>
                 </div>
               </TooltipProvider>
+              </VoiceAssistantProvider>
             </MusicProvider>
           </SearchProvider>
         </LanguageProvider>

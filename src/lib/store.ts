@@ -10,6 +10,7 @@ import { Product, categories as defaultCategories, designers as defaultDesigners
 import catalogSeedRaw from "@/data/catalog.json?raw";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { DEFAULT_VOICE_ID } from "@/lib/voiceLines";
 
 // Keys
 const PRODUCTS_KEY = "villaoro_products";
@@ -19,7 +20,11 @@ const LOOKS_KEY = "villaoro_looks";
 const CATEGORIES_KEY = "villaoro_categories";
 const DESIGNERS_KEY = "villaoro_designers";
 const CATALOG_VERSION_KEY = "villaoro_catalog_version";
-const CATALOG_VERSION = "v17";
+// Which ids the previous seed contained. Seed ids and admin-created ids are
+// both `Date.now().toString()`, so this ledger is the only way to tell a
+// product the catalogue deliberately dropped from one the admin added here.
+const SEED_IDS_KEY = "villaoro_seed_ids";
+const CATALOG_VERSION = "v25";
 const DESIGN_VERSION_KEY = "villaoro_design_version";
 const DESIGN_VERSION = "v2";
 
@@ -34,6 +39,12 @@ export interface DesignSettings {
   defaultCategory?: string;
   showPrices?: boolean;
   alwaysShowTourEmail?: string;
+  /** Master switch for the spoken assistant. Off here means nobody hears it. */
+  assistantEnabled?: boolean;
+  /** ElevenLabs voice id. Changing it invalidates nothing — clips are cached per voice. */
+  assistantVoiceId?: string;
+  /** Playback volume for the assistant, 0–1. */
+  assistantVolume?: number;
 }
 
 export interface AiConfig {
@@ -49,14 +60,81 @@ export interface Look {
   productIds: string[];
 }
 
+/**
+ * What the admin owns on a product, and the seed therefore must not overwrite.
+ *
+ * Everything else — name, price, category, designer — belongs to the catalogue
+ * import and should move forward with each new seed.
+ */
+const ADMIN_OWNED = [
+  "image",
+  "images",
+  "originalImage",
+  "removeBackground",
+  "detailImage",
+  "displayCrops",
+  "video",
+] as const;
+
+/**
+ * Fold a new catalogue seed into what is already stored, keeping admin work.
+ *
+ * This used to be a straight overwrite, and it is why cut-outs and 16:9 detail
+ * images kept vanishing: every bump of CATALOG_VERSION threw away every edit,
+ * and `catalog.json` carries no `detailImage` at all, so there was nothing to
+ * restore them from. A product is matched by id; a stored product that is in
+ * neither the new seed nor the previous one was created in the admin and is
+ * kept; one that was in the previous seed but not this one was dropped by the
+ * catalogue on purpose and is allowed to go.
+ */
+export function mergeSeed(seedRaw: string, storedRaw: string | null, priorSeedIds: Set<string>): string {
+  if (!storedRaw) return seedRaw;
+
+  let stored: Product[];
+  try {
+    stored = JSON.parse(storedRaw) as Product[];
+  } catch {
+    // Unreadable storage is worse than a stale one; start clean.
+    return seedRaw;
+  }
+
+  const seeded = JSON.parse(seedRaw) as Product[];
+  const seedIds = new Set(seeded.map((p) => p.id));
+  const byId = new Map(stored.map((p) => [p.id, p]));
+
+  const merged = seeded.map((fresh) => {
+    const prior = byId.get(fresh.id);
+    if (!prior) return fresh;
+    const kept: Partial<Product> = {};
+    for (const field of ADMIN_OWNED) {
+      if (prior[field] !== undefined) (kept as Record<string, unknown>)[field] = prior[field];
+    }
+    return { ...fresh, ...kept };
+  });
+
+  // Admin-created products keep their place at the front, which is where
+  // `saveProduct` unshifts them.
+  const localOnly = stored.filter((p) => !seedIds.has(p.id) && !priorSeedIds.has(p.id));
+  return JSON.stringify([...localOnly, ...merged]);
+}
+
+function readSeedIds(): Set<string> {
+  try {
+    const raw = localStorage.getItem(SEED_IDS_KEY);
+    return raw ? new Set(JSON.parse(raw) as string[]) : new Set();
+  } catch {
+    return new Set();
+  }
+}
+
 // Initialization
 const initStore = () => {
   const currentVersion = localStorage.getItem(CATALOG_VERSION_KEY);
   if (currentVersion !== CATALOG_VERSION) {
-    // The seed goes to storage as the text it already is — no parse, no
-    // re-serialisation of the same 672 products.
-    localStorage.setItem(PRODUCTS_KEY, catalogSeedRaw);
+    const stored = localStorage.getItem(PRODUCTS_KEY);
+    localStorage.setItem(PRODUCTS_KEY, mergeSeed(catalogSeedRaw, stored, readSeedIds()));
     const seeded = JSON.parse(catalogSeedRaw) as Product[];
+    localStorage.setItem(SEED_IDS_KEY, JSON.stringify(seeded.map((p) => p.id)));
     const cats = Array.from(new Set(seeded.map(p => p.category))).sort();
     const dess = Array.from(new Set(seeded.map(p => p.designer))).sort();
     localStorage.setItem(CATEGORIES_KEY, JSON.stringify(cats));
@@ -65,6 +143,8 @@ const initStore = () => {
     localStorage.setItem(CATALOG_VERSION_KEY, CATALOG_VERSION);
   } else if (!localStorage.getItem(PRODUCTS_KEY)) {
     localStorage.setItem(PRODUCTS_KEY, catalogSeedRaw);
+    const seeded = JSON.parse(catalogSeedRaw) as Product[];
+    localStorage.setItem(SEED_IDS_KEY, JSON.stringify(seeded.map((p) => p.id)));
   }
   if (localStorage.getItem(DESIGN_VERSION_KEY) !== DESIGN_VERSION) {
     localStorage.removeItem(DESIGN_KEY);
@@ -175,6 +255,41 @@ export function getProducts(): Product[] {
   return parsedProducts.slice();
 }
 
+/**
+ * Write the catalogue back, or explain precisely why it would not fit.
+ *
+ * A quota failure rejects the whole `setItem`, so a single oversized product
+ * stops every *other* edit from saving too. That reads as "nothing saves any
+ * more" rather than as anything to do with images, which is why the message
+ * names the cause: the fix is to get uploads working, and no amount of using
+ * "slightly smaller images" — what this used to advise — would reach it.
+ *
+ * Measured against the real catalogue: 747 products serialise to 592KB, and a
+ * cut-out kept as a data URL adds about 105KB each, so the 45th one crosses the
+ * 5MB origin limit and every save after it fails.
+ */
+function writeProducts(products: Product[]): void {
+  try {
+    localStorage.setItem(PRODUCTS_KEY, JSON.stringify(products));
+    window.dispatchEvent(new Event('products-updated'));
+  } catch (e) {
+    console.error("Storage quota exceeded", e);
+    const inline = products.filter((p) => typeof p.image === "string" && p.image.startsWith("data:"));
+    if (inline.length === 0) {
+      throw new Error("The browser's storage is full, so this change was not saved.");
+    }
+    const megabytes = (
+      inline.reduce((total, p) => total + p.image.length, 0) / 1048576
+    ).toFixed(1);
+    throw new Error(
+      `Storage is full: ${inline.length} product${inline.length === 1 ? "" : "s"} ` +
+        `hold an image kept in this browser (${megabytes}MB) because the upload ` +
+        `service was unavailable. Deploy the r2-upload-url function, or remove ` +
+        `those images, and saving will work again.`
+    );
+  }
+}
+
 export function saveProduct(product: Product) {
   const products = getProducts();
   const index = products.findIndex((p) => p.id === product.id);
@@ -183,13 +298,21 @@ export function saveProduct(product: Product) {
   } else {
     products.unshift(product);
   }
-  try {
-    localStorage.setItem(PRODUCTS_KEY, JSON.stringify(products));
-    window.dispatchEvent(new Event('products-updated'));
-  } catch (e) {
-    console.error("Storage quota exceeded", e);
-    alert("The site database is full because of high-quality images. Please try to use slightly smaller images or remove some products.");
-  }
+  writeProducts(products);
+}
+
+/**
+ * Apply many product changes in one write.
+ *
+ * `saveProduct` re-serialises all 672 products per call, so applying a few
+ * hundred edits one at a time is quadratic and slow enough to look frozen. The
+ * image studio's batch run needs exactly this.
+ */
+export function saveProductsBulk(updates: Product[]): void {
+  if (updates.length === 0) return;
+  const byId = new Map(updates.map((p) => [p.id, p]));
+  const products = getProducts().map((p) => byId.get(p.id) ?? p);
+  writeProducts(products);
 }
 
 export function deleteProduct(id: string) {
@@ -216,6 +339,9 @@ export function getDesignSettings(): DesignSettings {
     defaultCategory: "Footwear",
     showPrices: false,
     alwaysShowTourEmail: "",
+    assistantEnabled: true,
+    assistantVoiceId: DEFAULT_VOICE_ID,
+    assistantVolume: 1,
     ...parsed,
     musicUrl: parsed.musicUrl || defaultMusic,
   };

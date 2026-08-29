@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getProducts, saveProduct, getCategories, getDesigners, saveDesigners } from "@/lib/store";
+import { getProducts, saveProduct, saveProductsBulk, getCategories, getDesigners, saveDesigners } from "@/lib/store";
 import type { Product, Category, Designer } from "@/data/products";
 import { ArrowLeft, Save, Upload, Image as ImageIcon, Crop, X, Eraser, ArrowUp, ArrowDown, Trash2, CheckCircle2, ArrowRight, Plus, Film, FlipHorizontal, FlipVertical, User, Move, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
@@ -9,6 +9,14 @@ import { getCroppedImg } from "@/lib/cropImage";
 import { compressImage } from "@/lib/compressImage";
 import { uploadToR2 } from "@/utils/cloudflareUpload";
 import { computeCropStyles } from "@/lib/cropUtils";
+import { analyzeBackground } from "@/lib/imageStudio/analyze";
+import type { StudioResult, Strategy } from "@/lib/imageStudio";
+import CutoutPreview from "@/components/admin/CutoutPreview";
+import { GalleryStrip } from "@/components/admin/productImages/GalleryStrip";
+import { ImageWorkbench } from "@/components/admin/productImages/ImageWorkbench";
+import { VideoWidget } from "@/components/admin/productImages/VideoWidget";
+import { ApplyFramingDialog } from "@/components/admin/productImages/ApplyFramingDialog";
+import { readCropClipboard, writeCropClipboard, applyCropToProducts, type CropClipboard } from "@/lib/cropClipboard";
 
 const defaultProduct: Product = {
   id: "",
@@ -25,33 +33,19 @@ const defaultProduct: Product = {
   allowQuantity: true,
 };
 
-/** Sample the four corner pixels of the original image to detect its background colour.
- *  Returns an rgb() string so the canvas padding is invisible against the photo background. */
-const detectImageBackground = (img: HTMLImageElement): string => {
-  const sampleCanvas = document.createElement('canvas');
-  // Use a small sampling canvas for speed
-  const SW = Math.min(img.width, 600);
-  const SH = Math.min(img.height, 600);
-  sampleCanvas.width = SW;
-  sampleCanvas.height = SH;
-  const sctx = sampleCanvas.getContext('2d');
-  if (!sctx) return '#ffffff';
-  sctx.drawImage(img, 0, 0, SW, SH);
-
-  // Sample pixels at the four corners (3px inset to avoid JPEG artefacts)
-  const inset = 3;
-  const corners = [
-    sctx.getImageData(inset, inset, 1, 1).data,
-    sctx.getImageData(SW - inset - 1, inset, 1, 1).data,
-    sctx.getImageData(inset, SH - inset - 1, 1, 1).data,
-    sctx.getImageData(SW - inset - 1, SH - inset - 1, 1, 1).data,
-  ];
-
-  const r = Math.round(corners.reduce((s, c) => s + c[0], 0) / corners.length);
-  const g = Math.round(corners.reduce((s, c) => s + c[1], 0) / corners.length);
-  const b = Math.round(corners.reduce((s, c) => s + c[2], 0) / corners.length);
-
-  return `rgb(${r},${g},${b})`;
+/** Read the photo's background, and how sure we are that it is one colour.
+ *  Shares the border-ring reading with the image studio rather than sampling
+ *  four corner pixels, which a single JPEG artefact was enough to mislead. */
+const readBackground = (img: HTMLImageElement) => {
+  const canvas = document.createElement('canvas');
+  const SW = Math.min(img.width, 240);
+  const SH = Math.min(img.height, 240);
+  canvas.width = SW;
+  canvas.height = SH;
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  if (!ctx) return null;
+  ctx.drawImage(img, 0, 0, SW, SH);
+  return analyzeBackground(ctx.getImageData(0, 0, SW, SH).data, SW, SH);
 };
 
 const standardizeImage = (base64: string, is16x9: boolean = false): Promise<string> => {
@@ -71,10 +65,17 @@ const standardizeImage = (base64: string, is16x9: boolean = false): Promise<stri
         return;
       }
 
-      // 1. Auto-detect the photo's own background colour and use it for padding
-      //    so borders are completely invisible against the product image background.
-      const bgColor = detectImageBackground(img);
-      ctx.fillStyle = bgColor;
+      // 1. Pad with the photo's own background colour so the border is invisible
+      //    against it — except when that colour is already near-white, where it
+      //    is snapped to the exact #FFFFFF the shop is built on. A #FAFAFA
+      //    padding reads as a faint grey rectangle on the catalogue tile, which
+      //    is the whole defect this is meant to avoid.
+      const background = readBackground(img);
+      ctx.fillStyle = !background
+        ? '#ffffff'
+        : background.alreadyWhite
+          ? '#ffffff'
+          : `rgb(${background.color.join(',')})`;
       ctx.fillRect(0, 0, targetWidth, targetHeight);
 
       // 2. Intelligent framing: prevent cropping by scaling down into the safe area
@@ -220,10 +221,30 @@ const AdminProductEdit = () => {
   const [flipHorizontal, setFlipHorizontal] = useState(false);
   const [flipVertical, setFlipVertical] = useState(false);
   const [cropAspect, setCropAspect] = useState<number>(3/4);
-  const [isUploadingDetail, setIsUploadingDetail] = useState(false);
+  /**
+   * Where the cropper's output is headed.
+   *
+   * This replaces an `isUploadingDetail` boolean that no code path ever reset.
+   * Crop the 16:9, then crop the main image, and the second result was written
+   * over `detailImage` at a 16:9 aspect while the gallery got nothing — the
+   * flag was still true from the first operation, and the modal's two dismiss
+   * buttons cleared only `isCropping`. `null` means the cropper is closed, so
+   * the target cannot outlive the session that set it.
+   */
+  const [cropTarget, setCropTarget] = useState<"gallery" | "detail" | null>(null);
+
+  // The cut-out waiting for a yes or no. Nothing is written while this is set.
+  const [studioResult, setStudioResult] = useState<StudioResult | null>(null);
+  const [studioStage, setStudioStage] = useState("");
 
   // Track natural aspect ratios for Display Crop preview
   const [imageAspects, setImageAspects] = useState<Record<number, number>>({});
+  /** Which gallery photo the workbench below is acting on. */
+  const [selectedImage, setSelectedImage] = useState(0);
+  const [showVideo, setShowVideo] = useState(false);
+  /** Read once on mount; it outlives this page, so it cannot be derived state. */
+  const [clipboard, setClipboard] = useState<CropClipboard | null>(() => readCropClipboard());
+  const [applyingFraming, setApplyingFraming] = useState(false);
   const handleCropImageLoad = useCallback((imgIndex: number, e: React.SyntheticEvent<HTMLImageElement>) => {
     const img = e.currentTarget;
     if (img.naturalWidth && img.naturalHeight) {
@@ -259,6 +280,34 @@ const AdminProductEdit = () => {
     }));
   };
 
+  /**
+   * Open the cropper on one image, with every piece of its state set together.
+   *
+   * There were three call sites doing this by hand and each set a different
+   * subset: the pan, the zoom and the last crop rectangle were left over from
+   * whatever ran before, so reopening the cropper landed at 3x on someone
+   * else's framing.
+   */
+  const openCropper = (src: string, target: "gallery" | "detail") => {
+    setImageToCrop(src);
+    setCropTarget(target);
+    setCropAspect(target === "detail" ? 16 / 9 : 3 / 4);
+    setCrop({ x: 0, y: 0 });
+    setZoom(1);
+    setCroppedAreaPixels(null);
+    setFlipHorizontal(false);
+    setFlipVertical(false);
+    setIsCropping(true);
+  };
+
+  const closeCropper = () => {
+    setIsCropping(false);
+    setImageToCrop(null);
+    setCropTarget(null);
+    setFlipHorizontal(false);
+    setFlipVertical(false);
+  };
+
   const handleImageFile = (file: File, isDetail: boolean = false) => {
     if (!file.type.startsWith("image/")) {
       toast.error("Please upload an image file.");
@@ -269,20 +318,20 @@ const AdminProductEdit = () => {
     reader.onload = async (e) => {
       const base64 = e.target?.result as string;
       const loadingToast = toast.loading("Standardizing image for catalog...");
-      setIsUploadingDetail(isDetail);
-      setCropAspect(isDetail ? 16/9 : 3/4);
+      const target = isDetail ? "detail" : "gallery";
       try {
+        // No compressImage here: standardizeImage already emits a fixed
+        // 1500x2000 JPEG at 0.95, which is under compressImage's 4096px
+        // threshold, so it would only re-encode it at 0.82 — a second
+        // generation loss on the picture the cut-out is later made from.
         const standardized = await standardizeImage(base64, isDetail);
-        const compressed = await compressImage(standardized);
-        setImageToCrop(compressed);
-        setIsCropping(true);
+        openCropper(standardized, target);
         toast.dismiss(loadingToast);
       } catch (err) {
         toast.dismiss(loadingToast);
         toast.error("Standardization failed, using original.");
         const compressed = await compressImage(base64);
-        setImageToCrop(compressed);
-        setIsCropping(true);
+        openCropper(compressed, target);
       }
     };
     reader.readAsDataURL(file);
@@ -319,10 +368,9 @@ const AdminProductEdit = () => {
 
       const compressed = await compressImage(croppedImage);
 
-      setIsCropping(false);
-      setImageToCrop(null);
-      setFlipHorizontal(false);
-      setFlipVertical(false);
+      // Read the target before closing: `closeCropper` clears it.
+      const target = cropTarget;
+      closeCropper();
 
       // Show the loading toast with a fixed ID so we can reliably update it
       toast.loading("Uploading image to Cloudflare...", { id: uploadToastId });
@@ -330,7 +378,7 @@ const AdminProductEdit = () => {
       const r2Url = await uploadToR2(compressed);
 
       setProduct(prev => {
-        if (isUploadingDetail) {
+        if (target === "detail") {
           return { ...prev, detailImage: r2Url };
         }
         const newImages = [...(prev.images || [])];
@@ -378,84 +426,255 @@ const AdminProductEdit = () => {
     });
   };
 
-  const handleToggleBackgroundRemoval = async () => {
-    const newState = !product.removeBackground;
-    
-    if (newState) {
-      // Toggle ON — use a single fixed ID for the whole multi-step flow so it
-      // can always be updated in-place and can never be abandoned/stuck.
-      const bgToastId = "bg-removal-toast";
-      setIsProcessing(true);
-      toast.loading("AI is removing background...", { id: bgToastId });
-      
-      try {
-        const originalImage = product.originalImage || product.image;
-        
-        // Loaded only when someone actually presses the toggle. Imported at the
-        // top of the file it dragged onnxruntime and its ~26MB of WASM into the
-        // bundle every visitor downloads, admin or not.
-        const { removeBackground } = await import("@imgly/background-removal");
-        const blob = await removeBackground(originalImage);
-        
-        // Step 2: convert blob → base64 → compress → upload
-        const base64data = await new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result as string);
-          reader.onerror = reject;
-          reader.readAsDataURL(blob);
-        });
+  /**
+   * Cut the background out of the primary image.
+   *
+   * The work happens in `@/lib/imageStudio`; this only decides what to feed it
+   * and what to do with the answer. Nothing is committed until the preview is
+   * accepted — the old version wrote straight over the product, which is how a
+   * failed cut-out could replace a perfectly good photo with no way back.
+   */
+  /** The photo the workbench is pointed at, and the shot it was cut from. */
+  const currentImage = (product.images || [])[selectedImage] || product.image;
+  const currentOriginal = currentImage
+    ? product.originalImages?.[currentImage] ??
+      (currentImage === product.image ? product.originalImage : undefined)
+    : undefined;
 
-        const compressed = await compressImage(base64data);
+  const runBackgroundRemoval = async (strategy: Strategy = "auto") => {
+    // Always cut from the original when there is one: cutting a cut-out again
+    // compounds the edge damage instead of improving on it.
+    const source = currentOriginal || currentImage;
+    if (!source) return;
 
-        // Update the same toast in-place for the upload step
-        toast.loading("Uploading transparent image to Cloudflare...", { id: bgToastId });
-
-        const r2Url = await uploadToR2(compressed);
-        setProduct(prev => ({
-          ...prev,
-          image: r2Url,
-          originalImage: originalImage,
-          removeBackground: true,
-        }));
-
-        toast.success("Background removed and uploaded.", { id: bgToastId });
-      } catch (error) {
-        console.error("Background removal failed:", error);
-        toast.error("AI background removal failed. Try another image.", { id: bgToastId });
-      } finally {
-        setIsProcessing(false);
-      }
-    } else {
-      // Toggle OFF
-      if (product.originalImage) {
-        setProduct(prev => ({
-          ...prev,
-          image: prev.originalImage || prev.image,
-          removeBackground: false,
-        }));
-      } else {
-        setProduct(prev => ({ ...prev, removeBackground: false }));
-      }
-      toast.success("Original background restored.");
+    setIsProcessing(true);
+    setStudioStage("Loading the model...");
+    try {
+      const { processImage } = await import("@/lib/imageStudio");
+      const result = await processImage(source, {
+        strategy,
+        progress: (stage, current, total) => {
+          const percent = total > 0 ? Math.round((current / total) * 100) : 0;
+          setStudioStage(
+            stage.startsWith("fetch")
+              ? `Downloading the model — ${percent}%`
+              : `Cutting out — ${percent}%`
+          );
+        },
+      });
+      setStudioResult(result);
+    } catch (error) {
+      console.error("Background removal failed:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Background removal failed. Try another image."
+      );
+    } finally {
+      setIsProcessing(false);
+      setStudioStage("");
     }
   };
 
+  /** Commit an accepted cut-out: upload it, then point the product at it. */
+  const acceptCutout = async () => {
+    if (!studioResult) return;
+    const target = currentImage;
+    const source = currentOriginal || target;
+    setIsProcessing(true);
+    try {
+      const url = await uploadToR2(studioResult.dataUrl, studioResult.extension);
+      // A failed upload comes back as a data URL rather than throwing, so what
+      // came back is the only way to tell the two apart. Reporting success
+      // either way is what kept the broken upload service invisible.
+      const keptLocally = url.startsWith("data:");
+      setProduct(prev => {
+        // The cut-out replaces the photo it was made from, wherever that sits
+        // in the gallery — and the primary follows only if it was the primary.
+        const images = (prev.images || []).map(img => (img === target ? url : img));
+        const wasPrimary = prev.image === target;
+        return {
+          ...prev,
+          images,
+          image: wasPrimary ? url : prev.image,
+          originalImages: { ...(prev.originalImages || {}), [url]: source },
+          // Kept for the batch Studio page and for catalogues written before
+          // `originalImages` existed.
+          originalImage: wasPrimary ? source : prev.originalImage,
+          removeBackground: wasPrimary ? true : prev.removeBackground,
+        };
+      });
+      setStudioResult(null);
+      if (keptLocally) {
+        toast.warning(
+          "Cut-out kept in this browser only — the upload service is unavailable, " +
+            "so it will not reach the live shop and it counts against the 5MB limit.",
+          { duration: 10000 }
+        );
+      } else {
+        toast.success("Background removed.");
+      }
+    } catch (error) {
+      console.error("Upload failed:", error);
+      toast.error("The cut-out could not be uploaded.");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleToggleBackgroundRemoval = async () => {
+    if (!product.removeBackground) {
+      await runBackgroundRemoval();
+      return;
+    }
+
+    // Turning it off. Without an original there is nothing to go back to, so
+    // say that instead of flipping the flag and leaving the cut-out in place,
+    // which is what it used to do.
+    if (!product.originalImage) {
+      toast.error("The original photo was not kept, so it cannot be restored.");
+      return;
+    }
+    setProduct(prev => ({
+      ...prev,
+      image: prev.originalImage!,
+      images: (prev.images || []).map(img => (img === prev.image ? prev.originalImage! : img)),
+      removeBackground: false,
+    }));
+    toast.success("Original background restored.");
+  };
+
+
+  /**
+   * Move the framing along with the photo it belongs to.
+   *
+   * `displayCrops` is keyed by position in `images`, so reordering or deleting
+   * used to hand one photo's framing to whichever photo slid into its index —
+   * a 3x zoom on a detail shot silently jumping onto the next product photo.
+   * The keys are remapped here rather than migrated to URLs, because the
+   * catalogue already carries hundreds of index-keyed entries.
+   */
+  const remapCrops = (
+    crops: Product["displayCrops"],
+    move: (oldIndex: number) => number | null,
+  ): Product["displayCrops"] => {
+    if (!crops) return crops;
+    const next: NonNullable<Product["displayCrops"]> = {};
+    for (const [key, value] of Object.entries(crops)) {
+      const to = move(Number(key));
+      if (to !== null) next[to] = value;
+    }
+    return Object.keys(next).length > 0 ? next : undefined;
+  };
 
   const moveImage = (index: number, direction: 'up' | 'down') => {
     const newImages = [...(product.images || [])];
     const newIndex = direction === 'up' ? index - 1 : index + 1;
     if (newIndex < 0 || newIndex >= newImages.length) return;
-    
+
     [newImages[index], newImages[newIndex]] = [newImages[newIndex], newImages[index]];
-    setProduct(prev => ({ ...prev, images: newImages }));
+    setProduct(prev => ({
+      ...prev,
+      images: newImages,
+      displayCrops: remapCrops(prev.displayCrops, (i) =>
+        i === index ? newIndex : i === newIndex ? index : i
+      ),
+    }));
+    setSelectedImage(newIndex);
   };
 
   const removeImage = (index: number) => {
     const newImages = (product.images || []).filter((_, i) => i !== index);
-    setProduct(prev => ({ 
-      ...prev, 
+    setProduct(prev => ({
+      ...prev,
       images: newImages,
-      image: prev.image === prev.images?.[index] ? (newImages[0] || "") : prev.image
+      image: prev.image === prev.images?.[index] ? (newImages[0] || "") : prev.image,
+      displayCrops: remapCrops(prev.displayCrops, (i) =>
+        i === index ? null : i > index ? i - 1 : i
+      ),
+    }));
+    setSelectedImage((current) => Math.max(0, Math.min(current, newImages.length - 1)));
+  };
+
+  /** Put the photo this cut-out was made from back in its place. */
+  const restoreOriginal = () => {
+    if (!currentImage || !currentOriginal) return;
+    setProduct(prev => {
+      const images = (prev.images || []).map(img => (img === currentImage ? currentOriginal : img));
+      const wasPrimary = prev.image === currentImage;
+      const originals = { ...(prev.originalImages || {}) };
+      delete originals[currentImage];
+      return {
+        ...prev,
+        images,
+        image: wasPrimary ? currentOriginal : prev.image,
+        originalImages: Object.keys(originals).length > 0 ? originals : undefined,
+        removeBackground: wasPrimary ? false : prev.removeBackground,
+      };
+    });
+    toast.success("Original photo restored.");
+  };
+
+  const copyFraming = () => {
+    const crop = product.displayCrops?.[selectedImage];
+    if (!crop || !currentImage) return;
+    const value: CropClipboard = {
+      crop,
+      index: selectedImage,
+      sourceName: product.name || "this product",
+      sourceImage: currentImage,
+    };
+    writeCropClipboard(value);
+    setClipboard(value);
+    toast.success("Framing copied.");
+  };
+
+  const pasteFraming = () => {
+    if (!clipboard) return;
+    setProduct(prev => ({
+      ...prev,
+      displayCrops: { ...(prev.displayCrops || {}), [selectedImage]: { ...clipboard.crop } },
+    }));
+    toast.success("Framing pasted.");
+  };
+
+  /**
+   * Write one framing onto many products at once.
+   *
+   * This goes straight to storage rather than through the editor's own product
+   * state: the products being changed are not the one open on screen, and
+   * `saveProductsBulk` writes the catalogue once instead of re-serialising it
+   * per product. A quota failure surfaces here rather than being swallowed.
+   */
+  const applyFramingToOthers = (ids: string[], everyImage: boolean) => {
+    if (!clipboard) return;
+    const chosen = getProducts().filter(p => ids.includes(p.id));
+    const { updated, skipped } = applyCropToProducts(
+      chosen, clipboard.crop, clipboard.index, everyImage
+    );
+    try {
+      saveProductsBulk(updated);
+    } catch (error) {
+      console.error("Bulk framing failed:", error);
+      toast.error(
+        error instanceof Error ? error.message : "The framing could not be saved.",
+        { duration: 10000 }
+      );
+      return;
+    }
+    setApplyingFraming(false);
+    toast.success(
+      skipped > 0
+        ? `Framing applied to ${updated.length} products. ${skipped} skipped — no photo in that slot.`
+        : `Framing applied to ${updated.length} products.`,
+      { duration: 6000 }
+    );
+  };
+
+  /** Point the 16:9 slot at this photo, or clear it if it already is. */
+  const toggleDetailImage = () => {
+    if (!currentImage) return;
+    setProduct(prev => ({
+      ...prev,
+      detailImage: prev.detailImage === currentImage ? undefined : currentImage,
     }));
   };
 
@@ -486,7 +705,19 @@ const AdminProductEdit = () => {
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
-    saveProduct(product);
+    try {
+      saveProduct(product);
+    } catch (error) {
+      // Staying put is the point. This used to navigate away unconditionally,
+      // so a save that failed on the storage quota discarded the edit and
+      // returned to the list looking exactly like a save that had worked.
+      console.error("Save failed:", error);
+      toast.error(
+        error instanceof Error ? error.message : "This product could not be saved.",
+        { duration: 10000 }
+      );
+      return;
+    }
     navigate("/admin/products");
   };
 
@@ -700,426 +931,99 @@ const AdminProductEdit = () => {
               </div>
             </div>
 
-            {/* Product Gallery - full width below the 2-col grid */}
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h3 className="text-[11px] uppercase tracking-[0.3em] font-bold text-muted-foreground">Product Gallery</h3>
-                <p className="text-[10px] text-muted-foreground italic">Drag to reorder sequence</p>
-              </div>
-              <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-8 lg:grid-cols-10 gap-4">
-                {(product.images || []).map((img, index) => (
-                  <div key={index} className="group relative aspect-square rounded-[16px] overflow-hidden border border-border bg-secondary/20 transition-all hover:border-primary">
-                    <img src={img} alt="" className="w-full h-full object-cover" />
-                    {product.image === img && (
-                      <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 bg-primary text-white text-[7px] uppercase tracking-widest rounded-full">
-                        Primary
-                      </div>
-                    )}
-                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all flex flex-col items-center justify-center gap-1.5">
-                      <button
-                        type="button"
-                        onClick={() => setMainImage(index)}
-                        className="p-1.5 bg-white text-black rounded-full hover:scale-110 transition-transform"
-                        title="Set as Main"
-                      >
-                        <CheckCircle2 className="w-3 h-3" />
-                      </button>
-                      <div className="flex gap-1">
-                        <button
-                          type="button"
-                          disabled={index === 0}
-                          onClick={() => moveImage(index, 'up')}
-                          className="p-1.5 bg-white/20 text-white rounded-full hover:bg-white/40 transition-colors disabled:opacity-30"
-                        >
-                          <ArrowLeft className="w-2.5 h-2.5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => removeImage(index)}
-                          className="p-1.5 bg-destructive/80 text-white rounded-full hover:bg-destructive transition-colors"
-                        >
-                          <Trash2 className="w-2.5 h-2.5" />
-                        </button>
-                        <button
-                          type="button"
-                          disabled={index === (product.images?.length || 0) - 1}
-                          onClick={() => moveImage(index, 'down')}
-                          className="p-1.5 bg-white/20 text-white rounded-full hover:bg-white/40 transition-colors disabled:opacity-30"
-                        >
-                          <ArrowRight className="w-2.5 h-2.5" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-                <button
-                  type="button"
-                  onClick={() => document.getElementById('image-upload')?.click()}
-                  className="aspect-square rounded-[16px] border-2 border-dashed border-border flex flex-col items-center justify-center gap-1 text-muted-foreground hover:border-primary hover:text-primary transition-all bg-secondary/5"
-                >
-                  <Upload className="w-4 h-4" />
-                  <span className="text-[9px] uppercase tracking-widest font-bold">Add</span>
-                </button>
-              </div>
-            </div>
-
-              {/* Image Lab */}
-              <div className="space-y-6">
-                <label className="block text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-bold">Visual Asset Management</label>
-                
-                <div 
-                  className="group relative aspect-[4/5] bg-secondary/30 rounded-[24px] border-2 border-dashed border-border flex flex-col items-center justify-center p-8 transition-all hover:border-primary/50 hover:bg-secondary/50 cursor-pointer overflow-hidden"
-                  onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                  onDrop={(e) => {
-                    e.preventDefault(); e.stopPropagation();
-                    const file = e.dataTransfer.files?.[0];
-                    if (file) handleImageFile(file);
-                  }}
-                  onClick={() => document.getElementById('image-upload')?.click()}
-                >
-                  {product.image ? (
-                    <img src={product.image} className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="" />
-                  ) : (
-                    <div className="text-center space-y-4">
-                      <div className="w-16 h-16 bg-background rounded-full flex items-center justify-center mx-auto shadow-sm border border-border group-hover:scale-110 transition-transform">
-                        <Upload className="w-6 h-6 text-muted-foreground group-hover:text-primary" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">Drop high-quality image here</p>
-                        <p className="text-[10px] uppercase tracking-widest text-muted-foreground mt-1">or click to browse</p>
-                      </div>
-                    </div>
-                  )}
-                  
-                  {product.image && (
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
-                       <button 
-                        type="button" 
-                        onClick={(e) => { e.stopPropagation(); setIsCropping(true); setImageToCrop(product.image); }}
-                        className="p-3 bg-white text-black rounded-full hover:scale-110 transition-transform"
-                      >
-                        <Crop className="w-5 h-5" />
-                      </button>
-                      <button 
-                        type="button" 
-                        onClick={(e) => { e.stopPropagation(); handleToggleBackgroundRemoval(); }}
-                        className={`p-3 rounded-full hover:scale-110 transition-transform ${product.removeBackground ? 'bg-primary text-white' : 'bg-white text-black'}`}
-                      >
-                        <Eraser className="w-5 h-5" />
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                <input
-                  type="file"
-                  id="image-upload"
-                  className="hidden"
-                  accept="image/*,video/*"
-                  onChange={handleFileUpload}
-                />
-
-                <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground text-center">
-                  Tip: You can also paste an image directly (Ctrl+V)
-                </p>
-              </div>
-
-            {/* AI Studio Controls */}
-            <div className="bg-secondary/20 p-6 rounded-[24px] border border-border/50 flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${product.removeBackground ? 'bg-primary text-white' : 'bg-secondary text-muted-foreground'}`}>
-                  <Eraser className="w-5 h-5" />
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium">AI Background Removal</h4>
-                  <p className="text-xs text-muted-foreground">Isolate the product for a seamless look.</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-4">
-                {isProcessing && (
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                    <span className="text-[10px] uppercase tracking-widest text-primary animate-pulse">Processing...</span>
-                  </div>
-                )}
-                <button
-                  type="button"
-                  disabled={isProcessing || !product.image}
-                  onClick={handleToggleBackgroundRemoval}
-                  className={`w-14 h-7 rounded-full transition-all relative ${product.removeBackground ? 'bg-primary shadow-[0_0_15px_rgba(var(--primary),0.3)]' : 'bg-border'} ${isProcessing ? 'opacity-50 cursor-not-allowed' : ''}`}
-                >
-                  <div className={`absolute top-1 w-5 h-5 rounded-full bg-white shadow-sm transition-all ${product.removeBackground ? 'left-8' : 'left-1'}`} />
-                </button>
-              </div>
-            </div>
-
-            {/* Video & Motion Section */}
-            <div className="bg-secondary/10 p-8 rounded-[32px] border border-border/40 space-y-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                    <Film className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-medium">Cinematic Motion</h3>
-                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Add video for an immersive luxury experience</p>
-                  </div>
-                </div>
-                {product.video && (
-                  <button 
-                    type="button"
-                    onClick={() => setProduct(prev => ({ ...prev, video: undefined }))}
-                    className="text-[10px] uppercase tracking-widest text-destructive hover:opacity-70 flex items-center gap-1"
-                  >
-                    <X className="w-3 h-3" /> Remove Video
-                  </button>
-                )}
-              </div>
-
-              <div className="relative group aspect-video bg-black/5 rounded-[24px] border-2 border-dashed border-border/60 overflow-hidden transition-all hover:border-primary/40">
-                {product.video ? (
-                  <video 
-                    src={product.video} 
-                    className="w-full h-full object-cover" 
-                    autoPlay 
-                    muted 
-                    loop 
-                    playsInline
-                  />
-                ) : (
-                  <div 
-                    className="absolute inset-0 flex flex-col items-center justify-center gap-4 cursor-pointer"
-                    onClick={() => document.getElementById('image-upload')?.click()}
-                  >
-                    <div className="w-12 h-12 bg-background rounded-full flex items-center justify-center shadow-sm border border-border group-hover:scale-110 transition-transform">
-                      <Film className="w-5 h-5 text-muted-foreground group-hover:text-primary" />
-                    </div>
-                    <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Upload Video (MP4/WebM)</p>
-                  </div>
-                )}
-              </div>
-            </div>
           </section>
 
-          {/* ─── Display Crop (Focal Point) Section ─── */}
-          {product.images && product.images.length > 0 && (() => {
-            // Match the exact aspect ratio used on the product detail page
-            const isShoe = product.category?.toLowerCase() === 'footwear';
-            const previewAspectClass = isShoe ? 'aspect-[4/3]' : 'aspect-[4/5]';
-            const containerAspect = isShoe ? 4 / 3 : 4 / 5;
+          {/* ─── Images ─── */}
+          <section className="glass p-10 rounded-[32px] border border-white/20 shadow-sm space-y-8">
+            <GalleryStrip
+              images={product.images || []}
+              primary={product.image}
+              selected={selectedImage}
+              video={product.video}
+              onSelect={setSelectedImage}
+              onSetPrimary={setMainImage}
+              onMove={moveImage}
+              onRemove={removeImage}
+              onFilePicked={(file) => {
+                if (file.type.startsWith("video/")) {
+                  handleVideoFile(file);
+                  setShowVideo(true);
+                } else {
+                  handleImageFile(file);
+                }
+              }}
+              onVideoClick={() => setShowVideo((open) => !open)}
+            />
 
-            return (
-            <section className="glass p-10 rounded-[32px] border border-white/20 shadow-sm space-y-6">
-              <div>
-                <div className="flex items-center gap-3 mb-1">
-                  <Move className="w-5 h-5 text-muted-foreground" />
-                  <h3 className="text-sm font-medium">Detail Page Display Crop</h3>
-                </div>
-                <p className="text-[10px] uppercase tracking-widest text-muted-foreground mt-1 ml-8">
-                  Choose which part of each image is visible on the product detail page
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {product.images!.map((img, imgIndex) => {
-                  const cropData = product.displayCrops?.[imgIndex] || { x: 50, y: 50, zoom: 1 };
-                  const hasCrop = !!product.displayCrops?.[imgIndex];
-                  const imgAspect = imageAspects[imgIndex];
-
-                  // Compute precise positioning when we know the image's natural aspect ratio
-                  const cropStyles = imgAspect
-                    ? computeCropStyles(imgAspect, containerAspect, cropData)
-                    : { width: '100%', height: '100%', objectFit: 'contain' as const };
-
-                  return (
-                    <div key={imgIndex} className="rounded-2xl border border-border bg-white p-4 space-y-4">
-                      {/* Preview — matches product detail page aspect ratio */}
-                      <div className={`relative ${previewAspectClass} rounded-xl overflow-hidden bg-[#f5f5f5] border border-border/50`}>
-                        <img
-                          src={img}
-                          alt={`Image ${imgIndex + 1}`}
-                          className="transition-all duration-200 ease-out"
-                          onLoad={(e) => handleCropImageLoad(imgIndex, e)}
-                          style={cropStyles}
-                        />
-                        <div className="absolute top-2 left-2 bg-black/60 text-white text-[9px] uppercase tracking-widest font-bold px-2.5 py-1 rounded-full backdrop-blur-sm z-10">
-                          {imgIndex + 1} / {product.images!.length}
-                        </div>
-                        {hasCrop && (
-                          <div className="absolute top-2 right-2 bg-emerald-500/90 text-white text-[9px] uppercase tracking-widest font-bold px-2.5 py-1 rounded-full backdrop-blur-sm z-10">
-                            Cropped
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Controls */}
-                      <div className="space-y-3">
-                        {/* X Position */}
-                        <div className="space-y-1">
-                          <div className="flex justify-between items-center">
-                            <label className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground font-semibold">Horizontal Position</label>
-                            <span className="text-[10px] font-mono text-muted-foreground">{cropData.x}%</span>
-                          </div>
-                          <input
-                            type="range"
-                            min={0}
-                            max={100}
-                            value={cropData.x}
-                            onChange={(e) => {
-                              const val = Number(e.target.value);
-                              setProduct(prev => ({
-                                ...prev,
-                                displayCrops: {
-                                  ...(prev.displayCrops || {}),
-                                  [imgIndex]: { ...cropData, x: val },
-                                },
-                              }));
-                            }}
-                            className="w-full accent-black h-1.5 rounded-full appearance-none bg-gray-200 cursor-pointer"
-                          />
-                        </div>
-
-                        {/* Y Position */}
-                        <div className="space-y-1">
-                          <div className="flex justify-between items-center">
-                            <label className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground font-semibold">Vertical Position</label>
-                            <span className="text-[10px] font-mono text-muted-foreground">{cropData.y}%</span>
-                          </div>
-                          <input
-                            type="range"
-                            min={0}
-                            max={100}
-                            value={cropData.y}
-                            onChange={(e) => {
-                              const val = Number(e.target.value);
-                              setProduct(prev => ({
-                                ...prev,
-                                displayCrops: {
-                                  ...(prev.displayCrops || {}),
-                                  [imgIndex]: { ...cropData, y: val },
-                                },
-                              }));
-                            }}
-                            className="w-full accent-black h-1.5 rounded-full appearance-none bg-gray-200 cursor-pointer"
-                          />
-                        </div>
-
-                        {/* Zoom */}
-                        <div className="space-y-1">
-                          <div className="flex justify-between items-center">
-                            <label className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground font-semibold">Zoom</label>
-                            <span className="text-[10px] font-mono text-muted-foreground">{cropData.zoom.toFixed(1)}x</span>
-                          </div>
-                          <input
-                            type="range"
-                            min={1}
-                            max={3}
-                            step={0.1}
-                            value={cropData.zoom}
-                            onChange={(e) => {
-                              const val = Number(e.target.value);
-                              setProduct(prev => ({
-                                ...prev,
-                                displayCrops: {
-                                  ...(prev.displayCrops || {}),
-                                  [imgIndex]: { ...cropData, zoom: val },
-                                },
-                              }));
-                            }}
-                            className="w-full accent-black h-1.5 rounded-full appearance-none bg-gray-200 cursor-pointer"
-                          />
-                        </div>
-
-                        {/* Reset */}
-                        {hasCrop && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setProduct(prev => {
-                                const newCrops = { ...(prev.displayCrops || {}) };
-                                delete newCrops[imgIndex];
-                                return { ...prev, displayCrops: Object.keys(newCrops).length > 0 ? newCrops : undefined };
-                              });
-                            }}
-                            className="flex items-center gap-2 text-[9px] uppercase tracking-widest font-semibold text-red-500 hover:text-red-700 transition-colors mt-1"
-                          >
-                            <RotateCcw className="w-3.5 h-3.5" />
-                            Reset to Default
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </section>
-            );
-          })()}
-
-          {/* Footwear 16:9 Detail Image Section */}
-          {product.category?.toLowerCase() === 'footwear' && (
-            <section className="glass p-10 rounded-[32px] border border-white/20 shadow-sm space-y-6">
-              <div>
-                <h3 className="text-sm font-medium">16:9 Detail Image</h3>
-                <p className="text-[10px] uppercase tracking-widest text-muted-foreground mt-1">Upload a landscape picture specifically for the footwear product detail page</p>
-              </div>
-              <div 
-                className="group relative aspect-video bg-secondary/30 rounded-[24px] border-2 border-dashed border-border flex flex-col items-center justify-center p-8 transition-all hover:border-primary/50 hover:bg-secondary/50 cursor-pointer overflow-hidden max-w-xl"
-                onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                onDrop={(e) => {
-                  e.preventDefault(); e.stopPropagation();
-                  const file = e.dataTransfer.files?.[0];
-                  if (file) handleImageFile(file, true);
-                }}
-                onClick={() => document.getElementById('detail-image-upload')?.click()}
-              >
-                {product.detailImage ? (
-                  <img src={product.detailImage} className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="" />
-                ) : (
-                  <div className="text-center space-y-4">
-                    <div className="w-16 h-16 bg-background rounded-full flex items-center justify-center mx-auto shadow-sm border border-border group-hover:scale-110 transition-transform">
-                      <ImageIcon className="w-6 h-6 text-muted-foreground group-hover:text-primary" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium">Drop 16:9 image here</p>
-                      <p className="text-[10px] uppercase tracking-widest text-muted-foreground mt-1">or click to browse</p>
-                    </div>
-                  </div>
-                )}
-                
-                {product.detailImage && (
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
-                     <button 
-                      type="button" 
-                      onClick={(e) => { e.stopPropagation(); setIsUploadingDetail(true); setCropAspect(16/9); setIsCropping(true); setImageToCrop(product.detailImage!); }}
-                      className="p-3 bg-white text-black rounded-full hover:scale-110 transition-transform"
-                    >
-                      <Crop className="w-5 h-5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={(e) => { e.stopPropagation(); setProduct(prev => ({ ...prev, detailImage: undefined })); }}
-                      className="p-3 bg-red-500 text-white rounded-full hover:scale-110 transition-transform"
-                    >
-                      <Trash2 className="w-5 h-5" />
-                    </button>
-                  </div>
-                )}
-              </div>
-              <input
-                type="file"
-                id="detail-image-upload"
-                className="hidden"
-                accept="image/*"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) handleImageFile(file, true);
-                }}
+            {showVideo && (
+              <VideoWidget
+                video={product.video}
+                onFilePicked={handleVideoFile}
+                onRemove={() => setProduct(prev => ({ ...prev, video: undefined }))}
+                onClose={() => setShowVideo(false)}
               />
-            </section>
-          )}
+            )}
+
+            {currentImage ? (
+              <ImageWorkbench
+                src={currentImage}
+                index={selectedImage}
+                isPrimary={product.image === currentImage}
+                isDetail={product.detailImage === currentImage}
+                category={product.category}
+                crop={product.displayCrops?.[selectedImage]}
+                imageAspect={imageAspects[selectedImage]}
+                original={currentOriginal}
+                isProcessing={isProcessing}
+                stage={studioStage}
+                onRemoveBackground={() => runBackgroundRemoval()}
+                onRestoreOriginal={restoreOriginal}
+                onRecrop={() => openCropper(currentImage, "gallery")}
+                onCropChange={(next) =>
+                  setProduct(prev => ({
+                    ...prev,
+                    displayCrops: { ...(prev.displayCrops || {}), [selectedImage]: next },
+                  }))
+                }
+                onCropReset={() =>
+                  setProduct(prev => {
+                    const crops = { ...(prev.displayCrops || {}) };
+                    delete crops[selectedImage];
+                    return {
+                      ...prev,
+                      displayCrops: Object.keys(crops).length > 0 ? crops : undefined,
+                    };
+                  })
+                }
+                onMeasured={(aspect) =>
+                  setImageAspects(prev =>
+                    prev[selectedImage] === aspect ? prev : { ...prev, [selectedImage]: aspect }
+                  )
+                }
+                onToggleDetail={toggleDetailImage}
+                hasCopied={clipboard !== null}
+                onCopyFraming={copyFraming}
+                onPasteFraming={pasteFraming}
+                onApplyFramingToOthers={() => setApplyingFraming(true)}
+              />
+            ) : (
+              <p className="text-center text-[10px] uppercase tracking-[0.2em] text-muted-foreground py-12">
+                Add a photo to start
+              </p>
+            )}
+          </section>
 
       </div>
+
+      {applyingFraming && clipboard && (
+        <ApplyFramingDialog
+          clipboard={clipboard}
+          products={getProducts()}
+          currentId={product.id}
+          onApply={applyFramingToOthers}
+          onClose={() => setApplyingFraming(false)}
+        />
+      )}
 
       {/* Cropper Modal */}
       {isCropping && imageToCrop && (
@@ -1133,7 +1037,7 @@ const AdminProductEdit = () => {
                 <h3 className="font-display text-xl">Asset Refinement</h3>
               </div>
               <button 
-                onClick={() => setIsCropping(false)}
+                onClick={closeCropper}
                 className="p-3 hover:bg-secondary rounded-full transition-all active:scale-90"
               >
                 <X className="w-6 h-6" />
@@ -1193,7 +1097,7 @@ const AdminProductEdit = () => {
               
               <div className="flex gap-4">
                 <button 
-                  onClick={() => setIsCropping(false)}
+                  onClick={closeCropper}
                   className="px-8 py-3 rounded-full border border-border text-[10px] uppercase tracking-[0.2em] hover:bg-secondary transition-colors"
                 >
                   Discard
@@ -1209,6 +1113,20 @@ const AdminProductEdit = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {studioResult && (
+        <CutoutPreview
+          before={product.originalImage || product.image}
+          result={studioResult}
+          busy={isProcessing}
+          onAccept={acceptCutout}
+          onCancel={() => setStudioResult(null)}
+          onRetry={(strategy) => {
+            setStudioResult(null);
+            runBackgroundRemoval(strategy);
+          }}
+        />
       )}
     </div>
   );

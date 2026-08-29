@@ -27,11 +27,20 @@ export async function compressImage(base64: string, maxWidth = 4096, quality = 1
       
       ctx.drawImage(img, 0, 0, width, height);
       
-      // If the image is transparent (from background removal), we must use PNG
-      const isTransparent = base64.includes('image/png') || base64.startsWith('data:image/png');
-      
+      // Anything that can carry an alpha channel keeps its format. Re-encoding
+      // a cut-out as JPEG flattens the transparency onto black, which is how a
+      // background-removed product would arrive back with a dark box around it.
+      // WebP is on this list as well as PNG: the studio writes WebP, and
+      // matching on PNG alone silently destroyed it.
+      const mime = base64.slice(5, base64.indexOf(';'));
+      const keepsAlpha = mime === 'image/png' || mime === 'image/webp';
+
       // Compress JPEGs at 0.82 quality for optimal file size and fast uploads
-      resolve(canvas.toDataURL(isTransparent ? 'image/png' : 'image/jpeg', isTransparent ? 0.85 : 0.82));
+      resolve(
+        keepsAlpha
+          ? canvas.toDataURL(mime, 0.92)
+          : canvas.toDataURL('image/jpeg', 0.82)
+      );
     };
   });
 }

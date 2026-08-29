@@ -10,8 +10,12 @@ import {
 } from 'framer-motion';
 import { SlidersHorizontal, Package, MessageSquare, Send, CheckCircle, Smartphone, Fingerprint, RefreshCcw, Bell, Newspaper, Lock, ArrowLeft, Check, ChevronDown } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useLanguage } from '../contexts/LanguageContext';
+import { useLanguage, type Language } from '../contexts/LanguageContext';
 import { useOnboarding } from '../contexts/OnboardingContext';
+import { useVoiceAssistant } from '@/contexts/VoiceAssistantContext';
+import VoiceToggle from '@/components/VoiceToggle';
+import { VOICE_CUES, greetingCueForHour } from '@/lib/voiceLines';
+import { useNarrateOnDwell } from '@/hooks/useNarrateOnDwell';
 import { designers as staticDesigners } from '../data/products';
 import { supabase } from '../lib/supabase';
 import { getDesigners, getProducts, getDesignSettings } from '../lib/store';
@@ -532,6 +536,13 @@ TestimonialsSection.displayName = 'TestimonialsSection';
 // point the tour hands over. Two jobs at once: it says how much is left (five
 // short steps, not an open-ended form), and every note is the way into its own
 // step — pressing one opens that part of the flow and takes you there.
+/**
+ * The five chapters of the page, in the order the scroll meets them. Shared by
+ * the chapter rail and by the assistant, so a chapter cannot be renamed in one
+ * without the other following.
+ */
+const CHAPTER_KEYS = ['welcome', 'member', 'about', 'reviews', 'catalog'] as const;
+
 /** Every gated section of the flow, in the order someone meets them. */
 const ONBOARDING_SECTION_ORDER = [
   'install',
@@ -713,6 +724,15 @@ const Onboarding = () => {
   const brandsRef = React.useRef<HTMLElement>(null);
   const emailRef = React.useRef<HTMLElement>(null);
   const { language, setLanguage, t } = useLanguage();
+  const { speakCue } = useVoiceAssistant();
+
+  // Two of the spoken lines greet the visitor by name. Read through a ref so
+  // `revealSection` keeps one identity for the life of the page instead of a
+  // new one on every keystroke in the name field.
+  const firstNameRef = React.useRef(firstName);
+  React.useEffect(() => {
+    firstNameRef.current = firstName;
+  }, [firstName]);
 
   // Helper: reveal a section and smooth-scroll to it
   const revealSection = React.useCallback((key: string, ref: React.RefObject<HTMLElement | null>) => {
@@ -801,7 +821,7 @@ const Onboarding = () => {
 
   const chapters: Chapter[] = React.useMemo(
     () =>
-      (['welcome', 'member', 'about', 'reviews', 'catalog'] as const).map((key, i) => ({
+      CHAPTER_KEYS.map((key, i) => ({
         id: key,
         meta: String(i + 1).padStart(2, '0'),
         title: t(`chapter_${key}_title`),
@@ -818,6 +838,70 @@ const Onboarding = () => {
     },
     [chapterTargets]
   );
+
+  // ─── What the assistant says on this page ────────────────────────────────
+  //
+  // Narration follows which sections are *revealed*, not the function that
+  // revealed them. There are two ways in — the continue buttons go through
+  // `revealSection`, while the steps board goes through `goToOnboardingStep`,
+  // which adds to the set directly — so hooking either one leaves the other
+  // mute. The set is the thing both of them agree on.
+  const narratedSectionsRef = React.useRef<Set<string>>(new Set());
+  React.useEffect(() => {
+    const fresh = ONBOARDING_SECTION_ORDER.filter(
+      (key) => revealedSections.has(key) && !narratedSectionsRef.current.has(key)
+    );
+    if (fresh.length === 0) return;
+    fresh.forEach((key) => narratedSectionsRef.current.add(key));
+
+    // The board opens every section up to the one it was aimed at, so several
+    // can arrive together. Only the last is read: it is the one the page
+    // scrolls to, and the rest are behind the visitor.
+    const cueId = `onboarding_${fresh[fresh.length - 1]}` as keyof typeof VOICE_CUES;
+    if (!(cueId in VOICE_CUES)) return;
+
+    // Waits for the scroll to settle. A section read out while it is still
+    // sliding into place arrives before the thing it is describing.
+    const timer = window.setTimeout(
+      () => speakCue(cueId, { name: firstNameRef.current.trim() }),
+      700
+    );
+    return () => clearTimeout(timer);
+  }, [revealedSections, speakCue]);
+
+  // The site introduces itself as soon as it opens, in the language it is
+  // already set to — the one detected or remembered from last time.
+  //
+  // Nothing is heard until the first tap, because a browser will not start
+  // audio before one. The line is not lost though: it waits, and the first
+  // touch anywhere releases it. Guarded by a ref rather than an empty
+  // dependency list so that changing language later does not greet again —
+  // the picker already answers that itself.
+  const greetedRef = React.useRef(false);
+  React.useEffect(() => {
+    if (greetedRef.current) return;
+    greetedRef.current = true;
+    speakCue(greetingCueForHour(), undefined, language);
+  }, [speakCue, language]);
+
+  // The three places on this page you reach by scrolling rather than by
+  // opening anything. Each speaks once, and only after the visitor has stopped
+  // on it — see useNarrateOnDwell for why that is not the same as scrolling
+  // past it.
+  // The spoken count comes from the same place as the one printed beside the
+  // selector, so the voice and the page cannot disagree about how big the
+  // catalogue is.
+  const spokenPieceCount = React.useMemo(() => getProducts().length, []);
+  useNarrateOnDwell(aboutSectionRef, 'about', {
+    vars: { count: String(spokenPieceCount) },
+  });
+  useNarrateOnDwell(testimonialsRef, 'reviews');
+  useNarrateOnDwell(tourSectionRef, 'catalog_preview');
+
+  // Nothing fires on a bare scroll position. A line that arrives because the
+  // page happened to pass a boundary has no cause the visitor can point at,
+  // and reads as the site talking to itself. Every line here answers either
+  // something someone did, or somewhere they chose to stop.
 
   // What gets printed on the pass. Resolved once per language rather than on
   // every render, so the ticket never re-renders mid-feed.
@@ -1027,8 +1111,16 @@ const Onboarding = () => {
     // circle and the dropdown in the revealed content) so either one updates
     // the site's language immediately and keeps the other in sync.
     const handleSelectLanguage = (lang: LanguageOption) => {
-      setLocalLang(lang.code as any);
-      setLanguage(lang.code as any);
+      const code = lang.code as Language;
+      setLocalLang(code);
+      setLanguage(code);
+
+      // Answer in the language that was just touched, so choosing one is how
+      // you hear it. The cue is named explicitly rather than left to follow
+      // the site's own language, which has not caught up in this tick — and
+      // more to the point, the whole purpose is to speak the option rather
+      // than the current setting.
+      speakCue(greetingCueForHour(), undefined, code);
     };
 
     const greetingRoulette = (
@@ -1784,6 +1876,26 @@ const Onboarding = () => {
               peakLength={64}
               radius={2.4}
             />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* The mute, and the only sign on this page that the assistant exists.
+          The site header — where this control lives everywhere else — is not
+          rendered on the onboarding, so without it someone meeting the site
+          for the first time has a voice talking to them and nothing to press.
+          Pressing it is also the gesture that lets the browser play audio, so
+          it works first time for anyone reaching for it to turn the voice on. */}
+      <AnimatePresence>
+        {terminalStep === null && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: DURATION.content, ease: EASE_SOFT, delay: 0.4 }}
+            className="fixed top-5 right-5 z-40 text-black md:top-6 md:right-6"
+          >
+            <VoiceToggle />
           </motion.div>
         )}
       </AnimatePresence>

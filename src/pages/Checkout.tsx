@@ -267,7 +267,6 @@ const Checkout = () => {
                             src={item.product?.image} 
                             alt={item.product?.name} 
                             className="w-full h-full object-contain"
-                            style={item.product?.removeBackground ? { mixBlendMode: 'multiply' } : {}}
                           />
                         </div>
                         

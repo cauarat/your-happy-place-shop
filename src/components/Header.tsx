@@ -10,6 +10,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useSearch } from "@/contexts/SearchContext";
 import { useMusicPlayer } from "@/contexts/MusicContext";
 import { VinylButton } from "@/components/BackgroundMusic";
+import VoiceToggle from "@/components/VoiceToggle";
 import LanguageSwitcher from "./LanguageSwitcher";
 import { useCart } from "@/contexts/CartContext";
 import { getDesignSettings, getProducts, getDesigners, getCategories } from "@/lib/store";
@@ -145,6 +146,8 @@ const Header = () => {
       {/* Right Nav - Floating outside header so it stays fixed on scroll */}
       <div className="fixed top-[env(safe-area-inset-top)] right-0 h-14 sm:h-16 px-5 sm:px-6 lg:px-8 flex items-center justify-end gap-3 sm:gap-4 lg:gap-5 shrink-0 z-[100] pointer-events-none">
         <div className="flex items-center justify-end gap-3 sm:gap-4 lg:gap-5 pointer-events-auto">
+          <VoiceToggle />
+
           <Link to="/cart" className="relative hover:opacity-70 transition-opacity flex items-center p-0.5">
             <Heart size={20} strokeWidth={1.5} className="sm:w-[22px] sm:h-[22px]" />
             {itemCount > 0 && (

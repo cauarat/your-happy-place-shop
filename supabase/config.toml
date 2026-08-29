@@ -1,1 +1,7 @@
-project_id = "tndnzqulawcuohrolkve"
+project_id = "iumhbtsmtkggpzzxcwyb"
+
+# Signs one short-lived R2 upload URL for an authenticated admin.
+# verify_jwt stays on: the function also checks the caller against ADMIN_EMAILS,
+# but there is no reason to let an unauthenticated request reach that code.
+[functions.r2-upload-url]
+verify_jwt = true
