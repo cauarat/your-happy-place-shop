@@ -31,6 +31,7 @@ import {
   albumToPage,
   atSize,
 } from "@/lib/crawlImport";
+import type { RawProduct } from "@/lib/crawlImport";
 import type { Product } from "@/data/products";
 
 const SHOP = "https://shop.example.com";

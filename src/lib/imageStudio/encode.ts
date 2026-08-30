@@ -119,7 +119,7 @@ export async function encodeCutout(
   canvas.height = height;
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Could not open a canvas to encode the cut-out.");
-  ctx.putImageData(new ImageData(data, width, height), 0, 0);
+  ctx.putImageData(new ImageData(data as unknown as ImageDataArray, width, height), 0, 0);
 
   if (canEncodeWebp()) {
     return { blob: await toBlob(canvas, "image/webp", quality), extension: "webp" };
