@@ -59,8 +59,12 @@ export function computeCropStyles(
   }
 
   // ----- excess (how much bigger the image is than the container, in %) -----
-  const exW = relW - 100; // always ≥ 0
-  const exH = relH - 100; // always ≥ 0
+  // Negative below `fitZoom`, where the image is smaller than the frame on
+  // that axis. The positioning below stays correct either way: with a negative
+  // excess the same expression slides the letterboxed image inside the frame
+  // instead of sliding the frame across the image, and 50 still centres it.
+  const exW = relW - 100;
+  const exH = relH - 100;
 
   // ----- position -----
   // x=0  → left  = 0        (left edge visible)
@@ -75,9 +79,15 @@ export function computeCropStyles(
     height: `${relH}%`,
     left:   `${leftPct}%`,
     top:    `${topPct}%`,
-    // The image is explicitly sized to cover + zoom, so we want it to
-    // stretch-fill the computed box (no further object-fit needed).
-    objectFit: 'fill',
+    // `contain`, not `fill`. The box above is already computed to the image's
+    // own aspect, so the two render identically while the maths and the
+    // container agree — but when they drift, `fill` stretches the product and
+    // `contain` merely letterboxes it. That drift is not hypothetical: it has
+    // happened twice here, once from a responsive aspect class and once from a
+    // stale measurement, and a stretched watch is a defect a shopper sees while
+    // a hairline of extra white is not. Distortion is now impossible by
+    // construction rather than by everyone keeping the two numbers in step.
+    objectFit: 'contain',
   };
 }
 
@@ -130,6 +140,31 @@ export function aspectClassFor(category?: string): string {
 }
 
 /**
+ * The zoom at which the whole photograph is visible inside the frame.
+ *
+ * `zoom: 1` means "exactly cover", which is the right floor for a portrait
+ * photograph in a portrait tile — it fills the frame with nothing wasted. It is
+ * the wrong floor for a photograph shaped unlike its tile: a 3:2 still in a 4:5
+ * tile covers by rendering at 187% width, so *every* zoom from 1 upward throws
+ * away at least 44% of the picture and the slider can only ever crop harder.
+ * That is what makes the control feel broken on this supplier's stills.
+ *
+ * Below 1 the image no longer fills the frame and sits on the tile's white
+ * instead, which for a product shot on a white sweep is invisible — and is
+ * exactly the framing the catalogue's hand-placed watches already use.
+ *
+ * Always ≤ 1, and exactly 1 when the photograph and the frame are the same
+ * shape, so a tile that was already correct is unaffected.
+ */
+export function fitZoom(imageAspect: number, containerAspect: number): number {
+  if (!Number.isFinite(imageAspect) || imageAspect <= 0 ||
+      !Number.isFinite(containerAspect) || containerAspect <= 0) {
+    return 1;
+  }
+  return Math.min(containerAspect / imageAspect, imageAspect / containerAspect, 1);
+}
+
+/**
  * Which position sliders actually do anything at this zoom.
  *
  * At zoom 1 the image is scaled to exactly cover the frame, so it overflows on
@@ -149,6 +184,9 @@ export function inertAxes(
   const wide = imageAspect > containerAspect;
   const relW = wide ? (imageAspect / containerAspect) * 100 * zoom : 100 * zoom;
   const relH = wide ? 100 * zoom : (containerAspect / imageAspect) * 100 * zoom;
-  // Sub-pixel overflow is not draggable in any meaningful sense.
-  return { x: relW - 100 < 0.5, y: relH - 100 < 0.5 };
+  // Sub-pixel overflow is not draggable in any meaningful sense. Below the fit
+  // zoom the image is *smaller* than the frame on an axis, which is draggable
+  // again — the slider slides the letterboxed photo within the frame — so the
+  // test is distance from an exact fit, not overflow.
+  return { x: Math.abs(relW - 100) < 0.5, y: Math.abs(relH - 100) < 0.5 };
 }

@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, useRef } from "react";
+import { useMemo, useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useVoiceAssistant } from "@/contexts/VoiceAssistantContext";
@@ -10,6 +10,8 @@ import SortBar, { SortKey } from "@/components/SortBar";
 import ProductCard from "@/components/ProductCard";
 import { getProducts, getDesigners, getCategories, getDesignSettings, saveCustomerSuggestion } from "@/lib/store";
 import { cn } from "@/lib/utils";
+import { ChapterScrubber, type Chapter } from "@/components/ui/chapter-scrubber";
+import { scrollPageTo } from "@/lib/motion";
 import { useAuth } from "@/contexts/AuthContext";
 import type { Product } from "@/data/products";
 import ImmersiveAi from "@/components/ImmersiveAi";
@@ -395,6 +397,73 @@ const Index = () => {
     }));
   }, [filtered]);
 
+  // ─── The designer rail ──────────────────────────────────────────────────
+  //
+  // The catalogue is one long scroll of brand sections, and past the second or
+  // third there is nothing telling you which one you are in or how many are
+  // left. This is the same scrubber the onboarding uses for its chapters —
+  // one tick per designer, in the order the scroll meets them.
+  const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
+  const [currentBrand, setCurrentBrand] = useState(0);
+
+  const brandChapters: Chapter[] = useMemo(
+    () =>
+      filteredByDesigner.map(({ designer: brandName, products: brandProducts }, i) => ({
+        id: brandName,
+        meta: String(i + 1).padStart(2, "0"),
+        title: brandName,
+        description: `${brandProducts.length} ${t("home_pieces")}`,
+      })),
+    [filteredByDesigner, t]
+  );
+
+  const brandTargets = useCallback(
+    () =>
+      filteredByDesigner.map(({ designer: brandName }) => {
+        const el = sectionRefs.current[brandName];
+        return el ? el.getBoundingClientRect().top + window.scrollY : 0;
+      }),
+    [filteredByDesigner]
+  );
+
+  useEffect(() => {
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      // A section counts as the one you are in once its top has passed a third
+      // of the way up the screen — where the eye is when a heading arrives.
+      const probe = window.scrollY + window.innerHeight * 0.34;
+      let next = 0;
+      brandTargets().forEach((y, i) => {
+        if (probe >= y) next = i;
+      });
+      setCurrentBrand(next);
+    };
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(update);
+    };
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      if (frame) cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, [brandTargets]);
+
+  const goToBrand = useCallback(
+    (_chapter: Chapter, index: number) => {
+      scrollPageTo(brandTargets()[index] ?? 0);
+    },
+    [brandTargets]
+  );
+
+  // The catalogue can run to forty-odd brands, where the onboarding's five sat
+  // comfortably. Tighten the rows as the list grows so the rail never outgrows
+  // the viewport it is pinned to.
+  const railRowHeight = brandChapters.length > 30 ? 10 : brandChapters.length > 15 ? 15 : 24;
+
   // Dynamic designer list for the brands dropdown based on available products
   const dynamicDesigners = useMemo(() => {
     const available = new Set(availableProducts.map(p => p.designer));
@@ -722,7 +791,12 @@ const Index = () => {
                   className="flex flex-col w-full"
                 >
                   {filteredByDesigner.map(({ designer: brandName, products: brandProducts }, sectionIndex) => (
-                    <section key={brandName}>
+                    <section
+                      key={brandName}
+                      ref={(el) => {
+                        sectionRefs.current[brandName] = el;
+                      }}
+                    >
                       {/* Big brand name header */}
                       <div className={`flex flex-col items-center justify-center pb-5 sm:pb-7 md:pb-9 ${sectionIndex === 0 ? "pt-1 sm:pt-2" : "pt-10 sm:pt-14 md:pt-16"}`}>
                         <motion.button
@@ -918,6 +992,24 @@ const Index = () => {
           </div>
         </div>
       </div>
+
+      {/* One tick per brand, pinned beside the scroll. Hidden below md, where
+          there is no room beside the grid, and suppressed under two sections
+          because a rail that shows where you are needs somewhere else to be. */}
+      {brandChapters.length > 1 && (
+        <div className="fixed top-1/2 -translate-y-1/2 left-4 z-40 hidden md:block lg:left-8">
+          <ChapterScrubber
+            chapters={brandChapters}
+            currentIndex={currentBrand}
+            onSelect={goToBrand}
+            label={t("designers")}
+            rowHeight={railRowHeight}
+            restLength={14}
+            peakLength={56}
+            radius={3}
+          />
+        </div>
+      )}
 
       <AppTour />
       <Footer />

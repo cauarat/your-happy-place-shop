@@ -51,11 +51,8 @@ describe("ImageWorkbench", () => {
     src: images[0], index: 0, isPrimary: true, isDetail: false,
     category: "footwear", crop: undefined, imageAspect: 1.5,
     isProcessing: false, stage: "",
-    onRemoveBackground: vi.fn(), onRestoreOriginal: vi.fn(), onRecrop: vi.fn(),
-    onCropChange: vi.fn(), onCropReset: vi.fn(), onMeasured: vi.fn(),
-    onToggleDetail: vi.fn(),
-    hasCopied: false, onCopyFraming: vi.fn(),
-    onPasteFraming: vi.fn(), onApplyFramingToOthers: vi.fn(),
+    onRemoveBackground: vi.fn(), onRestoreOriginal: vi.fn(), onRefine: vi.fn(),
+    onMeasured: vi.fn(), onToggleDetail: vi.fn(),
   };
 
   it("offers restore only once the photo has an original behind it", () => {
@@ -69,6 +66,25 @@ describe("ImageWorkbench", () => {
     render(<ImageWorkbench {...base} isProcessing stage="Cutting out — 40%" />);
     expect(screen.getByText("Cutting out — 40%")).toBeTruthy();
     expect(screen.getByText("Cutting out — 40%").closest("button")!.hasAttribute("disabled")).toBe(true);
+  });
+
+  it("opens Asset Refinement when the frame itself is clicked", () => {
+    const onRefine = vi.fn();
+    render(<ImageWorkbench {...base} onRefine={onRefine} />);
+    fireEvent.click(screen.getByLabelText(/Open Asset Refinement/i));
+    expect(onRefine).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps no framing sliders of its own — they belong to the refiner now", () => {
+    const { container } = render(<ImageWorkbench {...base} />);
+    expect(container.querySelector('input[type="range"]')).toBeNull();
+  });
+
+  it("says whether the photo is framed or shown whole", () => {
+    const { rerender } = render(<ImageWorkbench {...base} />);
+    expect(screen.getByText("Whole photo")).toBeTruthy();
+    rerender(<ImageWorkbench {...base} crop={{ x: 43, y: 46, zoom: 0.77 }} />);
+    expect(screen.getByText(/0\.77x/)).toBeTruthy();
   });
 
   it("reports which photo is serving as the 16:9", () => {

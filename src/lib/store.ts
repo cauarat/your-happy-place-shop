@@ -24,7 +24,36 @@ const CATALOG_VERSION_KEY = "villaoro_catalog_version";
 // both `Date.now().toString()`, so this ledger is the only way to tell a
 // product the catalogue deliberately dropped from one the admin added here.
 const SEED_IDS_KEY = "villaoro_seed_ids";
-const CATALOG_VERSION = "v28";
+const CATALOG_VERSION = "v29";
+/**
+ * A one-off correction, kept because a seed edit alone cannot undo it.
+ *
+ * The seven Swatch x Audemars Piguet watches were imported with the standard
+ * centred display crop. Their photographs are 3:2 landscape, and covering a 4:5
+ * tile with one renders the image at 187% width and slices 44% off each side —
+ * so the tile showed a strap end or a corner of the case, never the watch. They
+ * are right with no crop at all: `ProductCard` then falls back to
+ * `object-contain` and the whole photograph sits in proportion on the tile.
+ *
+ * They are now framed by `autoFrame`, which reads where the watch actually sits
+ * and centres the tile on it.
+ *
+ * `displayCrops` is ADMIN_OWNED, so `mergeSeed` keeps whatever a browser has
+ * already stored no matter what the seed says. Correcting `catalog.json`
+ * therefore reaches first-time visitors only; for these seven, and once, the
+ * catalogue's framing is allowed to win over the stored one.
+ */
+const CROP_RESET_KEY = "villaoro_crop_reset";
+const CROP_RESET_VERSION = "ap-landscape-v1";
+const CROP_RESET_IDS = new Set([
+  "1788030948540",
+  "1788030948541",
+  "1788030948542",
+  "1788030948543",
+  "1788030948544",
+  "1788030948545",
+  "1788030948546",
+]);
 const DESIGN_VERSION_KEY = "villaoro_design_version";
 const DESIGN_VERSION = "v2";
 
@@ -146,6 +175,36 @@ const initStore = () => {
     const seeded = JSON.parse(catalogSeedRaw) as Product[];
     localStorage.setItem(SEED_IDS_KEY, JSON.stringify(seeded.map((p) => p.id)));
   }
+  if (localStorage.getItem(CROP_RESET_KEY) !== CROP_RESET_VERSION) {
+    const raw = localStorage.getItem(PRODUCTS_KEY);
+    if (raw) {
+      try {
+        const products = JSON.parse(raw) as Product[];
+        const fromSeed = new Map(
+          (JSON.parse(catalogSeedRaw) as Product[])
+            .filter((p) => CROP_RESET_IDS.has(p.id))
+            .map((p) => [p.id, p.displayCrops]),
+        );
+        let changed = false;
+        for (const product of products) {
+          if (!CROP_RESET_IDS.has(product.id)) continue;
+          const seeded = fromSeed.get(product.id);
+          if (seeded) {
+            product.displayCrops = seeded;
+            changed = true;
+          } else if (product.displayCrops) {
+            delete product.displayCrops;
+            changed = true;
+          }
+        }
+        if (changed) localStorage.setItem(PRODUCTS_KEY, JSON.stringify(products));
+      } catch {
+        // Unreadable storage is already handled by the seed path above.
+      }
+    }
+    localStorage.setItem(CROP_RESET_KEY, CROP_RESET_VERSION);
+  }
+
   if (localStorage.getItem(DESIGN_VERSION_KEY) !== DESIGN_VERSION) {
     localStorage.removeItem(DESIGN_KEY);
     localStorage.setItem(DESIGN_VERSION_KEY, DESIGN_VERSION);

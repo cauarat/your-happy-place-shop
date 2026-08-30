@@ -1,5 +1,8 @@
-import { RotateCcw, Copy, ClipboardPaste, Users } from "lucide-react";
-import { computeCropStyles, inertAxes, aspectFor, aspectClassFor } from "@/lib/cropUtils";
+import { useState } from "react";
+import { RotateCcw, Copy, ClipboardPaste, Users, Wand2, Loader2 } from "lucide-react";
+import { computeCropStyles, inertAxes, aspectFor, aspectClassFor, fitZoom } from "@/lib/cropUtils";
+import { autoFrame } from "@/lib/autoFrame";
+import { loadImage } from "@/lib/imageStudio/encode";
 
 export interface Crop { x: number; y: number; zoom: number }
 
@@ -21,6 +24,16 @@ interface Props {
 const DEFAULT: Crop = { x: 50, y: 50, zoom: 1 };
 
 /**
+ * Auto-framing decodes at this edge rather than full size.
+ *
+ * It is measuring where the product starts and stops, and that answer is the
+ * same to within a pixel at 640 as at 2000 — while being roughly ten times
+ * less to decode and scan, which is the difference between the button feeling
+ * instant and feeling broken.
+ */
+const AUTO_FRAME_EDGE = 640;
+
+/**
  * Framing, shown in the exact box the shop will use.
  *
  * The preview derives its ratio from the same `aspectFor`/`aspectClassFor` pair
@@ -35,6 +48,32 @@ export function FramingControls({
   const value = crop ?? DEFAULT;
   const containerAspect = aspectFor(category);
   const inert = imageAspect ? inertAxes(imageAspect, containerAspect, value.zoom) : { x: true, y: true };
+
+  // Below this the whole photograph is in the frame; above it, the frame starts
+  // taking bites out of the picture. For a photograph the same shape as the tile
+  // the two coincide at 1 and the slider is unchanged.
+  const minZoom = imageAspect ? fitZoom(imageAspect, containerAspect) : 1;
+  const atFit = value.zoom <= minZoom + 0.001;
+
+  const [framing, setFraming] = useState(false);
+  const [framingError, setFramingError] = useState<string | null>(null);
+
+  const runAutoFrame = async () => {
+    setFraming(true);
+    setFramingError(null);
+    try {
+      const { data, width, height } = await loadImage(src, AUTO_FRAME_EDGE);
+      const found = autoFrame({ data, width, height }, containerAspect);
+      // Nothing stood out from the sweep. Showing the whole photograph is the
+      // honest answer to that, and never worse than a crop around a guess.
+      onChange(found ?? { x: 50, y: 50, zoom: fitZoom(width / height, containerAspect) });
+      if (!found) setFramingError("Could not find the product against the background — showing the whole photo.");
+    } catch {
+      setFramingError("Could not read this photo's pixels. Frame it with the sliders.");
+    } finally {
+      setFraming(false);
+    }
+  };
 
   const styles = imageAspect
     ? computeCropStyles(imageAspect, containerAspect, value)
@@ -71,13 +110,25 @@ export function FramingControls({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h4 className="text-sm font-medium">Framing</h4>
+        <div className="flex items-center gap-4">
+        <button type="button" onClick={runAutoFrame} disabled={framing}
+          className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-primary hover:opacity-70 disabled:opacity-40 disabled:cursor-not-allowed"
+          title="Centre the product and pull the frame in to it">
+          {framing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Wand2 className="w-3 h-3" />}
+          {framing ? "Framing" : "Auto frame"}
+        </button>
         {crop && (
           <button type="button" onClick={onReset}
             className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground">
             <RotateCcw className="w-3 h-3" /> Reset
           </button>
         )}
+        </div>
       </div>
+
+      {framingError && (
+        <p className="text-[10px] leading-relaxed text-muted-foreground">{framingError}</p>
+      )}
 
       <div className={`relative ${aspectClassFor(category)} rounded-xl overflow-hidden bg-[#f5f5f5] border border-border/50`}>
         <img
@@ -97,7 +148,7 @@ export function FramingControls({
 
       {slider("Horizontal", "x", 0, 100, 1, (n) => `${n}%`, inert.x)}
       {slider("Vertical", "y", 0, 100, 1, (n) => `${n}%`, inert.y)}
-      {slider("Zoom", "zoom", 1, 3, 0.1, (n) => `${n.toFixed(1)}x`, false)}
+      {slider("Zoom", "zoom", minZoom, 3, 0.05, () => (atFit ? "fit" : `${value.zoom.toFixed(2)}x`), false)}
 
       {/* Reuse. A catalogue of near-identical shoes is framed once, not 800 times. */}
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pt-3 border-t border-border/50">

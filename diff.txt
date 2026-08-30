@@ -1,0 +1,833 @@
+diff --git a/src/components/admin/productImages/FramingControls.tsx b/src/components/admin/productImages/FramingControls.tsx
+index 3976f5b..151bc21 100644
+--- a/src/components/admin/productImages/FramingControls.tsx
++++ b/src/components/admin/productImages/FramingControls.tsx
+@@ -1,5 +1,8 @@
+-import { RotateCcw, Copy, ClipboardPaste, Users } from "lucide-react";
+-import { computeCropStyles, inertAxes, aspectFor, aspectClassFor } from "@/lib/cropUtils";
++import { useState } from "react";
++import { RotateCcw, Copy, ClipboardPaste, Users, Wand2, Loader2 } from "lucide-react";
++import { computeCropStyles, inertAxes, aspectFor, aspectClassFor, fitZoom } from "@/lib/cropUtils";
++import { autoFrame } from "@/lib/autoFrame";
++import { loadImage } from "@/lib/imageStudio/encode";
+ 
+ export interface Crop { x: number; y: number; zoom: number }
+ 
+@@ -20,6 +23,16 @@ interface Props {
+ 
+ const DEFAULT: Crop = { x: 50, y: 50, zoom: 1 };
+ 
++/**
++ * Auto-framing decodes at this edge rather than full size.
++ *
++ * It is measuring where the product starts and stops, and that answer is the
++ * same to within a pixel at 640 as at 2000 — while being roughly ten times
++ * less to decode and scan, which is the difference between the button feeling
++ * instant and feeling broken.
++ */
++const AUTO_FRAME_EDGE = 640;
++
+ /**
+  * Framing, shown in the exact box the shop will use.
+  *
+@@ -36,6 +49,32 @@ export function FramingControls({
+   const containerAspect = aspectFor(category);
+   const inert = imageAspect ? inertAxes(imageAspect, containerAspect, value.zoom) : { x: true, y: true };
+ 
++  // Below this the whole photograph is in the frame; above it, the frame starts
++  // taking bites out of the picture. For a photograph the same shape as the tile
++  // the two coincide at 1 and the slider is unchanged.
++  const minZoom = imageAspect ? fitZoom(imageAspect, containerAspect) : 1;
++  const atFit = value.zoom <= minZoom + 0.001;
++
++  const [framing, setFraming] = useState(false);
++  const [framingError, setFramingError] = useState<string | null>(null);
++
++  const runAutoFrame = async () => {
++    setFraming(true);
++    setFramingError(null);
++    try {
++      const { data, width, height } = await loadImage(src, AUTO_FRAME_EDGE);
++      const found = autoFrame({ data, width, height }, containerAspect);
++      // Nothing stood out from the sweep. Showing the whole photograph is the
++      // honest answer to that, and never worse than a crop around a guess.
++      onChange(found ?? { x: 50, y: 50, zoom: fitZoom(width / height, containerAspect) });
++      if (!found) setFramingError("Could not find the product against the background — showing the whole photo.");
++    } catch {
++      setFramingError("Could not read this photo's pixels. Frame it with the sliders.");
++    } finally {
++      setFraming(false);
++    }
++  };
++
+   const styles = imageAspect
+     ? computeCropStyles(imageAspect, containerAspect, value)
+     : { width: "100%", height: "100%", objectFit: "contain" as const };
+@@ -71,14 +110,26 @@ export function FramingControls({
+     <div className="space-y-4">
+       <div className="flex items-center justify-between">
+         <h4 className="text-sm font-medium">Framing</h4>
++        <div className="flex items-center gap-4">
++        <button type="button" onClick={runAutoFrame} disabled={framing}
++          className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-primary hover:opacity-70 disabled:opacity-40 disabled:cursor-not-allowed"
++          title="Centre the product and pull the frame in to it">
++          {framing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Wand2 className="w-3 h-3" />}
++          {framing ? "Framing" : "Auto frame"}
++        </button>
+         {crop && (
+           <button type="button" onClick={onReset}
+             className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground">
+             <RotateCcw className="w-3 h-3" /> Reset
+           </button>
+         )}
++        </div>
+       </div>
+ 
++      {framingError && (
++        <p className="text-[10px] leading-relaxed text-muted-foreground">{framingError}</p>
++      )}
++
+       <div className={`relative ${aspectClassFor(category)} rounded-xl overflow-hidden bg-[#f5f5f5] border border-border/50`}>
+         <img
+           src={src}
+@@ -97,7 +148,7 @@ export function FramingControls({
+ 
+       {slider("Horizontal", "x", 0, 100, 1, (n) => `${n}%`, inert.x)}
+       {slider("Vertical", "y", 0, 100, 1, (n) => `${n}%`, inert.y)}
+-      {slider("Zoom", "zoom", 1, 3, 0.1, (n) => `${n.toFixed(1)}x`, false)}
++      {slider("Zoom", "zoom", minZoom, 3, 0.05, () => (atFit ? "fit" : `${value.zoom.toFixed(2)}x`), false)}
+ 
+       {/* Reuse. A catalogue of near-identical shoes is framed once, not 800 times. */}
+       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pt-3 border-t border-border/50">
+diff --git a/src/components/admin/productImages/ImageWorkbench.tsx b/src/components/admin/productImages/ImageWorkbench.tsx
+index ac402d3..13ca832 100644
+--- a/src/components/admin/productImages/ImageWorkbench.tsx
++++ b/src/components/admin/productImages/ImageWorkbench.tsx
+@@ -1,5 +1,6 @@
+-import { Eraser, Crop as CropIcon, RotateCcw, Monitor } from "lucide-react";
+-import { FramingControls, type Crop } from "./FramingControls";
++import { Eraser, RotateCcw, Monitor, Wand2 } from "lucide-react";
++import { computeCropStyles, aspectFor, aspectClassFor } from "@/lib/cropUtils";
++import type { Crop } from "./FramingControls";
+ 
+ interface Props {
+   src: string;
+@@ -15,15 +16,10 @@ interface Props {
+   stage: string;
+   onRemoveBackground: () => void;
+   onRestoreOriginal: () => void;
+-  onRecrop: () => void;
+-  onCropChange: (crop: Crop) => void;
+-  onCropReset: () => void;
++  /** Open Asset Refinement on this photo — cropping and framing both live there. */
++  onRefine: () => void;
+   onMeasured: (aspect: number) => void;
+   onToggleDetail: () => void;
+-  hasCopied: boolean;
+-  onCopyFraming: () => void;
+-  onPasteFraming: () => void;
+-  onApplyFramingToOthers: () => void;
+ }
+ 
+ /**
+@@ -33,14 +29,25 @@ interface Props {
+  * one previewed the image, another cut its background, a third framed it, a
+  * fourth handled the 16:9 — with two of them duplicating the same eraser
+  * button. Selecting a photo and seeing its own controls is the whole idea.
++ *
++ * Framing itself is no longer here. Two panels that both changed how a photo is
++ * cropped, one re-cutting the file and one moving the frame over it, was a
++ * distinction only the code cared about — so the sliders moved into Asset
++ * Refinement beside the cropper, and what is left is the frame the shop
++ * actually renders, which opens that screen when clicked.
+  */
+ export function ImageWorkbench({
+   src, index, isPrimary, isDetail, category, crop, imageAspect, original,
+   isProcessing, stage,
+-  onRemoveBackground, onRestoreOriginal, onRecrop,
+-  onCropChange, onCropReset, onMeasured, onToggleDetail,
+-  hasCopied, onCopyFraming, onPasteFraming, onApplyFramingToOthers,
++  onRemoveBackground, onRestoreOriginal, onRefine, onMeasured, onToggleDetail,
+ }: Props) {
++  // Mirrors `ProductCard` exactly, including the fallback: an unframed photo is
++  // shown whole rather than cropped, so this preview cannot flatter a framing
++  // the shop will not use.
++  const styles = crop && imageAspect
++    ? computeCropStyles(imageAspect, aspectFor(category), crop)
++    : undefined;
++
+   return (
+     <div className="rounded-[24px] border border-border bg-white p-6 space-y-6">
+       <div className="flex items-center justify-between">
+@@ -52,26 +59,43 @@ export function ImageWorkbench({
+             </span>
+           )}
+         </h3>
+-        <button type="button" onClick={onRecrop}
+-          className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground">
+-          <CropIcon className="w-3 h-3" /> Re-crop
+-        </button>
++        <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
++          {crop ? `Framed · ${crop.zoom}x` : "Whole photo"}
++        </span>
+       </div>
+ 
+       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+-        <FramingControls
+-          src={src}
+-          category={category}
+-          crop={crop}
+-          imageAspect={imageAspect}
+-          onChange={onCropChange}
+-          onReset={onCropReset}
+-          onMeasured={onMeasured}
+-          hasCopied={hasCopied}
+-          onCopy={onCopyFraming}
+-          onPaste={onPasteFraming}
+-          onApplyToOthers={onApplyFramingToOthers}
+-        />
++        <div className="space-y-3">
++          <h4 className="text-sm font-medium">Framing</h4>
++
++          <button
++            type="button"
++            onClick={onRefine}
++            className="group block w-full rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
++            aria-label="Open Asset Refinement to crop and frame this photo"
++          >
++            <div className={`relative ${aspectClassFor(category)} rounded-xl overflow-hidden bg-[#f5f5f5] border border-border/50 ${styles ? "" : "flex items-center justify-center"}`}>
++              <img
++                src={src}
++                alt=""
++                style={styles}
++                className={styles ? "" : "w-full h-full object-contain"}
++                onLoad={(e) => {
++                  const el = e.currentTarget;
++                  if (el.naturalHeight > 0) onMeasured(el.naturalWidth / el.naturalHeight);
++                }}
++              />
++              <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/[0.04] transition-colors" />
++              <span className="absolute inset-x-0 bottom-0 translate-y-full group-hover:translate-y-0 transition-transform bg-foreground/85 text-background text-[10px] uppercase tracking-widest py-2.5 flex items-center justify-center gap-1.5">
++                <Wand2 className="w-3 h-3" /> Refine this asset
++              </span>
++            </div>
++          </button>
++
++          <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground text-center leading-relaxed">
++            This is the frame the shop uses — click it to crop or reframe
++          </p>
++        </div>
+ 
+         <div className="space-y-6">
+           <div className="space-y-3">
+diff --git a/src/data/catalog.json b/src/data/catalog.json
+index 23048df..198e339 100644
+--- a/src/data/catalog.json
++++ b/src/data/catalog.json
+@@ -32,9 +32,9 @@
+     "description": "Swatch × Audemars Piguet collaboration.",
+     "displayCrops": {
+       "0": {
+-        "x": 50,
+-        "y": 50,
+-        "zoom": 1
++        "x": 43,
++        "y": 46,
++        "zoom": 0.77
+       }
+     }
+   },
+@@ -69,9 +69,9 @@
+     "description": "Swatch × Audemars Piguet collaboration.",
+     "displayCrops": {
+       "0": {
+-        "x": 50,
+-        "y": 50,
+-        "zoom": 1
++        "x": 48,
++        "y": 32,
++        "zoom": 0.83
+       }
+     }
+   },
+@@ -107,9 +107,9 @@
+     "description": "Swatch × Audemars Piguet collaboration.",
+     "displayCrops": {
+       "0": {
+-        "x": 50,
+-        "y": 50,
+-        "zoom": 1
++        "x": 55,
++        "y": 44,
++        "zoom": 0.73
+       }
+     }
+   },
+@@ -145,9 +145,9 @@
+     "description": "Swatch × Audemars Piguet collaboration.",
+     "displayCrops": {
+       "0": {
+-        "x": 50,
+-        "y": 50,
+-        "zoom": 1
++        "x": 47,
++        "y": 41,
++        "zoom": 0.72
+       }
+     }
+   },
+@@ -184,8 +184,8 @@
+     "displayCrops": {
+       "0": {
+         "x": 50,
+-        "y": 50,
+-        "zoom": 1
++        "y": 38,
++        "zoom": 0.53
+       }
+     }
+   },
+@@ -223,7 +223,7 @@
+       "0": {
+         "x": 50,
+         "y": 50,
+-        "zoom": 1
++        "zoom": 0.53
+       }
+     }
+   },
+@@ -259,9 +259,9 @@
+     "description": "Swatch × Audemars Piguet collaboration.",
+     "displayCrops": {
+       "0": {
+-        "x": 50,
+-        "y": 50,
+-        "zoom": 1
++        "x": 57,
++        "y": 26,
++        "zoom": 0.88
+       }
+     }
+   },
+diff --git a/src/lib/cropUtils.ts b/src/lib/cropUtils.ts
+index 1181b07..54b2748 100644
+--- a/src/lib/cropUtils.ts
++++ b/src/lib/cropUtils.ts
+@@ -59,8 +59,12 @@ export function computeCropStyles(
+   }
+ 
+   // ----- excess (how much bigger the image is than the container, in %) -----
+-  const exW = relW - 100; // always ≥ 0
+-  const exH = relH - 100; // always ≥ 0
++  // Negative below `fitZoom`, where the image is smaller than the frame on
++  // that axis. The positioning below stays correct either way: with a negative
++  // excess the same expression slides the letterboxed image inside the frame
++  // instead of sliding the frame across the image, and 50 still centres it.
++  const exW = relW - 100;
++  const exH = relH - 100;
+ 
+   // ----- position -----
+   // x=0  → left  = 0        (left edge visible)
+@@ -75,9 +79,15 @@ export function computeCropStyles(
+     height: `${relH}%`,
+     left:   `${leftPct}%`,
+     top:    `${topPct}%`,
+-    // The image is explicitly sized to cover + zoom, so we want it to
+-    // stretch-fill the computed box (no further object-fit needed).
+-    objectFit: 'fill',
++    // `contain`, not `fill`. The box above is already computed to the image's
++    // own aspect, so the two render identically while the maths and the
++    // container agree — but when they drift, `fill` stretches the product and
++    // `contain` merely letterboxes it. That drift is not hypothetical: it has
++    // happened twice here, once from a responsive aspect class and once from a
++    // stale measurement, and a stretched watch is a defect a shopper sees while
++    // a hairline of extra white is not. Distortion is now impossible by
++    // construction rather than by everyone keeping the two numbers in step.
++    objectFit: 'contain',
+   };
+ }
+ 
+@@ -129,6 +139,31 @@ export function aspectClassFor(category?: string): string {
+   return isFootwear(category) ? 'aspect-[4/3]' : 'aspect-[4/5]';
+ }
+ 
++/**
++ * The zoom at which the whole photograph is visible inside the frame.
++ *
++ * `zoom: 1` means "exactly cover", which is the right floor for a portrait
++ * photograph in a portrait tile — it fills the frame with nothing wasted. It is
++ * the wrong floor for a photograph shaped unlike its tile: a 3:2 still in a 4:5
++ * tile covers by rendering at 187% width, so *every* zoom from 1 upward throws
++ * away at least 44% of the picture and the slider can only ever crop harder.
++ * That is what makes the control feel broken on this supplier's stills.
++ *
++ * Below 1 the image no longer fills the frame and sits on the tile's white
++ * instead, which for a product shot on a white sweep is invisible — and is
++ * exactly the framing the catalogue's hand-placed watches already use.
++ *
++ * Always ≤ 1, and exactly 1 when the photograph and the frame are the same
++ * shape, so a tile that was already correct is unaffected.
++ */
++export function fitZoom(imageAspect: number, containerAspect: number): number {
++  if (!Number.isFinite(imageAspect) || imageAspect <= 0 ||
++      !Number.isFinite(containerAspect) || containerAspect <= 0) {
++    return 1;
++  }
++  return Math.min(containerAspect / imageAspect, imageAspect / containerAspect, 1);
++}
++
+ /**
+  * Which position sliders actually do anything at this zoom.
+  *
+@@ -149,6 +184,9 @@ export function inertAxes(
+   const wide = imageAspect > containerAspect;
+   const relW = wide ? (imageAspect / containerAspect) * 100 * zoom : 100 * zoom;
+   const relH = wide ? 100 * zoom : (containerAspect / imageAspect) * 100 * zoom;
+-  // Sub-pixel overflow is not draggable in any meaningful sense.
+-  return { x: relW - 100 < 0.5, y: relH - 100 < 0.5 };
++  // Sub-pixel overflow is not draggable in any meaningful sense. Below the fit
++  // zoom the image is *smaller* than the frame on an axis, which is draggable
++  // again — the slider slides the letterboxed photo within the frame — so the
++  // test is distance from an exact fit, not overflow.
++  return { x: Math.abs(relW - 100) < 0.5, y: Math.abs(relH - 100) < 0.5 };
+ }
+diff --git a/src/lib/store.ts b/src/lib/store.ts
+index 154ff8d..3e37292 100644
+--- a/src/lib/store.ts
++++ b/src/lib/store.ts
+@@ -24,7 +24,36 @@ const CATALOG_VERSION_KEY = "villaoro_catalog_version";
+ // both `Date.now().toString()`, so this ledger is the only way to tell a
+ // product the catalogue deliberately dropped from one the admin added here.
+ const SEED_IDS_KEY = "villaoro_seed_ids";
+-const CATALOG_VERSION = "v28";
++const CATALOG_VERSION = "v29";
++/**
++ * A one-off correction, kept because a seed edit alone cannot undo it.
++ *
++ * The seven Swatch x Audemars Piguet watches were imported with the standard
++ * centred display crop. Their photographs are 3:2 landscape, and covering a 4:5
++ * tile with one renders the image at 187% width and slices 44% off each side —
++ * so the tile showed a strap end or a corner of the case, never the watch. They
++ * are right with no crop at all: `ProductCard` then falls back to
++ * `object-contain` and the whole photograph sits in proportion on the tile.
++ *
++ * They are now framed by `autoFrame`, which reads where the watch actually sits
++ * and centres the tile on it.
++ *
++ * `displayCrops` is ADMIN_OWNED, so `mergeSeed` keeps whatever a browser has
++ * already stored no matter what the seed says. Correcting `catalog.json`
++ * therefore reaches first-time visitors only; for these seven, and once, the
++ * catalogue's framing is allowed to win over the stored one.
++ */
++const CROP_RESET_KEY = "villaoro_crop_reset";
++const CROP_RESET_VERSION = "ap-landscape-v1";
++const CROP_RESET_IDS = new Set([
++  "1788030948540",
++  "1788030948541",
++  "1788030948542",
++  "1788030948543",
++  "1788030948544",
++  "1788030948545",
++  "1788030948546",
++]);
+ const DESIGN_VERSION_KEY = "villaoro_design_version";
+ const DESIGN_VERSION = "v2";
+ 
+@@ -146,6 +175,36 @@ const initStore = () => {
+     const seeded = JSON.parse(catalogSeedRaw) as Product[];
+     localStorage.setItem(SEED_IDS_KEY, JSON.stringify(seeded.map((p) => p.id)));
+   }
++  if (localStorage.getItem(CROP_RESET_KEY) !== CROP_RESET_VERSION) {
++    const raw = localStorage.getItem(PRODUCTS_KEY);
++    if (raw) {
++      try {
++        const products = JSON.parse(raw) as Product[];
++        const fromSeed = new Map(
++          (JSON.parse(catalogSeedRaw) as Product[])
++            .filter((p) => CROP_RESET_IDS.has(p.id))
++            .map((p) => [p.id, p.displayCrops]),
++        );
++        let changed = false;
++        for (const product of products) {
++          if (!CROP_RESET_IDS.has(product.id)) continue;
++          const seeded = fromSeed.get(product.id);
++          if (seeded) {
++            product.displayCrops = seeded;
++            changed = true;
++          } else if (product.displayCrops) {
++            delete product.displayCrops;
++            changed = true;
++          }
++        }
++        if (changed) localStorage.setItem(PRODUCTS_KEY, JSON.stringify(products));
++      } catch {
++        // Unreadable storage is already handled by the seed path above.
++      }
++    }
++    localStorage.setItem(CROP_RESET_KEY, CROP_RESET_VERSION);
++  }
++
+   if (localStorage.getItem(DESIGN_VERSION_KEY) !== DESIGN_VERSION) {
+     localStorage.removeItem(DESIGN_KEY);
+     localStorage.setItem(DESIGN_VERSION_KEY, DESIGN_VERSION);
+diff --git a/src/pages/Index.tsx b/src/pages/Index.tsx
+index 87d4c4a..92642e9 100644
+--- a/src/pages/Index.tsx
++++ b/src/pages/Index.tsx
+@@ -1,4 +1,4 @@
+-import { useMemo, useState, useEffect, useRef } from "react";
++import { useMemo, useState, useEffect, useRef, useCallback } from "react";
+ import { useNavigate, useSearchParams } from "react-router-dom";
+ import { useLanguage } from "@/contexts/LanguageContext";
+ import { useVoiceAssistant } from "@/contexts/VoiceAssistantContext";
+@@ -10,6 +10,8 @@ import SortBar, { SortKey } from "@/components/SortBar";
+ import ProductCard from "@/components/ProductCard";
+ import { getProducts, getDesigners, getCategories, getDesignSettings, saveCustomerSuggestion } from "@/lib/store";
+ import { cn } from "@/lib/utils";
++import { ChapterScrubber, type Chapter } from "@/components/ui/chapter-scrubber";
++import { scrollPageTo } from "@/lib/motion";
+ import { useAuth } from "@/contexts/AuthContext";
+ import type { Product } from "@/data/products";
+ import ImmersiveAi from "@/components/ImmersiveAi";
+@@ -395,6 +397,73 @@ const Index = () => {
+     }));
+   }, [filtered]);
+ 
++  // ─── The designer rail ──────────────────────────────────────────────────
++  //
++  // The catalogue is one long scroll of brand sections, and past the second or
++  // third there is nothing telling you which one you are in or how many are
++  // left. This is the same scrubber the onboarding uses for its chapters —
++  // one tick per designer, in the order the scroll meets them.
++  const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
++  const [currentBrand, setCurrentBrand] = useState(0);
++
++  const brandChapters: Chapter[] = useMemo(
++    () =>
++      filteredByDesigner.map(({ designer: brandName, products: brandProducts }, i) => ({
++        id: brandName,
++        meta: String(i + 1).padStart(2, "0"),
++        title: brandName,
++        description: `${brandProducts.length} ${t("home_pieces")}`,
++      })),
++    [filteredByDesigner, t]
++  );
++
++  const brandTargets = useCallback(
++    () =>
++      filteredByDesigner.map(({ designer: brandName }) => {
++        const el = sectionRefs.current[brandName];
++        return el ? el.getBoundingClientRect().top + window.scrollY : 0;
++      }),
++    [filteredByDesigner]
++  );
++
++  useEffect(() => {
++    let frame = 0;
++    const update = () => {
++      frame = 0;
++      // A section counts as the one you are in once its top has passed a third
++      // of the way up the screen — where the eye is when a heading arrives.
++      const probe = window.scrollY + window.innerHeight * 0.34;
++      let next = 0;
++      brandTargets().forEach((y, i) => {
++        if (probe >= y) next = i;
++      });
++      setCurrentBrand(next);
++    };
++    const onScroll = () => {
++      if (!frame) frame = requestAnimationFrame(update);
++    };
++    update();
++    window.addEventListener("scroll", onScroll, { passive: true });
++    window.addEventListener("resize", onScroll);
++    return () => {
++      if (frame) cancelAnimationFrame(frame);
++      window.removeEventListener("scroll", onScroll);
++      window.removeEventListener("resize", onScroll);
++    };
++  }, [brandTargets]);
++
++  const goToBrand = useCallback(
++    (_chapter: Chapter, index: number) => {
++      scrollPageTo(brandTargets()[index] ?? 0);
++    },
++    [brandTargets]
++  );
++
++  // The catalogue can run to forty-odd brands, where the onboarding's five sat
++  // comfortably. Tighten the rows as the list grows so the rail never outgrows
++  // the viewport it is pinned to.
++  const railRowHeight = brandChapters.length > 30 ? 10 : brandChapters.length > 15 ? 15 : 24;
++
+   // Dynamic designer list for the brands dropdown based on available products
+   const dynamicDesigners = useMemo(() => {
+     const available = new Set(availableProducts.map(p => p.designer));
+@@ -722,7 +791,12 @@ const Index = () => {
+                   className="flex flex-col w-full"
+                 >
+                   {filteredByDesigner.map(({ designer: brandName, products: brandProducts }, sectionIndex) => (
+-                    <section key={brandName}>
++                    <section
++                      key={brandName}
++                      ref={(el) => {
++                        sectionRefs.current[brandName] = el;
++                      }}
++                    >
+                       {/* Big brand name header */}
+                       <div className={`flex flex-col items-center justify-center pb-5 sm:pb-7 md:pb-9 ${sectionIndex === 0 ? "pt-1 sm:pt-2" : "pt-10 sm:pt-14 md:pt-16"}`}>
+                         <motion.button
+@@ -919,6 +993,24 @@ const Index = () => {
+         </div>
+       </div>
+ 
++      {/* One tick per brand, pinned beside the scroll. Hidden below md, where
++          there is no room beside the grid, and suppressed under two sections
++          because a rail that shows where you are needs somewhere else to be. */}
++      {brandChapters.length > 1 && (
++        <div className="fixed top-1/2 -translate-y-1/2 left-4 z-40 hidden md:block lg:left-8">
++          <ChapterScrubber
++            chapters={brandChapters}
++            currentIndex={currentBrand}
++            onSelect={goToBrand}
++            label={t("designers")}
++            rowHeight={railRowHeight}
++            restLength={14}
++            peakLength={56}
++            radius={3}
++          />
++        </div>
++      )}
++
+       <AppTour />
+       <Footer />
+     </div>
+diff --git a/src/pages/admin/ProductEdit.tsx b/src/pages/admin/ProductEdit.tsx
+index a0d8fb4..02ed4cd 100644
+--- a/src/pages/admin/ProductEdit.tsx
++++ b/src/pages/admin/ProductEdit.tsx
+@@ -16,6 +16,7 @@ import { GalleryStrip } from "@/components/admin/productImages/GalleryStrip";
+ import { ImageWorkbench } from "@/components/admin/productImages/ImageWorkbench";
+ import { VideoWidget } from "@/components/admin/productImages/VideoWidget";
+ import { ApplyFramingDialog } from "@/components/admin/productImages/ApplyFramingDialog";
++import { FramingControls } from "@/components/admin/productImages/FramingControls";
+ import { readCropClipboard, writeCropClipboard, applyCropToProducts, type CropClipboard } from "@/lib/cropClipboard";
+ 
+ const defaultProduct: Product = {
+@@ -233,6 +234,17 @@ const AdminProductEdit = () => {
+    */
+   const [cropTarget, setCropTarget] = useState<"gallery" | "detail" | null>(null);
+ 
++  /**
++   * Which gallery image Asset Refinement is framing, if it is framing one.
++   *
++   * The same modal serves two arrivals: a photo just picked off disk, which has
++   * no place in the product yet and so nothing to frame, and an existing image
++   * opened from the workbench, which does. Only the second gets the framing
++   * panel — an index rather than a boolean because the framing is written to
++   * `displayCrops[index]`, and the selection can move underneath a modal.
++   */
++  const [refiningIndex, setRefiningIndex] = useState<number | null>(null);
++
+   // The cut-out waiting for a yes or no. Nothing is written while this is set.
+   const [studioResult, setStudioResult] = useState<StudioResult | null>(null);
+   const [studioStage, setStudioStage] = useState("");
+@@ -288,9 +300,10 @@ const AdminProductEdit = () => {
+    * whatever ran before, so reopening the cropper landed at 3x on someone
+    * else's framing.
+    */
+-  const openCropper = (src: string, target: "gallery" | "detail") => {
++  const openCropper = (src: string, target: "gallery" | "detail", refining: number | null = null) => {
+     setImageToCrop(src);
+     setCropTarget(target);
++    setRefiningIndex(refining);
+     setCropAspect(target === "detail" ? 16 / 9 : 3 / 4);
+     setCrop({ x: 0, y: 0 });
+     setZoom(1);
+@@ -304,6 +317,7 @@ const AdminProductEdit = () => {
+     setIsCropping(false);
+     setImageToCrop(null);
+     setCropTarget(null);
++    setRefiningIndex(null);
+     setFlipHorizontal(false);
+     setFlipVertical(false);
+   };
+@@ -613,6 +627,21 @@ const AdminProductEdit = () => {
+     toast.success("Original photo restored.");
+   };
+ 
++  /** Write the framing for one gallery image. Applies live, as it always has. */
++  const setFramingAt = (index: number, next: { x: number; y: number; zoom: number }) =>
++    setProduct(prev => ({
++      ...prev,
++      displayCrops: { ...(prev.displayCrops || {}), [index]: next },
++    }));
++
++  /** Drop the framing, which returns the photo to being shown whole. */
++  const resetFramingAt = (index: number) =>
++    setProduct(prev => {
++      const crops = { ...(prev.displayCrops || {}) };
++      delete crops[index];
++      return { ...prev, displayCrops: Object.keys(crops).length > 0 ? crops : undefined };
++    });
++
+   const copyFraming = () => {
+     const crop = product.displayCrops?.[selectedImage];
+     if (!crop || !currentImage) return;
+@@ -978,33 +1007,13 @@ const AdminProductEdit = () => {
+                 stage={studioStage}
+                 onRemoveBackground={() => runBackgroundRemoval()}
+                 onRestoreOriginal={restoreOriginal}
+-                onRecrop={() => openCropper(currentImage, "gallery")}
+-                onCropChange={(next) =>
+-                  setProduct(prev => ({
+-                    ...prev,
+-                    displayCrops: { ...(prev.displayCrops || {}), [selectedImage]: next },
+-                  }))
+-                }
+-                onCropReset={() =>
+-                  setProduct(prev => {
+-                    const crops = { ...(prev.displayCrops || {}) };
+-                    delete crops[selectedImage];
+-                    return {
+-                      ...prev,
+-                      displayCrops: Object.keys(crops).length > 0 ? crops : undefined,
+-                    };
+-                  })
+-                }
++                onRefine={() => openCropper(currentImage, "gallery", selectedImage)}
+                 onMeasured={(aspect) =>
+                   setImageAspects(prev =>
+                     prev[selectedImage] === aspect ? prev : { ...prev, [selectedImage]: aspect }
+                   )
+                 }
+                 onToggleDetail={toggleDetailImage}
+-                hasCopied={clipboard !== null}
+-                onCopyFraming={copyFraming}
+-                onPasteFraming={pasteFraming}
+-                onApplyFramingToOthers={() => setApplyingFraming(true)}
+               />
+             ) : (
+               <p className="text-center text-[10px] uppercase tracking-[0.2em] text-muted-foreground py-12">
+@@ -1028,7 +1037,7 @@ const AdminProductEdit = () => {
+       {/* Cropper Modal */}
+       {isCropping && imageToCrop && (
+         <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/90 backdrop-blur-md p-4 md:p-12">
+-          <div className="bg-background w-full max-w-5xl h-[85vh] rounded-[40px] overflow-hidden flex flex-col shadow-2xl border border-white/10">
++          <div className="bg-background w-full max-w-6xl h-[85vh] rounded-[40px] overflow-hidden flex flex-col shadow-2xl border border-white/10">
+             <div className="p-6 border-b border-border flex justify-between items-center">
+               <div className="flex items-center gap-4">
+                 <div className="p-2 bg-secondary rounded-lg">
+@@ -1044,21 +1053,53 @@ const AdminProductEdit = () => {
+               </button>
+             </div>
+             
+-            <div className="flex-1 relative bg-[#0F0F0F]">
+-              <Cropper
+-                image={imageToCrop}
+-                crop={crop}
+-                zoom={zoom}
+-                aspect={cropAspect}
+-                onCropChange={setCrop}
+-                onZoomChange={setZoom}
+-                onCropComplete={onCropComplete}
+-                style={{
+-                  mediaStyle: {
+-                    transform: `scaleX(${flipHorizontal ? -1 : 1}) scaleY(${flipVertical ? -1 : 1})`
+-                  }
+-                }}
+-              />
++            <div className="flex-1 min-h-0 flex flex-col md:flex-row">
++              <div className="flex-1 relative bg-[#0F0F0F] min-h-[240px]">
++                <Cropper
++                  image={imageToCrop}
++                  crop={crop}
++                  zoom={zoom}
++                  aspect={cropAspect}
++                  onCropChange={setCrop}
++                  onZoomChange={setZoom}
++                  onCropComplete={onCropComplete}
++                  style={{
++                    mediaStyle: {
++                      transform: `scaleX(${flipHorizontal ? -1 : 1}) scaleY(${flipVertical ? -1 : 1})`
++                    }
++                  }}
++                />
++              </div>
++
++              {/*
++                Framing, for an image that is already in the product.
++                Re-cutting the file and moving the frame over it are the same
++                intention — "this photo is not sitting right" — and splitting
++                them across two screens meant fixing the wrong one first. The
++                cropper on the left changes the picture; this changes how the
++                shop shows it, and applies as you drag.
++              */}
++              {refiningIndex !== null && currentImage && (
++                <aside className="w-full md:w-[340px] shrink-0 border-t md:border-t-0 md:border-l border-border bg-background p-6 overflow-y-auto">
++                  <FramingControls
++                    src={currentImage}
++                    category={product.category}
++                    crop={product.displayCrops?.[refiningIndex]}
++                    imageAspect={imageAspects[refiningIndex]}
++                    onChange={(next) => setFramingAt(refiningIndex, next)}
++                    onReset={() => resetFramingAt(refiningIndex)}
++                    onMeasured={(aspect) =>
++                      setImageAspects(prev =>
++                        prev[refiningIndex] === aspect ? prev : { ...prev, [refiningIndex]: aspect }
++                      )
++                    }
++                    hasCopied={clipboard !== null}
++                    onCopy={copyFraming}
++                    onPaste={pasteFraming}
++                    onApplyToOthers={() => setApplyingFraming(true)}
++                  />
++                </aside>
++              )}
+             </div>
+             
+             <div className="p-8 border-t border-border bg-background flex flex-col md:flex-row items-center gap-10">
+diff --git a/src/test/productImages.test.tsx b/src/test/productImages.test.tsx
+index d5f17d4..9d3aca6 100644
+--- a/src/test/productImages.test.tsx
++++ b/src/test/productImages.test.tsx
+@@ -51,11 +51,8 @@ describe("ImageWorkbench", () => {
+     src: images[0], index: 0, isPrimary: true, isDetail: false,
+     category: "footwear", crop: undefined, imageAspect: 1.5,
+     isProcessing: false, stage: "",
+-    onRemoveBackground: vi.fn(), onRestoreOriginal: vi.fn(), onRecrop: vi.fn(),
+-    onCropChange: vi.fn(), onCropReset: vi.fn(), onMeasured: vi.fn(),
+-    onToggleDetail: vi.fn(),
+-    hasCopied: false, onCopyFraming: vi.fn(),
+-    onPasteFraming: vi.fn(), onApplyFramingToOthers: vi.fn(),
++    onRemoveBackground: vi.fn(), onRestoreOriginal: vi.fn(), onRefine: vi.fn(),
++    onMeasured: vi.fn(), onToggleDetail: vi.fn(),
+   };
+ 
+   it("offers restore only once the photo has an original behind it", () => {
+@@ -71,6 +68,25 @@ describe("ImageWorkbench", () => {
+     expect(screen.getByText("Cutting out — 40%").closest("button")!.hasAttribute("disabled")).toBe(true);
+   });
+ 
++  it("opens Asset Refinement when the frame itself is clicked", () => {
++    const onRefine = vi.fn();
++    render(<ImageWorkbench {...base} onRefine={onRefine} />);
++    fireEvent.click(screen.getByLabelText(/Open Asset Refinement/i));
++    expect(onRefine).toHaveBeenCalledTimes(1);
++  });
++
++  it("keeps no framing sliders of its own — they belong to the refiner now", () => {
++    const { container } = render(<ImageWorkbench {...base} />);
++    expect(container.querySelector('input[type="range"]')).toBeNull();
++  });
++
++  it("says whether the photo is framed or shown whole", () => {
++    const { rerender } = render(<ImageWorkbench {...base} />);
++    expect(screen.getByText("Whole photo")).toBeTruthy();
++    rerender(<ImageWorkbench {...base} crop={{ x: 43, y: 46, zoom: 0.77 }} />);
++    expect(screen.getByText(/0\.77x/)).toBeTruthy();
++  });
++
+   it("reports which photo is serving as the 16:9", () => {
+     const { rerender } = render(<ImageWorkbench {...base} />);
+     expect(screen.getByText("Use this as the 16:9")).toBeTruthy();

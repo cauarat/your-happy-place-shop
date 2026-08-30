@@ -16,6 +16,7 @@ import { GalleryStrip } from "@/components/admin/productImages/GalleryStrip";
 import { ImageWorkbench } from "@/components/admin/productImages/ImageWorkbench";
 import { VideoWidget } from "@/components/admin/productImages/VideoWidget";
 import { ApplyFramingDialog } from "@/components/admin/productImages/ApplyFramingDialog";
+import { FramingControls } from "@/components/admin/productImages/FramingControls";
 import { readCropClipboard, writeCropClipboard, applyCropToProducts, type CropClipboard } from "@/lib/cropClipboard";
 
 const defaultProduct: Product = {
@@ -233,6 +234,17 @@ const AdminProductEdit = () => {
    */
   const [cropTarget, setCropTarget] = useState<"gallery" | "detail" | null>(null);
 
+  /**
+   * Which gallery image Asset Refinement is framing, if it is framing one.
+   *
+   * The same modal serves two arrivals: a photo just picked off disk, which has
+   * no place in the product yet and so nothing to frame, and an existing image
+   * opened from the workbench, which does. Only the second gets the framing
+   * panel — an index rather than a boolean because the framing is written to
+   * `displayCrops[index]`, and the selection can move underneath a modal.
+   */
+  const [refiningIndex, setRefiningIndex] = useState<number | null>(null);
+
   // The cut-out waiting for a yes or no. Nothing is written while this is set.
   const [studioResult, setStudioResult] = useState<StudioResult | null>(null);
   const [studioStage, setStudioStage] = useState("");
@@ -288,9 +300,10 @@ const AdminProductEdit = () => {
    * whatever ran before, so reopening the cropper landed at 3x on someone
    * else's framing.
    */
-  const openCropper = (src: string, target: "gallery" | "detail") => {
+  const openCropper = (src: string, target: "gallery" | "detail", refining: number | null = null) => {
     setImageToCrop(src);
     setCropTarget(target);
+    setRefiningIndex(refining);
     setCropAspect(target === "detail" ? 16 / 9 : 3 / 4);
     setCrop({ x: 0, y: 0 });
     setZoom(1);
@@ -304,6 +317,7 @@ const AdminProductEdit = () => {
     setIsCropping(false);
     setImageToCrop(null);
     setCropTarget(null);
+    setRefiningIndex(null);
     setFlipHorizontal(false);
     setFlipVertical(false);
   };
@@ -612,6 +626,21 @@ const AdminProductEdit = () => {
     });
     toast.success("Original photo restored.");
   };
+
+  /** Write the framing for one gallery image. Applies live, as it always has. */
+  const setFramingAt = (index: number, next: { x: number; y: number; zoom: number }) =>
+    setProduct(prev => ({
+      ...prev,
+      displayCrops: { ...(prev.displayCrops || {}), [index]: next },
+    }));
+
+  /** Drop the framing, which returns the photo to being shown whole. */
+  const resetFramingAt = (index: number) =>
+    setProduct(prev => {
+      const crops = { ...(prev.displayCrops || {}) };
+      delete crops[index];
+      return { ...prev, displayCrops: Object.keys(crops).length > 0 ? crops : undefined };
+    });
 
   const copyFraming = () => {
     const crop = product.displayCrops?.[selectedImage];
@@ -978,33 +1007,13 @@ const AdminProductEdit = () => {
                 stage={studioStage}
                 onRemoveBackground={() => runBackgroundRemoval()}
                 onRestoreOriginal={restoreOriginal}
-                onRecrop={() => openCropper(currentImage, "gallery")}
-                onCropChange={(next) =>
-                  setProduct(prev => ({
-                    ...prev,
-                    displayCrops: { ...(prev.displayCrops || {}), [selectedImage]: next },
-                  }))
-                }
-                onCropReset={() =>
-                  setProduct(prev => {
-                    const crops = { ...(prev.displayCrops || {}) };
-                    delete crops[selectedImage];
-                    return {
-                      ...prev,
-                      displayCrops: Object.keys(crops).length > 0 ? crops : undefined,
-                    };
-                  })
-                }
+                onRefine={() => openCropper(currentImage, "gallery", selectedImage)}
                 onMeasured={(aspect) =>
                   setImageAspects(prev =>
                     prev[selectedImage] === aspect ? prev : { ...prev, [selectedImage]: aspect }
                   )
                 }
                 onToggleDetail={toggleDetailImage}
-                hasCopied={clipboard !== null}
-                onCopyFraming={copyFraming}
-                onPasteFraming={pasteFraming}
-                onApplyFramingToOthers={() => setApplyingFraming(true)}
               />
             ) : (
               <p className="text-center text-[10px] uppercase tracking-[0.2em] text-muted-foreground py-12">
@@ -1028,7 +1037,7 @@ const AdminProductEdit = () => {
       {/* Cropper Modal */}
       {isCropping && imageToCrop && (
         <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/90 backdrop-blur-md p-4 md:p-12">
-          <div className="bg-background w-full max-w-5xl h-[85vh] rounded-[40px] overflow-hidden flex flex-col shadow-2xl border border-white/10">
+          <div className="bg-background w-full max-w-6xl h-[85vh] rounded-[40px] overflow-hidden flex flex-col shadow-2xl border border-white/10">
             <div className="p-6 border-b border-border flex justify-between items-center">
               <div className="flex items-center gap-4">
                 <div className="p-2 bg-secondary rounded-lg">
@@ -1044,21 +1053,53 @@ const AdminProductEdit = () => {
               </button>
             </div>
             
-            <div className="flex-1 relative bg-[#0F0F0F]">
-              <Cropper
-                image={imageToCrop}
-                crop={crop}
-                zoom={zoom}
-                aspect={cropAspect}
-                onCropChange={setCrop}
-                onZoomChange={setZoom}
-                onCropComplete={onCropComplete}
-                style={{
-                  mediaStyle: {
-                    transform: `scaleX(${flipHorizontal ? -1 : 1}) scaleY(${flipVertical ? -1 : 1})`
-                  }
-                }}
-              />
+            <div className="flex-1 min-h-0 flex flex-col md:flex-row">
+              <div className="flex-1 relative bg-[#0F0F0F] min-h-[240px]">
+                <Cropper
+                  image={imageToCrop}
+                  crop={crop}
+                  zoom={zoom}
+                  aspect={cropAspect}
+                  onCropChange={setCrop}
+                  onZoomChange={setZoom}
+                  onCropComplete={onCropComplete}
+                  style={{
+                    mediaStyle: {
+                      transform: `scaleX(${flipHorizontal ? -1 : 1}) scaleY(${flipVertical ? -1 : 1})`
+                    }
+                  }}
+                />
+              </div>
+
+              {/*
+                Framing, for an image that is already in the product.
+                Re-cutting the file and moving the frame over it are the same
+                intention — "this photo is not sitting right" — and splitting
+                them across two screens meant fixing the wrong one first. The
+                cropper on the left changes the picture; this changes how the
+                shop shows it, and applies as you drag.
+              */}
+              {refiningIndex !== null && currentImage && (
+                <aside className="w-full md:w-[340px] shrink-0 border-t md:border-t-0 md:border-l border-border bg-background p-6 overflow-y-auto">
+                  <FramingControls
+                    src={currentImage}
+                    category={product.category}
+                    crop={product.displayCrops?.[refiningIndex]}
+                    imageAspect={imageAspects[refiningIndex]}
+                    onChange={(next) => setFramingAt(refiningIndex, next)}
+                    onReset={() => resetFramingAt(refiningIndex)}
+                    onMeasured={(aspect) =>
+                      setImageAspects(prev =>
+                        prev[refiningIndex] === aspect ? prev : { ...prev, [refiningIndex]: aspect }
+                      )
+                    }
+                    hasCopied={clipboard !== null}
+                    onCopy={copyFraming}
+                    onPaste={pasteFraming}
+                    onApplyToOthers={() => setApplyingFraming(true)}
+                  />
+                </aside>
+              )}
             </div>
             
             <div className="p-8 border-t border-border bg-background flex flex-col md:flex-row items-center gap-10">
