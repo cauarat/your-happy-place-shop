@@ -801,7 +801,8 @@ describe("toProduct display crops", () => {
     designer: "Vans",
     images: ["https://example.com/a.jpg"],
     sourceUrl: "https://example.com/p",
-  };
+    via: "jsonld",
+  } satisfies RawProduct;
   const options = { categories: ["Footwear", "Bags"], designers: ["Vans"] };
 
   it("gives imported footwear the crop the rest of the catalogue's shoes use", () => {
